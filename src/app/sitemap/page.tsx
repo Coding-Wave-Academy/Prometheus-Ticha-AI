@@ -65,6 +65,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Struggles Identification",
+          path: "/getting-started/struggles",
+          description: "Select subjects where help is needed.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "Log In",
           path: "/login",
           description: "Sign in with email/password and social login options.",

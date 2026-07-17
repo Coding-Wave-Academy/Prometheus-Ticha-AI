@@ -51,7 +51,7 @@ export default function EducationLevelPage() {
   const handleContinue = () => {
     if (!selectedLevel) return;
     console.log(`Education level chosen: ${selectedLevel}`);
-    router.push("/register");
+    router.push("/getting-started/struggles");
   };
 
   return (

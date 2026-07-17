@@ -56,6 +56,15 @@ const resources = {
         },
         continue: "Continue",
       },
+      struggles: {
+        title: "Where do you need the most help?",
+        subtitle: "Tell Ticha AI what's tough so we can tailor your insights.",
+        math: "Mathematics",
+        physics: "Physics",
+        biology: "Biology",
+        addAnother: "Add another subject",
+        continue: "Continue",
+      },
       login: {
         title: "Welcome back, scholar!",
         subtitle: "Ready to pick up where you left off?",
@@ -133,6 +142,15 @@ const resources = {
           title: "Étudiant universitaire",
           subtitle: "Contrôles continus & examens",
         },
+        continue: "Continuer",
+      },
+      struggles: {
+        title: "Où avez-vous le plus besoin d'aide?",
+        subtitle: "Dites à Ticha AI ce qui est difficile pour que nous puissions adapter vos informations.",
+        math: "Mathématiques",
+        physics: "Physique",
+        biology: "Biologie",
+        addAnother: "Ajouter une autre matière",
         continue: "Continuer",
       },
       login: {
