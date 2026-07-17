@@ -148,7 +148,7 @@ export default function GoalSelectionPage() {
   const handleContinue = () => {
     if (!selectedGoal) return;
     console.log(`Goal chosen: ${selectedGoal}`);
-    router.push("/register");
+    router.push("/getting-started/education");
   };
 
   return (

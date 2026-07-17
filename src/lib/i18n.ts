@@ -40,6 +40,22 @@ const resources = {
           badge: "POPULAR CHOICE",
         },
       },
+      education: {
+        title: "Your Education Level",
+        ol: {
+          title: "GCE Ordinary Level (O/L)",
+          subtitle: "Form 5",
+        },
+        al: {
+          title: "GCE Advanced Level (A/L)",
+          subtitle: "Upper Sixth",
+        },
+        university: {
+          title: "University Student",
+          subtitle: "Continuous assessments & exams",
+        },
+        continue: "Continue",
+      },
       login: {
         title: "Welcome back, scholar!",
         subtitle: "Ready to pick up where you left off?",
@@ -102,6 +118,22 @@ const resources = {
           description: "Apprenez quelque chose de nouveau chaque jour",
           badge: "CHOIX POPULAIRE",
         },
+      },
+      education: {
+        title: "Votre niveau d'études",
+        ol: {
+          title: "GCE Ordinary Level (O/L)",
+          subtitle: "Form 5",
+        },
+        al: {
+          title: "GCE Advanced Level (A/L)",
+          subtitle: "Upper Sixth",
+        },
+        university: {
+          title: "Étudiant universitaire",
+          subtitle: "Contrôles continus & examens",
+        },
+        continue: "Continuer",
       },
       login: {
         title: "Bon retour, scholar!",

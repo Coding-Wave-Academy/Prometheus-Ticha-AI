@@ -58,6 +58,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Education Level",
+          path: "/getting-started/education",
+          description: "Select between O/L, A/L, or University academic targets.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "Log In",
           path: "/login",
           description: "Sign in with email/password and social login options.",
