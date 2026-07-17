@@ -12,8 +12,10 @@
 
 # files
 !config/
-!Agent.md
-!Claude.md
+!AGENTS.md
+!CLAUDE.md
+!GEMINI.md
+!OLLAMA.md
 
 # testing
 /coverage
