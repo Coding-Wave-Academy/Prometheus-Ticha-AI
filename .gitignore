@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# files
+!config/
+!Agent.md
+!Claude.md
+
 # testing
 /coverage
 
