@@ -10,7 +10,7 @@
                     Secondary users: students preparing for competitive state exams and university students
 
 # 3.SALES AND MARKETING STRATEGY
-- Value proposition: Ticha-ai  provides a unique personalised learning experience to its users and help them build good studying habits that will hjelp them achieve their long-term academic goals unlike other applications Tich-ai focuses on helping students progress and understanding rather than just answering homework or cramming past answers or solutions for the sole purpose of passing the exams
+- Value proposition: Ticha-ai  provides a unique personalised learning experience to its users and helps them build good studying habits that will help them achieve their long-term academic goals unlike other applications Tich-ai focuses on helping students progress and understanding rather than just answering homework or cramming past answers or solutions for the sole purpose of passing the exams
 - Market Channels: showcase our app to students through school visits, posters and
 - Pricing model: all users have access to a freemium plan, that gives the limited access to the application features, users may choose to uprgrade to a pro plan through a monthly or yearly paid subscription
 
@@ -20,3 +20,4 @@
 - Future projection:
 
   ## PART 2: PRODUCT REQUIREMENT  DOCUMENT
+  - 
