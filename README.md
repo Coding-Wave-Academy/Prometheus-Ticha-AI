@@ -16,5 +16,7 @@
 
 # 4. FINANCIAL PLAN
 - Startup costs: cost of API key for the AI model used in the application, subscription for AI assistants for the app development and hosting cost to deploy the application on popular platforms
-- Break-even analysis:
-- Future projection: 
+- Break-even analysis: 
+- Future projection:
+
+  ## PART 2: PRODUCT REQUIREMENT  DOCUMENT
