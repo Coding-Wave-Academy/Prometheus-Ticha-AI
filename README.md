@@ -22,7 +22,7 @@
   # PART 2: PRODUCT REQUIREMENT  DOCUMENT
   Here is a comprehensive Product Requirements Document (PRD) based on your project overview and the market realities of the Cameroonian education sector.
   
-## 1.Product Overview
+## 1. Product Overview
 -	Mission: TICHA AI is a compassionate, AI-powered Progressive Web App (PWA) designed to act as the "perfect teacher" for Cameroonian students. It helps students prepare for the GCE Ordinary Level (O/L), Advanced Level (A/L), competitive state exams (concours), and university continuous assessments (CAs).
 -	Core Philosophy: Shifting from last-minute cramming to a "1% daily improvement" habit through personalized, Socratic micro-learning.
 
