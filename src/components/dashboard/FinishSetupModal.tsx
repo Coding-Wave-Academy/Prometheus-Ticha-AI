@@ -25,9 +25,13 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
   useEffect(() => {
     // Read actual setup state from localStorage
     const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
+    const avatarUploaded = !!localStorage.getItem("ticha_user_avatar");
     const tfaEnabled = localStorage.getItem("ticha_2fa_enabled") === "true";
     const regionSelected = localStorage.getItem("ticha_region_selected") === "true";
     const schoolAdded = localStorage.getItem("ticha_school_added") === "true";
+
+    // Profile is complete only when name + avatar are both set
+    const profileFullyComplete = profileCompleted && avatarUploaded;
 
     const allSteps: SetupStep[] = [
       {
@@ -45,13 +49,13 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
       {
         id: "profile",
         title: "Complete Profile",
-        description: "Tell us about yourself",
+        description: "Add name & profile photo",
         icon: (
           <svg className="w-5 h-5 fill-current" viewBox="0 0 448 512">
             <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C75.8 288 32 331.8 32 385.6V464c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-78.4c0-53.8-43.8-97.6-97.6-97.6z" />
           </svg>
         ),
-        isCompleted: profileCompleted,
+        isCompleted: profileFullyComplete,
         href: "/dashboard/profile?focus=name",
       },
       {

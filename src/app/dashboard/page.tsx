@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useFeaturedSubjects } from "@/hooks/useFeaturedSubjects";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StreakCalendar from "@/components/dashboard/StreakCalendar";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -12,10 +13,11 @@ import FeaturedSubjects from "@/components/dashboard/FeaturedSubjects";
 import RegionalUpdates from "@/components/dashboard/RegionalUpdates";
 import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
-import { SubjectData, StreakDay, QuickAction } from "@/types";
+import { StreakDay, QuickAction } from "@/types";
+import { supabase } from "@/lib/supabase";
 import "@/lib/i18n";
 
-// ─── Static data (replace with API calls once useAuth / useCourseProgress are wired up) ──
+// ─── Static data ──────────────────────────────────────────────────────────────
 
 const streakDays: StreakDay[] = [
   { day: "S", active: true },
@@ -34,49 +36,6 @@ const quickActions: QuickAction[] = [
   { name: "Practice", icon: "≡", bgColor: "bg-[#FFD9E0]" },
 ];
 
-const featuredSubjects: SubjectData[] = [
-  {
-    id: "phys",
-    category: "Sciences",
-    title: "Physics",
-    subtitle: "Electromagnetism & Quantum",
-    progress: 82,
-    bgColor: "bg-[#B6FF00]",
-    icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="4" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v2m0 16v2M2 12h2m16 0h2m-3.636-6.364-1.414 1.414M6.05 17.95l-1.414 1.414M17.95 17.95l-1.414-1.414M6.05 6.05 4.636 4.636" />
-      </svg>
-    ),
-  },
-  {
-    id: "math",
-    category: "Mathematics",
-    title: "Pure Maths",
-    subtitle: "Complex Numbers & Calculus",
-    progress: 45,
-    bgColor: "bg-[#D3E2FF]",
-    icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15M19.5 19.5l-15-15m0 15 15-15" />
-      </svg>
-    ),
-  },
-  {
-    id: "ict",
-    category: "Technology",
-    title: "ICT",
-    subtitle: "Networking Basics",
-    progress: 94,
-    bgColor: "bg-[#FFD9E0]",
-    icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-      </svg>
-    ),
-  },
-];
-
 const regionalUpdates = [
   { id: "littoral-mock", title: "Littoral Region Mock dates released!", date: "May 12th, 2024" },
 ];
@@ -88,26 +47,44 @@ function StudentDashboardPageContent() {
   const searchParams = useSearchParams();
   const navItems = useNavItems();
 
-  const [userName, setUserName] = useState("Amadou");
+  const [userName, setUserName] = useState("Student");
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [avatar, setAvatar] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [educationLevel, setEducationLevel] = useState("GCE A-Level");
+
+  // Get authenticated userId for backend calls
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id);
+    });
+  }, []);
 
   useEffect(() => {
-    // Read dynamic user name configured in profile setup
     const savedName = localStorage.getItem("ticha_user_fullname");
     if (savedName) setUserName(savedName);
 
-    // Read avatar photo details
     const savedAvatar = localStorage.getItem("ticha_user_avatar");
     if (savedAvatar) setAvatar(savedAvatar);
 
-    // Open setup modal if ?showSetup=true query parameter is present
+    const savedEd = localStorage.getItem("ticha_onboarding_education");
+    if (savedEd) {
+      const levelMap: Record<string, string> = {
+        ol: "GCE O-Level",
+        al: "GCE A-Level",
+        university: "University",
+      };
+      setEducationLevel(levelMap[savedEd] || "GCE A-Level");
+    }
+
     if (searchParams.get("showSetup") === "true") {
       setIsSetupModalOpen(true);
     }
   }, [searchParams]);
 
-  const currentLevel = "GCE A-Level";
+  // Dynamic featured subjects from onboarding selections + Supabase progress
+  const { subjects: featuredSubjects, isLoading: subjectsLoading } = useFeaturedSubjects(userId);
+
   const streakCount = 12;
   const notificationCount = 3;
 
@@ -135,12 +112,51 @@ function StudentDashboardPageContent() {
           }}
         />
 
-        <FeaturedSubjects
-          subjects={featuredSubjects}
-          currentLevel={currentLevel}
-          onSubjectClick={(id) => router.push(`/courses/${id}`)}
-          onSeeMore={() => router.push("/courses")}
-        />
+        {/* Featured Subjects — driven by onboarding selections */}
+        {subjectsLoading ? (
+          <section className="w-full mb-8">
+            <div className="flex items-center justify-between mb-4 pl-1">
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
+                Featured Subjects
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="bg-stone-200 border-[3.5px] border-black rounded-xl p-4 h-20 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] animate-pulse"
+                />
+              ))}
+            </div>
+          </section>
+        ) : featuredSubjects.length === 0 ? (
+          <section className="w-full mb-8">
+            <div className="flex items-center justify-between mb-4 pl-1">
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
+                Featured Subjects
+              </h3>
+            </div>
+            <button
+              onClick={() => router.push("/getting-started/struggles")}
+              className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col items-start gap-2 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-left"
+            >
+              <span className="text-lg">📚</span>
+              <p className="font-black text-black text-sm uppercase tracking-wide">
+                Select Your Subjects
+              </p>
+              <p className="text-xs font-bold text-stone-700">
+                Tell Ticha AI what you&apos;re studying to unlock personalized cards here.
+              </p>
+            </button>
+          </section>
+        ) : (
+          <FeaturedSubjects
+            subjects={featuredSubjects}
+            currentLevel={educationLevel}
+            onSubjectClick={(id) => router.push(`/courses/${id}`)}
+            onSeeMore={() => router.push("/courses")}
+          />
+        )}
 
         <RegionalUpdates
           updates={regionalUpdates}

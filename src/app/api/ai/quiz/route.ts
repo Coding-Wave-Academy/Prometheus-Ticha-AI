@@ -7,54 +7,61 @@ export const dynamic = "force-dynamic";
  * based on the student's saved onboarding profile vector.
  */
 export async function POST(req: NextRequest) {
+  let fallbackQuiz: Array<{
+    questionText: string;
+    options: string[];
+    answerIdx: number;
+    explanation: string;
+  }> = [];
+
   try {
     const { goal, education, struggles, subject, count, difficulty } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    const finalSubject = subject || (struggles && struggles.length > 0 ? struggles.join(", ") : "General Science");
+    const finalSubject = subject || (struggles && struggles.length > 0 ? struggles[0] : "General Science");
     const finalCount = count ? parseInt(count, 10) : 3;
     const finalDifficulty = difficulty || "Medium";
 
-    // Premium default fallback questions
-    const fallbackQuiz = [
+    // Dynamic subject-aware fallback — uses the actual subject name
+    fallbackQuiz = [
       {
-        questionText: "Which of the following phenomena is a direct manifestation of quantum tunneling?",
+        questionText: `Which of the following best describes a core principle of ${finalSubject}?`,
         options: [
-          "Alpha decay of radioactive nuclei",
-          "Blackbody radiation intensity",
-          "Photoelectric work function threshold",
-          "Bohr radius orbital electron levels",
+          `The systematic study of ${finalSubject} concepts and their applications`,
+          "A discipline unrelated to scientific reasoning",
+          "Purely memorization-based without analytical thinking",
+          "A field with no practical applications",
         ],
         answerIdx: 0,
-        explanation: "Alpha decay occurs because alpha particles tunnel through the strong nuclear force potential barrier of the nucleus, even though they classically lack the kinetic energy to escape!",
+        explanation: `${finalSubject} is a structured discipline that involves both theoretical understanding and practical application. Mastering core principles is key to excelling in GCE examinations.`,
       },
       {
-        questionText: "If the wavefunction of a particle incident on a barrier has an energy E less than the barrier height V, what happens to the wavefunction inside the barrier?",
+        questionText: `What is the most effective approach to preparing for a ${finalSubject} examination?`,
         options: [
-          "It becomes a constant zero",
-          "It decays exponentially",
-          "It oscillates with twice the frequency",
-          "It remains a constant amplitude sine wave",
+          "Reading the textbook once without practice",
+          "Active recall, past paper practice, and concept mapping",
+          "Memorizing isolated facts without understanding",
+          "Skipping difficult topics entirely",
         ],
         answerIdx: 1,
-        explanation: "Inside the potential barrier where E < V, the wavefunction undergoes exponential decay. If the barrier is thin enough, the wavefunction value is non-zero at the far boundary, allowing the particle to emerge!",
+        explanation: `Active recall and past paper practice are the most evidence-backed strategies for ${finalSubject} exam preparation. They strengthen long-term retention and expose gaps in understanding.`,
       },
       {
-        questionText: "How does increasing the thickness of a potential barrier affect the transmission probability of a tunneling particle?",
+        questionText: `In the context of ${finalSubject}, what does analytical thinking involve?`,
         options: [
-          "It increases the probability linearly",
-          "It does not change the probability",
-          "It decreases the probability exponentially",
-          "It increases the probability exponentially",
+          "Applying given formulas without understanding them",
+          "Breaking down complex problems into manageable components",
+          "Avoiding unfamiliar question types",
+          "Relying only on worked examples",
         ],
-        answerIdx: 2,
-        explanation: "Transmission probability decreases exponentially with the width of the barrier, making thin barriers highly critical for quantum tunneling electronics (like flash memory memory cells)!",
+        answerIdx: 1,
+        explanation: `Analytical thinking in ${finalSubject} means dissecting problems systematically, identifying relevant principles, and constructing logical solutions — a skill examiners actively reward.`,
       },
     ].slice(0, finalCount);
 
     if (!apiKey) {
-      console.log("No GEMINI_API_KEY found for quiz, returning fallback questions.");
+      console.log("No GEMINI_API_KEY found for quiz, returning subject-aware fallback questions.");
       return NextResponse.json({ quiz: fallbackQuiz });
     }
 
@@ -107,31 +114,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ quiz: parsed.quiz || fallbackQuiz });
 
   } catch (error) {
-    console.error("Gemini quiz generation failed, returning fallback quiz:", error);
-    // Bails out safely
+    console.error("Gemini quiz generation failed, returning subject-aware fallback:", error);
     return NextResponse.json({
-      quiz: [
+      quiz: fallbackQuiz.length > 0 ? fallbackQuiz : [
         {
-          questionText: "Which of the following phenomena is a direct manifestation of quantum tunneling?",
+          questionText: "What is the best approach to exam preparation?",
           options: [
-            "Alpha decay of radioactive nuclei",
-            "Blackbody radiation intensity",
-            "Photoelectric work function threshold",
-            "Bohr radius orbital electron levels",
+            "Active recall and past paper practice",
+            "Reading notes passively once",
+            "Memorizing without understanding",
+            "Skipping difficult topics",
           ],
           answerIdx: 0,
-          explanation: "Alpha decay occurs because alpha particles tunnel through the strong nuclear force potential barrier of the nucleus, even though they classically lack the kinetic energy to escape!",
-        },
-        {
-          questionText: "If the wavefunction of a particle incident on a barrier has an energy E less than the barrier height V, what happens to the wavefunction inside the barrier?",
-          options: [
-            "It becomes a constant zero",
-            "It decays exponentially",
-            "It oscillates with twice the frequency",
-            "It remains a constant amplitude sine wave",
-          ],
-          answerIdx: 1,
-          explanation: "Inside the potential barrier where E < V, the wavefunction undergoes exponential decay. If the barrier is thin enough, the wavefunction value is non-zero at the far boundary, allowing the particle to emerge!",
+          explanation: "Active recall and past paper practice are the most evidence-backed strategies for any GCE examination subject.",
         },
       ]
     });

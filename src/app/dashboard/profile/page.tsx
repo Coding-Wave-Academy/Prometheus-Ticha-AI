@@ -93,29 +93,51 @@ function ProfilePageContent() {
     setTimeout(() => setToastMessage(""), 3000);
   };
 
+  // Helper — get current Supabase user ID
+  const getUserId = async (): Promise<string | null> => {
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data } = await sb.auth.getUser();
+    return data.user?.id || null;
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64String = reader.result as string;
         setAvatar(base64String);
         localStorage.setItem("ticha_user_avatar", base64String);
+
+        // Sync avatar flag to Supabase (store a flag, not the base64 blob)
+        const uid = await getUserId();
+        if (uid) {
+          fetch("/api/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: uid, avatar_url: "local_base64_set" }),
+          }).catch(console.error);
+        }
+
         showToast("Profile photo updated!");
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Persist profile inputs
+    // Persist profile inputs to localStorage
     localStorage.setItem("ticha_user_fullname", fullName);
     localStorage.setItem("ticha_school_name", schoolName);
     localStorage.setItem("ticha_region", region);
 
-    // Dynamic checks
+    // Dynamic completion checks
     const nameDone = fullName.trim().length > 3;
     const regionDone = region !== "";
     const schoolDone = schoolName.trim().length > 2;
@@ -127,6 +149,34 @@ function ProfilePageContent() {
     setProfileCompleted(nameDone);
     setRegionSelected(regionDone);
     setSchoolAdded(schoolDone);
+
+    // Sync to Supabase
+    try {
+      const uid = await getUserId();
+      if (uid) {
+        const education = localStorage.getItem("ticha_onboarding_education") || undefined;
+        const goal = localStorage.getItem("ticha_onboarding_goal") || undefined;
+        const strugglesRaw = localStorage.getItem("ticha_onboarding_struggles");
+        const struggles = strugglesRaw ? JSON.parse(strugglesRaw) : undefined;
+
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: uid,
+            full_name: fullName,
+            school_name: schoolName,
+            region,
+            education_level: education,
+            primary_goal: goal,
+            struggles,
+            profile_completed: nameDone,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to sync profile to Supabase:", err);
+    }
 
     showToast("Profile settings saved successfully!");
   };

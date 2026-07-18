@@ -33,19 +33,23 @@ export default function QuizGeneratorPage() {
   const [struggles, setStruggles] = useState<string[]>([]);
   const [vector, setVector] = useState<any>(null);
 
-  // Load vector details on mount
+  // Load onboarding data on mount
   useEffect(() => {
-    const vectorStr = localStorage.getItem("ticha_user_profile_vector");
-    if (vectorStr) {
-      const vectorData = JSON.parse(vectorStr);
-      setVector(vectorData);
-      if (vectorData.struggles && vectorData.struggles.length > 0) {
-        setStruggles(vectorData.struggles);
-        setSubject(vectorData.struggles[0]); // Default to first struggle subject
-      }
+    // Read from the correct key set by the struggles page
+    const rawStruggles = localStorage.getItem("ticha_onboarding_struggles");
+    const goal = localStorage.getItem("ticha_onboarding_goal") || "gce";
+    const education = localStorage.getItem("ticha_onboarding_education") || "al";
+
+    if (rawStruggles) {
+      const names: string[] = JSON.parse(rawStruggles);
+      setStruggles(names);
+      if (names.length > 0) setSubject(names[0]);
+      setVector({ goal, education, struggles: names });
     } else {
-      setStruggles(["Physics", "Pure Mathematics", "Chemistry"]);
-      setSubject("Physics");
+      // No onboarding data yet — show generic subjects
+      setStruggles(["General Science", "Mathematics", "English"]);
+      setSubject("General Science");
+      setVector({ goal, education });
     }
   }, []);
 
@@ -79,29 +83,17 @@ export default function QuizGeneratorPage() {
       setQuiz(data.quiz || []);
     } catch (err) {
       console.error("Failed to fetch customized quiz", err);
-      // Premium fallback
       setQuiz([
         {
-          questionText: `[Fallback] Which of the following is a key concept in ${subject}?`,
+          questionText: `What is a key concept in ${subject}?`,
           options: [
-            "Exponential potential wave barrier tunneling",
-            "Linear drag coefficient integration",
-            "Hydrostatic pressure equilibrium",
-            "First law of thermodynamics entropy",
+            `A fundamental principle of ${subject}`,
+            "A concept from a different field",
+            "An unrelated historical event",
+            "A non-scientific approach",
           ],
           answerIdx: 0,
-          explanation: `This is a premium fallback question on ${subject} at ${difficulty} level since connection timed out.`,
-        },
-        {
-          questionText: `[Fallback] What is a primary challenge when optimizing ${subject} calculations?`,
-          options: [
-            "Boundary conditions parsing limits",
-            "Thermal radiation emission parameters",
-            "Chemical redox reaction balancing",
-            "Angular momentum conservation laws",
-          ],
-          answerIdx: 0,
-          explanation: `Boundary parameters dictate classic limits on ${subject}.`,
+          explanation: `Understanding core principles of ${subject} is essential for GCE examination success.`,
         },
       ].slice(0, count));
     } finally {
@@ -129,23 +121,27 @@ export default function QuizGeneratorPage() {
     const nextIndex = currentIdx + 1;
     setCurrentIdx(nextIndex);
 
-    // If quiz is finished, save attempt history to Supabase
+    // If quiz is finished, save attempt to Supabase via /api/progress
     if (nextIndex >= quiz.length) {
       const finalScore = selectedOpt === quiz[currentIdx].answerIdx ? score + 1 : score;
-      if (isSupabaseConfigured()) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from("quiz_attempts").insert({
-              user_id: user.id,
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await fetch("/api/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              subject: subject,
               score: finalScore,
               total_questions: quiz.length,
-            });
-            console.log("Successfully saved quiz attempt to Supabase.");
-          }
-        } catch (err) {
-          console.error("Failed to insert attempt to Supabase", err);
+              difficulty: difficulty,
+            }),
+          });
+          console.log("Quiz attempt saved to Supabase via /api/progress");
         }
+      } catch (err) {
+        console.error("Failed to save quiz attempt:", err);
       }
     }
   };

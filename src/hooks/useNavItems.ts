@@ -28,7 +28,11 @@ export function useNavItems(): NavItemWithHandlers[] {
 
   return NAV_DEFINITIONS.map((item) => ({
     ...item,
-    active: pathname === item.href || pathname.startsWith(item.href + "/"),
+    // Home tab: exact match only — /dashboard/chat must NOT activate Home
+    active:
+      item.id === "home"
+        ? pathname === item.href
+        : pathname === item.href || pathname.startsWith(item.href + "/"),
     onClick: () => router.push(item.href),
   }));
 }

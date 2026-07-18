@@ -26,15 +26,21 @@ export default function FlashcardsPage() {
   const [difficulty, setDifficulty] = useState("Medium");
   const [vector, setVector] = useState<any>(null);
 
-  // Read struggles from onboarding vector
+  // Read struggles from onboarding keys
   useEffect(() => {
-    const vectorStr = localStorage.getItem("ticha_user_profile_vector");
-    if (vectorStr) {
-      const data = JSON.parse(vectorStr);
-      setVector(data);
-      if (data.struggles && data.struggles.length > 0) {
-        setStruggles(data.struggles);
-        setSubject(data.struggles[0]);
+    const rawStruggles = localStorage.getItem("ticha_onboarding_struggles");
+    const goal = localStorage.getItem("ticha_onboarding_goal") || "gce";
+    const education = localStorage.getItem("ticha_onboarding_education") || "al";
+
+    setVector({ goal, education });
+
+    if (rawStruggles) {
+      const parsed = JSON.parse(rawStruggles);
+      setStruggles(parsed);
+      if (parsed.length > 0) {
+        setSubject(parsed[0]);
+      } else {
+        setSubject("Physics");
       }
     } else {
       setStruggles(["Physics", "Pure Mathematics", "Chemistry"]);

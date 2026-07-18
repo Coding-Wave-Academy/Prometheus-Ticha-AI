@@ -7,38 +7,38 @@ export const dynamic = "force-dynamic";
  * based on selected subject.
  */
 export async function POST(req: NextRequest) {
+  let fallbackCards: Array<{ front: string; back: string }> = [];
   try {
     const { subject, count, difficulty, goal, education } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
 
+    const finalSubject = subject || "General Studies";
     const finalCount = count ? parseInt(count, 10) : 4;
     const finalDifficulty = difficulty || "Medium";
     const finalGoal = goal || "excellence";
     const finalEducation = education || "al";
 
-    // High quality dynamic fallback flashcards
-    const fallbackCards = [
-      {
-        front: "What is Quantum Tunneling?",
-        back: "A quantum phenomenon where particles pass through a potential barrier that they classically shouldn't be able to cross.",
-      },
-      {
-        front: "What dictates the probability of a particle tunneling?",
-        back: "The width of the potential barrier, its energy height relative to the particle's energy, and the particle's mass.",
-      },
-      {
-        front: "Give a real-world application of tunneling.",
-        back: "Flash memory chips (USB drives, SSDs) write and erase data by tunneling electrons through insulating oxide barriers.",
-      },
-      {
-        front: "What happens to a wavefunction inside a barrier?",
-        back: "It undergoes exponential decay, reducing the wave amplitude but retaining a non-zero value at the exit boundary.",
-      },
-    ].slice(0, finalCount);
+    // Subject-aware dynamic fallback cards
+    fallbackCards = Array.from({ length: finalCount }, (_, i) => ({
+      front: i === 0
+        ? `What is a key concept in ${finalSubject}?`
+        : i === 1
+        ? `Define an important term in ${finalSubject}.`
+        : i === 2
+        ? `What is a common exam question topic in ${finalSubject}?`
+        : `Give a real-world application of ${finalSubject}.`,
+      back: i === 0
+        ? `${finalSubject} builds upon fundamental principles that form the basis of examination questions. Master the core definitions first.`
+        : i === 1
+        ? `Key terms in ${finalSubject} are essential for answering structured questions correctly in GCE examinations.`
+        : i === 2
+        ? `Examiners frequently test problem-solving and analytical reasoning in ${finalSubject}. Practice past papers regularly.`
+        : `${finalSubject} has direct applications in everyday life and professional careers in Cameroon and beyond.`,
+    })).slice(0, finalCount);
 
     if (!apiKey) {
-      console.log("No GEMINI_API_KEY found for flashcards, returning fallbacks.");
+      console.log("No GEMINI_API_KEY found for flashcards, returning subject-aware fallbacks.");
       return NextResponse.json({ cards: fallbackCards });
     }
 
@@ -88,17 +88,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ cards: parsed.cards || fallbackCards });
 
   } catch (error) {
-    console.error("Gemini flashcards query failed, returning fallback:", error);
+    console.error("Gemini flashcards query failed, returning subject-aware fallback:", error);
     return NextResponse.json({
-      cards: [
-        {
-          front: "What is Quantum Tunneling?",
-          back: "A quantum phenomenon where particles pass through a potential barrier that they classically shouldn't be able to cross.",
-        },
-        {
-          front: "What dictates the probability of a particle tunneling?",
-          back: "The width of the potential barrier, its energy height relative to the particle's energy, and the particle's mass.",
-        },
+      cards: fallbackCards.length > 0 ? fallbackCards : [
+        { front: "What is a key concept in this subject?", back: "Master the core definitions and past paper patterns to excel in GCE examinations." },
+        { front: "How do you approach examination preparation?", back: "Active recall, timed practice, and concept mapping are the most effective techniques." },
       ]
     });
   }
