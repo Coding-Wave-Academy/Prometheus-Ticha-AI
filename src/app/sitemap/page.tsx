@@ -126,6 +126,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "AI Quiz Generator",
+          path: "/dashboard/quiz-generator",
+          description: "Interactive dynamically generated MCQ quizzes using student profile vector data.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
+        },
+        {
           name: "Progress Tracker",
           path: "/dashboard/progress",
           description: "Visual charts detailing lesson completions.",

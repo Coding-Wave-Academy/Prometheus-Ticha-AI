@@ -51,13 +51,14 @@ export default function EducationLevelPage() {
   const handleContinue = () => {
     if (!selectedLevel) return;
     console.log(`Education level chosen: ${selectedLevel}`);
+    localStorage.setItem("ticha_onboarding_education", selectedLevel);
     router.push("/getting-started/struggles");
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
       {/* PWA Mobile-First Wrapper Container */}
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
         
         {/* Navigation & Progress Header */}
         <header className="flex items-center gap-4 w-full">

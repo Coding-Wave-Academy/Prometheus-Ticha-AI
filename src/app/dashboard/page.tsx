@@ -108,7 +108,7 @@ function StudentDashboardPageContent() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center">
+      <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center animate-page-in">
         <DashboardHeader
           userName={userName}
           streakCount={streakCount}
@@ -120,7 +120,13 @@ function StudentDashboardPageContent() {
 
         <QuickActions
           actions={quickActions}
-          onAction={(name) => console.log("Quick action:", name)}
+          onAction={(name) => {
+            if (name === "Daily Quiz") {
+              router.push("/dashboard/quiz-generator");
+            } else {
+              console.log("Quick action:", name);
+            }
+          }}
         />
 
         <FeaturedSubjects
