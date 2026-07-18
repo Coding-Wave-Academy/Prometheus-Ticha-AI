@@ -46,6 +46,7 @@ export default function RegisterPage() {
     setTimeout(() => {
       setIsLoading(false);
       console.log("Registered:", { name, email });
+      localStorage.setItem("ticha_user_fullname", name);
       router.push("/dashboard?showSetup=true");
     }, 1500);
   };
