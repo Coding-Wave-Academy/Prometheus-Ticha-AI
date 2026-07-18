@@ -33,16 +33,18 @@ const fallbackIntel = {
 };
 
 export async function POST(req: NextRequest) {
+  let activeFallback = fallbackIntel;
   try {
     const { goal, education, struggles } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Build context-aware fallback data based on struggles list
-    const hasMath = struggles?.some((s: string) => s.toLowerCase().includes("math") || s.toLowerCase().includes("calculus"));
-    const hasChem = struggles?.some((s: string) => s.toLowerCase().includes("chem"));
+    const finalStruggles = Array.isArray(struggles) ? struggles : ["Physics"];
 
-    let activeFallback = fallbackIntel;
+    // Build context-aware fallback data based on struggles list
+    const hasMath = finalStruggles.some((s: string) => s.toLowerCase().includes("math") || s.toLowerCase().includes("calculus"));
+    const hasChem = finalStruggles.some((s: string) => s.toLowerCase().includes("chem"));
+
     if (hasMath) {
       activeFallback = {
         bigIdea: {
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
     const prompt = `
       You are a Cameroonian curriculum expert counselor at Ticha AI.
       Create a personalized educational breakdown (intel) for a student at level: "${education}" (e.g. ol/al/university)
-      with the goal: "${goal}" and struggling with: "${struggles.join(", ")}".
+      with the goal: "${goal}" and struggling with: "${finalStruggles.join(", ")}".
 
       Based on these struggles, generate an "Aha!" concept guide. Focus on one core conceptual challenge in those subjects (e.g. quantum tunneling if Physics is chosen, calculus limits, computer recursion, etc.).
       
@@ -155,6 +157,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("Gemini query failed, bailing out to fallback intel:", error);
-    return NextResponse.json({ intel: fallbackIntel });
+    return NextResponse.json({ intel: activeFallback });
   }
 }

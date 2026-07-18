@@ -67,6 +67,32 @@ export default function StrugglesIdentificationPage() {
     fetchStruggles();
   }, []);
 
+  // Load custom subjects and selections from localStorage on mount
+  useEffect(() => {
+    const savedCustom = localStorage.getItem("ticha_onboarding_custom_subjects");
+    if (savedCustom) {
+      try {
+        const parsed = JSON.parse(savedCustom);
+        const mapped = parsed.map((item: any) => ({
+          ...item,
+          icon: <span role="img" aria-label="subject icon" className="text-lg select-none">📚</span>
+        }));
+        setCustomSubjects(mapped);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const savedSelected = localStorage.getItem("ticha_onboarding_selected_ids");
+    if (savedSelected) {
+      try {
+        setSelectedSubjects(new Set(JSON.parse(savedSelected)));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
   const subjects = [...aiSubjects, ...customSubjects];
 
   const handleToggleSubject = (id: string) => {
@@ -77,6 +103,7 @@ export default function StrugglesIdentificationPage() {
       } else {
         next.add(id);
       }
+      localStorage.setItem("ticha_onboarding_selected_ids", JSON.stringify(Array.from(next)));
       return next;
     });
   };
@@ -101,10 +128,15 @@ export default function StrugglesIdentificationPage() {
       ),
     };
 
-    setCustomSubjects((prev) => [...prev, newSubject]);
+    const updatedCustom = [...customSubjects, newSubject];
+    setCustomSubjects(updatedCustom);
+    const serializableCustom = updatedCustom.map(({ id, name, iconBg }) => ({ id, name, iconBg }));
+    localStorage.setItem("ticha_onboarding_custom_subjects", JSON.stringify(serializableCustom));
+
     setSelectedSubjects((prev) => {
       const next = new Set(prev);
       next.add(newId);
+      localStorage.setItem("ticha_onboarding_selected_ids", JSON.stringify(Array.from(next)));
       return next;
     });
 

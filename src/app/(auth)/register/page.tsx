@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
     if (isSupabaseConfigured()) {
       try {
-        const { error: authErr } = await supabase.auth.signUp({
+        const { data: signUpData, error: authErr } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -63,6 +63,28 @@ export default function RegisterPage() {
           setError(authErr.message);
           setIsLoading(false);
           return;
+        }
+
+        const user = signUpData.user;
+        if (user) {
+          const goal = localStorage.getItem("ticha_onboarding_goal") || undefined;
+          const education = localStorage.getItem("ticha_onboarding_education") || undefined;
+          const strugglesRaw = localStorage.getItem("ticha_onboarding_struggles");
+          const struggles = strugglesRaw ? JSON.parse(strugglesRaw) : [];
+
+          // Initialize database profile entry
+          await fetch("/api/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              full_name: name,
+              education_level: education,
+              primary_goal: goal,
+              struggles: struggles,
+              profile_completed: true,
+            }),
+          }).catch((err) => console.error("Initial profile database initialization failed:", err));
         }
 
         setIsLoading(false);

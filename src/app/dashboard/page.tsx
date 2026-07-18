@@ -53,10 +53,55 @@ function StudentDashboardPageContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [educationLevel, setEducationLevel] = useState("GCE A-Level");
 
-  // Get authenticated userId for backend calls
+  // Get authenticated userId for backend calls and sync profile data
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUserId(data.user.id);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        const uid = data.user.id;
+        setUserId(uid);
+
+        try {
+          const res = await fetch(`/api/profile?userId=${uid}`);
+          if (res.ok) {
+            const json = await res.json();
+            const profile = json.profile;
+            if (profile) {
+              if (profile.full_name) {
+                setUserName(profile.full_name);
+                localStorage.setItem("ticha_user_fullname", profile.full_name);
+              }
+              if (profile.education_level) {
+                localStorage.setItem("ticha_onboarding_education", profile.education_level);
+                const levelMap: Record<string, string> = {
+                  ol: "GCE O-Level",
+                  al: "GCE A-Level",
+                  university: "University",
+                };
+                setEducationLevel(levelMap[profile.education_level] || "GCE A-Level");
+              }
+              if (profile.primary_goal) {
+                localStorage.setItem("ticha_onboarding_goal", profile.primary_goal);
+              }
+              if (profile.struggles) {
+                localStorage.setItem("ticha_onboarding_struggles", JSON.stringify(profile.struggles));
+              }
+              if (profile.school_name) {
+                localStorage.setItem("ticha_school_name", profile.school_name);
+                localStorage.setItem("ticha_school_added", "true");
+              }
+              if (profile.region) {
+                localStorage.setItem("ticha_region", profile.region);
+                localStorage.setItem("ticha_region_selected", "true");
+              }
+              if (profile.profile_completed) {
+                localStorage.setItem("ticha_profile_completed", "true");
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Failed to sync database profile to dashboard localStorage:", err);
+        }
+      }
     });
   }, []);
 
