@@ -1,0 +1,278 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+
+const resources = {
+  en: {
+    translation: {
+      welcome: {
+        title: "Ready to improve 1% every day?",
+        getStarted: "Get Started",
+        hasAccount: "Already have an account?",
+        login: "Log in",
+      },
+      language: {
+        title: "What language do you prefer?",
+        footer: "You can change this in settings anytime",
+        continue: "Continue",
+      },
+      goal: {
+        title: "What is your primary goal?",
+        subtitle: "Let's get 1% better every single day.",
+        continue: "Continue",
+        gce: {
+          title: "Ace my GCE exams",
+          description: "Master your subjects with AI",
+          badge: "TOP 5% OF STUDENTS CHOSE THIS",
+        },
+        habit: {
+          title: "Build a daily study habit",
+          description: "Consistency is the key to success",
+          badge: "#1 HABIT OF TOP PERFORMERS",
+        },
+        rank: {
+          title: "Boost my school rank",
+          description: "Outperform your peers daily",
+          badge: "HIGHLY COMPETITIVE",
+        },
+        curiosity: {
+          title: "Daily curiosity",
+          description: "Learn something new every day",
+          badge: "POPULAR CHOICE",
+        },
+      },
+      education: {
+        title: "Your Education Level",
+        ol: {
+          title: "GCE Ordinary Level (O/L)",
+          subtitle: "Form 5",
+        },
+        al: {
+          title: "GCE Advanced Level (A/L)",
+          subtitle: "Upper Sixth",
+        },
+        university: {
+          title: "University Student",
+          subtitle: "Continuous assessments & exams",
+        },
+        continue: "Continue",
+      },
+      struggles: {
+        title: "Where do you need the most help?",
+        subtitle: "Tell Ticha AI what's tough so we can tailor your insights.",
+        math: "Mathematics",
+        physics: "Physics",
+        biology: "Biology",
+        addAnother: "Add another subject",
+        continue: "Continue",
+      },
+      login: {
+        title: "Welcome back, scholar!",
+        subtitle: "Ready to pick up where you left off?",
+        emailLabel: "Email Address",
+        passwordLabel: "Password",
+        forgotPassword: "Forgot?",
+        submit: "Log In →",
+        noAccount: "New here?",
+        createAccount: "Create an account",
+        or: "OR",
+      },
+      register: {
+        title: "Create Account",
+        subtitle: "Now, let's save your progress.",
+        nameLabel: "Full Name",
+        emailLabel: "Email Address",
+        passwordLabel: "Password",
+        confirmPasswordLabel: "Confirm Password",
+        submit: "Sign Up →",
+        hasAccount: "Already have an account?",
+        login: "Log in",
+        or: "OR",
+      },
+      dashboard: {
+        hello: "Hello,",
+        streakDays: "Days Streak!",
+        streakMotivation: "Keep up the good work, I see you",
+        quickActions: "Quick actions",
+        featured: "Featured",
+        seeMore: "See more",
+        regionalUpdates: "Regional updates",
+        dailyQuiz: "Daily Quiz",
+        summaries: "Summaries",
+        pastPapers: "Past Papers",
+        practice: "Practice",
+        nav: {
+          home: "Home",
+          explore: "Explore",
+          chat: "Chat",
+          video: "Video",
+          profile: "Profile",
+        },
+      },
+      explore: {
+        hubTitle: "Explore Hub",
+        searchPlaceholder: "Search resources, topics...",
+        searchBtn: "Search",
+        coreLearning: "Core Learning Hub",
+        practiceTools: "Practice & Tools",
+        socialCompetition: "Social & Competition",
+        leaderboard: "Leaderboard",
+        leaderboardSub: "National & School Rankings",
+        summaries: "Summaries",
+        summariesSub: "Study notes & bites",
+        pastPapers: "Past Papers",
+        pastPapersSub: "GCE & BACC exams",
+        dailyQuiz: "Daily Quiz",
+        dailyQuizSub: "Test your knowledge with today's challenge!",
+        practice: "Practice",
+        practiceSub: "Drills & exercises",
+        materials: "Materials",
+        materialsSub: "Upload outlines",
+      },
+    },
+  },
+  fr: {
+    translation: {
+      welcome: {
+        title: "Prêt à vous améliorer de 1% chaque jour?",
+        getStarted: "Commencer",
+        hasAccount: "Vous avez déjà un compte?",
+        login: "Se connecter",
+      },
+      language: {
+        title: "Quelle langue préférez-vous?",
+        footer: "Vous pouvez changer cela dans les paramètres à tout moment",
+        continue: "Continuer",
+      },
+      goal: {
+        title: "Quel est votre objectif principal?",
+        subtitle: "Devenons 1% meilleur chaque jour.",
+        continue: "Continuer",
+        gce: {
+          title: "Réussir mes examens GCE",
+          description: "Maîtrisez vos matières avec l'IA",
+          badge: "TOP 5% DES ÉTUDIANTS ONT CHOISI CELA",
+        },
+        habit: {
+          title: "Créer une habitude d'étude",
+          description: "La régularité est la clé du succès",
+          badge: "HABITUDE #1 DES MEILLEURS ÉLÈVES",
+        },
+        rank: {
+          title: "Améliorer mon classement",
+          description: "Surpassez vos pairs chaque jour",
+          badge: "TRÈS COMPÉTITIF",
+        },
+        curiosity: {
+          title: "Curiosité quotidienne",
+          description: "Apprenez quelque chose de nouveau chaque jour",
+          badge: "CHOIX POPULAIRE",
+        },
+      },
+      education: {
+        title: "Votre niveau d'études",
+        ol: {
+          title: "GCE Ordinary Level (O/L)",
+          subtitle: "Form 5",
+        },
+        al: {
+          title: "GCE Advanced Level (A/L)",
+          subtitle: "Upper Sixth",
+        },
+        university: {
+          title: "Étudiant universitaire",
+          subtitle: "Contrôles continus & examens",
+        },
+        continue: "Continuer",
+      },
+      struggles: {
+        title: "Où avez-vous le plus besoin d'aide?",
+        subtitle: "Dites à Ticha AI ce qui est difficile pour que nous puissions adapter vos informations.",
+        math: "Mathématiques",
+        physics: "Physique",
+        biology: "Biologie",
+        addAnother: "Ajouter une autre matière",
+        continue: "Continuer",
+      },
+      login: {
+        title: "Bon retour, scholar!",
+        subtitle: "Prêt à reprendre là où vous vous êtes arrêté?",
+        emailLabel: "Adresse e-mail",
+        passwordLabel: "Mot de passe",
+        forgotPassword: "Oublié?",
+        submit: "Se connecter →",
+        noAccount: "Nouveau ici?",
+        createAccount: "Créer un compte",
+        or: "OU",
+      },
+      register: {
+        title: "Créer un compte",
+        subtitle: "Maintenant, sauvegardons votre progression.",
+        nameLabel: "Nom complet",
+        emailLabel: "Adresse e-mail",
+        passwordLabel: "Mot de passe",
+        confirmPasswordLabel: "Confirmer le mot de passe",
+        submit: "S'inscrire →",
+        hasAccount: "Vous avez déjà un compte?",
+        login: "Se connecter",
+        or: "OU",
+      },
+      dashboard: {
+        hello: "Bonjour,",
+        streakDays: "Jours de suite!",
+        streakMotivation: "Continue comme ça, je te vois",
+        quickActions: "Actions rapides",
+        featured: "À la une",
+        seeMore: "Voir plus",
+        regionalUpdates: "Mises à jour régionales",
+        dailyQuiz: "Quiz du jour",
+        summaries: "Résumés",
+        pastPapers: "Anciennes épreuves",
+        practice: "Pratique",
+        nav: {
+          home: "Accueil",
+          explore: "Explorer",
+          chat: "Chat",
+          video: "Vidéo",
+          profile: "Profil",
+        },
+      },
+      explore: {
+        hubTitle: "Hub d'exploration",
+        searchPlaceholder: "Chercher des ressources, sujets...",
+        searchBtn: "Chercher",
+        coreLearning: "Hub d'apprentissage",
+        practiceTools: "Pratique & Outils",
+        socialCompetition: "Social & Compétition",
+        leaderboard: "Classement",
+        leaderboardSub: "Classements nationaux & scolaires",
+        summaries: "Résumés",
+        summariesSub: "Notes & fiches de cours",
+        pastPapers: "Anciennes épreuves",
+        pastPapersSub: "Examens GCE & BACC",
+        dailyQuiz: "Quiz du jour",
+        dailyQuizSub: "Testez vos connaissances avec le défi du jour!",
+        practice: "Pratique",
+        practiceSub: "Exercices & entraînements",
+        materials: "Matériaux",
+        materialsSub: "Importer des supports",
+      },
+    },
+  },
+};
+
+// Initialize i18next
+if (!i18n.isInitialized) {
+  i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en",
+      fallbackLng: "en",
+      interpolation: {
+        escapeValue: false, // react already safes from xss
+      },
+    });
+}
+
+export default i18n;
+export { resources };
