@@ -9,6 +9,7 @@ import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import ConfettiOverlay from "@/components/auth/ConfettiOverlay";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import "@/lib/i18n";
 
 export default function RegisterPage() {
@@ -29,7 +30,7 @@ export default function RegisterPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
@@ -45,12 +46,41 @@ export default function RegisterPage() {
     }
     setError("");
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log("Registered:", { name, email });
-      localStorage.setItem("ticha_user_fullname", name);
-      router.push("/dashboard?showSetup=true");
-    }, 1500);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { error: authErr } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            },
+          },
+        });
+
+        if (authErr) {
+          setError(authErr.message);
+          setIsLoading(false);
+          return;
+        }
+
+        setIsLoading(false);
+        localStorage.setItem("ticha_user_fullname", name);
+        router.push("/dashboard?showSetup=true");
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred.");
+        setIsLoading(false);
+      }
+    } else {
+      // Mock Fallback mode
+      setTimeout(() => {
+        setIsLoading(false);
+        console.log("Registered:", { name, email });
+        localStorage.setItem("ticha_user_fullname", name);
+        router.push("/dashboard?showSetup=true");
+      }, 1500);
+    }
   };
 
   const handleGoogleLogin = () => {

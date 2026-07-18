@@ -58,11 +58,33 @@ const practiceCards: HubCard[] = [
     id: "practice",
     title: "Practice",
     subtitle: "Drills & exercises",
-    bgColor: "bg-[#FFD9E0]",
+    bgColor: "bg-[#D3E2FF]",
     icon: (
       <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-1.533-1.806A3.75 3.75 0 0012 18z" />
+      </svg>
+    ),
+  },
+  {
+    id: "flashcards",
+    title: "Flash Cards",
+    subtitle: "Active recall study",
+    bgColor: "bg-[#B6FF00]",
+    icon: (
+      <svg className="w-7 h-7 text-black fill-current" viewBox="0 0 512 512">
+        <path d="M432 0H80C44.7 0 16 28.7 16 64v384c0 35.3 28.7 64 64 64h352c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64zM320 224h112v32H320v-32zm0-96h112v32H320v-32zm0 192h112v32H320v-32zM64 128c0-17.7 14.3-32 32-32h112c17.7 0 32 14.3 32 32v256c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V128z" />
+      </svg>
+    ),
+  },
+  {
+    id: "upload-doc",
+    title: "Upload & Study",
+    subtitle: "AI Exam Assistant",
+    bgColor: "bg-[#FFD9E0]",
+    icon: (
+      <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   },
@@ -91,9 +113,11 @@ export default function ExploreHubPage() {
     const routes: Record<string, string> = {
       summaries: "/courses?type=summaries",
       "past-papers": "/courses?type=past-papers",
-      "daily-quiz": "/courses?type=quiz",
+      "daily-quiz": "/dashboard/quiz-generator",
       practice: "/courses?type=practice",
       materials: "/courses?type=materials",
+      flashcards: "/explore/flashcards",
+      "upload-doc": "/explore/upload",
     };
     router.push(routes[id] ?? "/courses");
   };

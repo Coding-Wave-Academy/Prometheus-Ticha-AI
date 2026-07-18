@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/ui/PasswordInput";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import "@/lib/i18n";
 
 export default function LoginPage() {
@@ -18,10 +19,11 @@ export default function LoginPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Please fill in all fields.");
@@ -29,18 +31,53 @@ export default function LoginPage() {
     }
     setError("");
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log("Logged in with:", email);
 
-      // Derive a name from email prefix as fallback
-      const derivedName = email.split("@")[0];
-      const displayName =
-        derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
-      localStorage.setItem("ticha_user_fullname", displayName);
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error: authErr } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      router.push("/dashboard");
-    }, 1500);
+        if (authErr) {
+          setError(authErr.message);
+          setIsLoading(false);
+          return;
+        }
+
+        const user = data?.user;
+        if (user) {
+          // Fetch full name from profiles
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+          if (profile?.full_name) {
+            localStorage.setItem("ticha_user_fullname", profile.full_name);
+          }
+        }
+        setIsLoading(false);
+        router.push("/dashboard");
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred.");
+        setIsLoading(false);
+      }
+    } else {
+      // Mock Fallback mode
+      setTimeout(() => {
+        setIsLoading(false);
+        console.log("Logged in with:", email);
+
+        const derivedName = email.split("@")[0];
+        const displayName =
+          derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+        localStorage.setItem("ticha_user_fullname", displayName);
+
+        router.push("/dashboard");
+      }, 1500);
+    }
   };
 
   const handleGoogleLogin = () => {

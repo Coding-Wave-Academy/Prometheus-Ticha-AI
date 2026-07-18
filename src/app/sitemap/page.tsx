@@ -106,6 +106,20 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "AI Flashcards (Recall)",
+          path: "/explore/flashcards",
+          description: "Active-recall flipping flashcard study guides generated with AI.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
+        },
+        {
+          name: "AI Upload Document solver",
+          path: "/explore/upload",
+          description: "Upload outlines/papers and study, summarize, or solve.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
+        },
+        {
           name: "National & School Leaderboards",
           path: "/leaderboard",
           description: "Podium, daily rankings, level toggle and context filters.",

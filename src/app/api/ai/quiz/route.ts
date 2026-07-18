@@ -8,9 +8,13 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
-    const { goal, education, struggles } = await req.json();
+    const { goal, education, struggles, subject, count, difficulty } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
+
+    const finalSubject = subject || (struggles && struggles.length > 0 ? struggles.join(", ") : "General Science");
+    const finalCount = count ? parseInt(count, 10) : 3;
+    const finalDifficulty = difficulty || "Medium";
 
     // Premium default fallback questions
     const fallbackQuiz = [
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
         answerIdx: 2,
         explanation: "Transmission probability decreases exponentially with the width of the barrier, making thin barriers highly critical for quantum tunneling electronics (like flash memory memory cells)!",
       },
-    ];
+    ].slice(0, finalCount);
 
     if (!apiKey) {
       console.log("No GEMINI_API_KEY found for quiz, returning fallback questions.");
@@ -56,10 +60,10 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
       You are an expert curriculum counselor at Ticha AI in Cameroon.
-      Create a personalized 3-question multiple choice quiz for a student at education level: "${education}"
-      with the goal: "${goal}" and who struggles with: "${struggles?.join(", ") || "science"}".
+      Create a personalized ${finalCount}-question multiple choice quiz for a student at education level: "${education}"
+      with the goal: "${goal}" on the subject: "${finalSubject}" at difficulty: "${finalDifficulty}".
 
-      Formulate questions specifically testing concepts relevant to those struggles. Make sure questions have a neobrutalist vibe—practical, educational, and high-yield.
+      Formulate questions testing concepts inside this subject. Make sure questions have a neobrutalist vibe—practical, educational, and high-yield.
 
       Return the result strictly as a JSON object of this structure:
       {
@@ -83,7 +87,10 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" },
+          generationConfig: {
+            responseMimeType: "application/json",
+            maxOutputTokens: finalCount * 220,
+          },
         }),
       }
     );

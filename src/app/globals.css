@@ -48,3 +48,17 @@ body {
   scrollbar-width: none;
 }
 
+/* 3D Flip Utilities */
+.rotate-y-180 {
+  transform: rotateY(180deg) !important;
+}
+.backface-hidden {
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+}
+.transform-style-3d {
+  transform-style: preserve-3d !important;
+  -webkit-transform-style: preserve-3d !important;
+}
+
+
