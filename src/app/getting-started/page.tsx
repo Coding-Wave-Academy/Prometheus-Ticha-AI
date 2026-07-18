@@ -12,7 +12,8 @@ export default function WelcomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleGetStarted = () => {
@@ -22,7 +23,7 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#FFB040]">
       {/* PWA Mobile-First Wrapper Container */}
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-4 md:py-8 px-6 text-black items-center">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-4 md:py-8 px-6 text-black items-center animate-page-in">
         
         {/* Top Illustration Area */}
         <div className="relative w-52 h-52 md:w-64 md:h-64 my-auto flex items-center justify-center select-none scale-90 md:scale-100">

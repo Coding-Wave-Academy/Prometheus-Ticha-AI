@@ -3,10 +3,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div>
-      {/* TODO: Dashboard layout with sidebar, header, user menu */}
-      {children}
-    </div>
-  );
+  // BottomNav is rendered inside each dashboard page to keep
+  // it scoped within the max-w-md mobile-first container.
+  return <>{children}</>;
 }

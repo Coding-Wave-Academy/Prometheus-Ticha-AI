@@ -1,4 +1,57 @@
 // Shared TypeScript types/interfaces for the app
+import type React from "react";
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+
+export interface StreakDay {
+  day: string;
+  active: boolean;
+}
+
+export interface QuickAction {
+  name: string;
+  icon: string;
+  bgColor: string;
+  badge?: number;
+}
+
+export interface SubjectData {
+  id: string;
+  category: string;
+  title: string;
+  subtitle: string;
+  progress: number;
+  /** Tailwind bg-[hex] class */
+  bgColor: string;
+  icon: React.ReactNode;
+}
+
+// ── Explore ───────────────────────────────────────────────────────────────────
+
+export interface HubCard {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  /** Tailwind bg-[hex] class */
+  bgColor: string;
+  /** Renders as a full-width row instead of a square */
+  large?: boolean;
+  /** Optional decorative text/emoji shown as background graphic on large cards */
+  bgGraphic?: string;
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+export interface NavItem {
+  id: string;
+  /** i18n key under dashboard.nav.* */
+  labelKey: string;
+  icon: string;
+  href: string;
+}
+
+// ── Auth / User ───────────────────────────────────────────────────────────────
 
 export interface User {
   id: string;
