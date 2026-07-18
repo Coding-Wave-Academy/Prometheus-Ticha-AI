@@ -72,6 +72,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Personalized Exam Intel",
+          path: "/getting-started/intel",
+          description: "Bespoke subject insights preview (Quantum Tunneling showcase).",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "Log In",
           path: "/login",
           description: "Sign in with email/password and social login options.",

@@ -134,7 +134,7 @@ export default function StrugglesIdentificationPage() {
     console.log(
       `Starting insights on: ${Array.from(selectedSubjects).join(", ")}`,
     );
-    router.push("/register");
+    router.push("/getting-started/intel");
   };
 
   return (
