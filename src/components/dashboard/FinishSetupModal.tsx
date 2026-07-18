@@ -92,9 +92,13 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
       },
     ];
 
-    setSteps(allSteps);
-    const count = allSteps.filter((s) => s.isCompleted).length;
-    setCompletedCount(count);
+    const timer = setTimeout(() => {
+      setSteps(allSteps);
+      const count = allSteps.filter((s) => s.isCompleted).length;
+      setCompletedCount(count);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   if (!isOpen) return null;

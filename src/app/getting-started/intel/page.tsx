@@ -1,18 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 
 export default function ExamIntelPage() {
-  const { t } = useTranslation();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleBack = () => {
     router.push("/getting-started/struggles");

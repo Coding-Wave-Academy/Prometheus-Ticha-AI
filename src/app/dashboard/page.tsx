@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -81,7 +83,7 @@ const regionalUpdates = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function StudentDashboardPage() {
+function StudentDashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const navItems = useNavItems();
@@ -141,5 +143,13 @@ export default function StudentDashboardPage() {
 
       <BottomNav items={navItems} />
     </div>
+  );
+}
+
+export default function StudentDashboardPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
+      <StudentDashboardPageContent />
+    </React.Suspense>
   );
 }

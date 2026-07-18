@@ -1,16 +1,15 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslation } from "react-i18next";
 import { useNavItems } from "@/hooks/useNavItems";
 import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import "@/lib/i18n";
 
-export default function ProfilePage() {
-  const { t } = useTranslation();
+function ProfilePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const navItems = useNavItems();
@@ -309,5 +308,13 @@ export default function ProfilePage() {
 
       <BottomNav items={navItems} />
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
+      <ProfilePageContent />
+    </React.Suspense>
   );
 }

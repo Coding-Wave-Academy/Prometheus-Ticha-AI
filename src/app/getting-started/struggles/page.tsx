@@ -25,7 +25,8 @@ export default function StrugglesIdentificationPage() {
   const router = useRouter();
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const defaultSubjects: SubjectStruggle[] = [

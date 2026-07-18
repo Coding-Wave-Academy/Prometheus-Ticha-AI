@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useNavItems } from "@/hooks/useNavItems";
 import LevelToggle from "@/components/leaderboard/LevelToggle";
 import ContextFilter from "@/components/leaderboard/ContextFilter";
@@ -83,7 +82,6 @@ const bottomStats = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LeaderboardsPage() {
-  const router = useRouter();
   const navItems = useNavItems();
 
   const [educationLevel, setEducationLevel] =

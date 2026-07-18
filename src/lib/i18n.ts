@@ -261,12 +261,12 @@ const resources = {
 };
 
 // Initialize i18next
-if (typeof window !== "undefined" && !i18n.isInitialized) {
+if (!i18n.isInitialized) {
   i18n
     .use(initReactI18next)
     .init({
       resources,
-      lng: localStorage.getItem("ticha_lang") || "en", // read language preference or default to en
+      lng: typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en",
       fallbackLng: "en",
       interpolation: {
         escapeValue: false, // react already safes from xss
