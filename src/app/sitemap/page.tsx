@@ -88,15 +88,35 @@ export default function SitemapPage() {
       ],
     },
     {
+      title: "Explore Hub",
+      icon: "🧑‍🎓",
+      routes: [
+        {
+          name: "Explore Hub",
+          path: "/explore",
+          description: "Core learning, practice tools, and social rankings.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "National & School Leaderboards",
+          path: "/leaderboard",
+          description: "Podium, daily rankings, level toggle and context filters.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+      ],
+    },
+    {
       title: "Student Portal",
       icon: "🎓",
       routes: [
         {
           name: "Dashboard Home",
           path: "/dashboard",
-          description: "Student overview panel with course list & statistics.",
-          badge: "Portal",
-          badgeBg: "bg-blue-300",
+          description: "Student overview: streak, quick actions, subjects & regional updates.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
         },
         {
           name: "Progress Tracker",
@@ -108,9 +128,9 @@ export default function SitemapPage() {
         {
           name: "Profile Settings",
           path: "/dashboard/profile",
-          description: "Personal credentials and system preferences.",
-          badge: "Portal",
-          badgeBg: "bg-blue-300",
+          description: "Personal settings (name, region, school, 2FA) with checklist indicator.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
         },
       ],
     },

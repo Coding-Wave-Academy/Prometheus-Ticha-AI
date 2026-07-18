@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/ui/PasswordInput";
 import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
@@ -11,6 +12,7 @@ import "@/lib/i18n";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,6 +46,7 @@ export default function RegisterPage() {
     setTimeout(() => {
       setIsLoading(false);
       console.log("Registered:", { name, email });
+      router.push("/dashboard?showSetup=true");
     }, 1500);
   };
 
