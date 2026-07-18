@@ -16,8 +16,6 @@
 
 ## 4. FINANCIAL PLAN
 - Startup costs: cost of API key for the AI model used in the application, subscription for AI assistants for the app development and hosting cost to deploy the application on popular platforms
-- Break-even analysis: 
-- Future projection:
 
   # PART 2: PRODUCT REQUIREMENT  DOCUMENT
   Here is a comprehensive Product Requirements Document (PRD) based on your project overview and the market realities of the Cameroonian education sector.
@@ -63,8 +61,8 @@ The technology stack is specifically chosen for high performance, low cost, and 
 The pricing strategy is localized to accommodate the purchasing power of Cameroonian youth while ensuring platform sustainability:
 
 - Free Tier: Grants access to basic features with a strict limitation on document uploads (2 to 5 uploads per month).
-- Premium Tier (University): 1,000 XAF per semester for unlimited or expanded access tailored to university course loads.
-- Premium Tier (GCE/Concours): 2,000 XAF per year for secondary students preparing for government examinations.
+- Premium Tier (University): 1,500 XAF per semester for unlimited or expanded access tailored to university course loads.
+- Premium Tier (GCE/Concours): 12,000 XAF per year for secondary students preparing for government examinations.
 ##  7. Implementation Phasing
 
 -  Phase 1 (Infrastructure & Auth):  Set up Supabase Postgres, authentication routing, and the React + Vite frontend skeleton using the Neo-Brutalist CSS framework.
