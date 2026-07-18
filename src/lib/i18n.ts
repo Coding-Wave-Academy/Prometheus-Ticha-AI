@@ -20,7 +20,7 @@ const resources = {
         subtitle: "Let's get 1% better every single day.",
         continue: "Continue",
         gce: {
-          title: "Ace my GCE exams",
+          title: "Ace my Exams",
           description: "Master your subjects with AI",
           badge: "TOP 5% OF STUDENTS CHOSE THIS",
         },
@@ -186,7 +186,8 @@ const resources = {
       },
       struggles: {
         title: "Où avez-vous le plus besoin d'aide?",
-        subtitle: "Dites à Ticha AI ce qui est difficile pour que nous puissions adapter vos informations.",
+        subtitle:
+          "Dites à Ticha AI ce qui est difficile pour que nous puissions adapter vos informations.",
         math: "Mathématiques",
         physics: "Physique",
         biology: "Biologie",
@@ -262,16 +263,17 @@ const resources = {
 
 // Initialize i18next
 if (!i18n.isInitialized) {
-  i18n
-    .use(initReactI18next)
-    .init({
-      resources,
-      lng: typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en",
-      fallbackLng: "en",
-      interpolation: {
-        escapeValue: false, // react already safes from xss
-      },
-    });
+  i18n.use(initReactI18next).init({
+    resources,
+    lng:
+      typeof window !== "undefined"
+        ? localStorage.getItem("ticha_lang") || "en"
+        : "en",
+    fallbackLng: "en",
+    interpolation: {
+      escapeValue: false, // react already safes from xss
+    },
+  });
 }
 
 export default i18n;
