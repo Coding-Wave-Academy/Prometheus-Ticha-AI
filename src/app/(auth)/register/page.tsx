@@ -87,9 +87,12 @@ export default function RegisterPage() {
           }).catch((err) => console.error("Initial profile database initialization failed:", err));
         }
 
+        const params = new URLSearchParams(window.location.search);
+        const nextUrl = params.get("redirect") || "/dashboard?showSetup=true";
+
         setIsLoading(false);
         localStorage.setItem("ticha_user_fullname", name);
-        router.push("/dashboard?showSetup=true");
+        router.push(nextUrl);
       } catch (err: any) {
         setError(err.message || "An unexpected error occurred.");
         setIsLoading(false);
@@ -100,7 +103,10 @@ export default function RegisterPage() {
         setIsLoading(false);
         console.log("Registered:", { name, email });
         localStorage.setItem("ticha_user_fullname", name);
-        router.push("/dashboard?showSetup=true");
+
+        const params = new URLSearchParams(window.location.search);
+        const nextUrl = params.get("redirect") || "/dashboard?showSetup=true";
+        router.push(nextUrl);
       }, 1500);
     }
   };

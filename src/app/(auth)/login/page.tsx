@@ -58,8 +58,12 @@ export default function LoginPage() {
             localStorage.setItem("ticha_user_fullname", profile.full_name);
           }
         }
+        
+        const params = new URLSearchParams(window.location.search);
+        const nextUrl = params.get("redirect") || "/dashboard";
+        
         setIsLoading(false);
-        router.push("/dashboard");
+        router.push(nextUrl);
       } catch (err: any) {
         setError(err.message || "An unexpected error occurred.");
         setIsLoading(false);
@@ -75,7 +79,9 @@ export default function LoginPage() {
           derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
         localStorage.setItem("ticha_user_fullname", displayName);
 
-        router.push("/dashboard");
+        const params = new URLSearchParams(window.location.search);
+        const nextUrl = params.get("redirect") || "/dashboard";
+        router.push(nextUrl);
       }, 1500);
     }
   };
