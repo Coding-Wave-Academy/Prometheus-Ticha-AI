@@ -90,11 +90,16 @@ function StudentDashboardPageContent() {
 
   const [userName, setUserName] = useState("Amadou");
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [avatar, setAvatar] = useState("");
 
   useEffect(() => {
     // Read dynamic user name configured in profile setup
     const savedName = localStorage.getItem("ticha_user_fullname");
     if (savedName) setUserName(savedName);
+
+    // Read avatar photo details
+    const savedAvatar = localStorage.getItem("ticha_user_avatar");
+    if (savedAvatar) setAvatar(savedAvatar);
 
     // Open setup modal if ?showSetup=true query parameter is present
     if (searchParams.get("showSetup") === "true") {
@@ -113,6 +118,7 @@ function StudentDashboardPageContent() {
           userName={userName}
           streakCount={streakCount}
           notificationCount={notificationCount}
+          avatar={avatar}
           onNotificationClick={() => console.log("Notifications clicked")}
         />
 

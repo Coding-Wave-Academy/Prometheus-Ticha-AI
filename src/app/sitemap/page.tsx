@@ -120,6 +120,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#FFB040]",
         },
         {
+          name: "AI Materials Compiler",
+          path: "/explore/materials",
+          description: "Upload Course Slips / Form B outlines and sync courses to DB.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
+        },
+        {
           name: "National & School Leaderboards",
           path: "/leaderboard",
           description: "Podium, daily rankings, level toggle and context filters.",
@@ -138,6 +145,13 @@ export default function SitemapPage() {
           description: "Student overview: streak, quick actions, subjects & regional updates.",
           badge: "New",
           badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "AI Tutor Chat",
+          path: "/dashboard/chat",
+          description: "Live interactive chat messaging assistant for GCE study help.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
         },
         {
           name: "AI Quiz Generator",

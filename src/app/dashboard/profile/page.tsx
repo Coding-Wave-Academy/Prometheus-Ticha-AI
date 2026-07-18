@@ -28,6 +28,7 @@ function ProfilePageContent() {
   
   // Notification banner state
   const [toastMessage, setToastMessage] = useState("");
+  const [avatar, setAvatar] = useState("");
 
   // Refs for focusing inputs from query parameters
   const nameRef = useRef<HTMLInputElement>(null);
@@ -44,11 +45,13 @@ function ProfilePageContent() {
     const savedSchool = localStorage.getItem("ticha_school_name") || "";
     const savedRegion = localStorage.getItem("ticha_region") || "";
     const savedTfa = localStorage.getItem("ticha_2fa_enabled") === "true";
+    const savedAvatar = localStorage.getItem("ticha_user_avatar") || "";
 
     setFullName(savedName);
     setSchoolName(savedSchool);
     setRegion(savedRegion);
     setTwoFactor(savedTfa);
+    setAvatar(savedAvatar);
 
     // Initial setup steps verification
     setProfileCompleted(localStorage.getItem("ticha_profile_completed") === "true");
@@ -88,6 +91,20 @@ function ProfilePageContent() {
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(""), 3000);
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAvatar(base64String);
+        localStorage.setItem("ticha_user_avatar", base64String);
+        showToast("Profile photo updated!");
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -139,6 +156,35 @@ function ProfilePageContent() {
             ✕
           </button>
         </header>
+
+        {/* Avatar Photo Upload Block */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-24 h-24 rounded-full border-[3.5px] border-black bg-white overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative flex items-center justify-center group">
+            {avatar ? (
+              <img src={avatar} alt="Profile Photo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl text-stone-600 font-bold select-none">
+                {fullName.slice(0, 1).toUpperCase()}
+              </span>
+            )}
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="absolute inset-0 opacity-0 cursor-pointer z-20"
+              aria-label="Upload profile photo"
+            />
+            {/* Edit overlay */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
+              <span className="text-[10px] font-black text-white uppercase tracking-wider">
+                Edit 📷
+              </span>
+            </div>
+          </div>
+          <span className="text-[10px] font-extrabold uppercase text-stone-500 tracking-wider mt-2">
+            Tap image to change photo
+          </span>
+        </div>
 
         {/* Setup Progress Checklist Card */}
         <section className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-8 relative overflow-hidden">

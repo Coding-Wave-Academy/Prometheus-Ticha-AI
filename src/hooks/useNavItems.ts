@@ -7,7 +7,7 @@ import { NavItem } from "@/types";
 const NAV_DEFINITIONS: Omit<NavItem, "active">[] = [
   { id: "home",    labelKey: "home",    icon: "⊞",   href: "/dashboard" },
   { id: "explore", labelKey: "explore", icon: "🧑‍🎓", href: "/explore" },
-  { id: "chat",    labelKey: "chat",    icon: "✉️",   href: "/chat" },
+  { id: "chat",    labelKey: "chat",    icon: "✉️",   href: "/dashboard/chat" },
   { id: "video",   labelKey: "video",   icon: "▶",   href: "/video" },
   { id: "profile", labelKey: "profile", icon: "👤",   href: "/dashboard/profile" },
 ];

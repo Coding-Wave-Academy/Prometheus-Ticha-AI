@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
  * based on selected mode.
  */
 export async function POST(req: NextRequest) {
+  let fallback: any = null;
   try {
     const { filename, mode, fileContent } = await req.json();
 
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     };
 
     const activeMode = mode || "summarize";
-    const fallback = mockResponses[activeMode] || mockResponses.summarize;
+    fallback = mockResponses[activeMode] || mockResponses.summarize;
 
     if (!apiKey) {
       console.log("No GEMINI_API_KEY found for file upload helper, returning mocks.");
@@ -100,15 +101,15 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("Gemini upload assistant failed, returning mock:", error);
-    return NextResponse.json({
-      result: {
-        title: "AI Solved Answers for Exam_Paper.pdf",
-        summaryText: "Answers and detailed outline breakdowns for the questions identified in the document.",
+    return NextResponse.json({ 
+      result: fallback || {
+        title: "AI Analysis for Uploaded Document",
+        summaryText: "Error communicating with AI engine. Verification recommended.",
         keyPoints: [
-          "Question 1 (Projectile Motion): Resolved vertical height H = 45.2 meters by applying equation: v^2 = u^2 - 2gH.",
-          "Question 2 (Electromagnetism): Emf is induced in the coil because the magnetic flux changes at a rate of 0.25 Wb/s, yielding exactly 1.25V induced voltage.",
-        ],
-      }
+          "Verify your network credentials details.",
+          "Ensure raw document outlines contain valid texts."
+        ]
+      } 
     });
   }
 }

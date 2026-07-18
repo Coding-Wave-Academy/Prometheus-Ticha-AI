@@ -8,9 +8,14 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
-    const { subject } = await req.json();
+    const { subject, count, difficulty, goal, education } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
+
+    const finalCount = count ? parseInt(count, 10) : 4;
+    const finalDifficulty = difficulty || "Medium";
+    const finalGoal = goal || "excellence";
+    const finalEducation = education || "al";
 
     // High quality dynamic fallback flashcards
     const fallbackCards = [
@@ -30,7 +35,7 @@ export async function POST(req: NextRequest) {
         front: "What happens to a wavefunction inside a barrier?",
         back: "It undergoes exponential decay, reducing the wave amplitude but retaining a non-zero value at the exit boundary.",
       },
-    ];
+    ].slice(0, finalCount);
 
     if (!apiKey) {
       console.log("No GEMINI_API_KEY found for flashcards, returning fallbacks.");
@@ -39,7 +44,8 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
       You are an expert Cameroonian curriculum tutor.
-      Generate exactly 4 high-yield flashcards for students preparing for examinations on the subject: "${subject}".
+      Generate exactly ${finalCount} high-yield flashcards for students at education level: "${finalEducation}"
+      preparing for examinations with the primary goal: "${finalGoal}", on the subject: "${subject}" at difficulty: "${finalDifficulty}".
 
       Each card must have:
       - front: A concise question or key term.
@@ -64,7 +70,7 @@ export async function POST(req: NextRequest) {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: "application/json",
-            maxOutputTokens: 350,
+            maxOutputTokens: finalCount * 120,
           },
         }),
       }

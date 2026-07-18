@@ -115,7 +115,7 @@ export default function ExploreHubPage() {
       "past-papers": "/courses?type=past-papers",
       "daily-quiz": "/dashboard/quiz-generator",
       practice: "/courses?type=practice",
-      materials: "/courses?type=materials",
+      materials: "/explore/materials",
       flashcards: "/explore/flashcards",
       "upload-doc": "/explore/upload",
     };

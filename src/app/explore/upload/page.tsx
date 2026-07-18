@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -19,23 +19,53 @@ export default function DocumentUploadAssistantPage() {
   const [mockFileName, setMockFileName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  
+  // Course slip states
+  const [hasSlip, setHasSlip] = useState(false);
+  const [slipName, setSlipName] = useState("");
+  const [coursesList, setCoursesList] = useState<string[]>([]);
+  const [useActiveSlip, setUseActiveSlip] = useState(false);
+
+  useEffect(() => {
+    const slipUploaded = localStorage.getItem("ticha_has_uploaded_slip") === "true";
+    const name = localStorage.getItem("ticha_uploaded_slip_name") || "";
+    const listStr = localStorage.getItem("ticha_user_courses_list");
+    
+    if (listStr) {
+      setCoursesList(JSON.parse(listStr));
+    }
+    
+    if (slipUploaded && name) {
+      setHasSlip(true);
+      setSlipName(name);
+    }
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0]);
       setMockFileName(e.target.files[0].name);
+      setUseActiveSlip(false);
     }
   };
 
-  const triggerMockFile = (name: string) => {
-    setMockFileName(name);
-    setSelectedFile(null); // Use string mock for ease of testing
+  const handleUseSlipToggle = () => {
+    if (!hasSlip) return;
+    setUseActiveSlip(true);
+    setMockFileName(slipName);
+    setSelectedFile(null);
   };
 
   const handleAnalyze = async () => {
     const filename = mockFileName || (selectedFile ? selectedFile.name : "Exam_Physics_Mock.pdf");
     setIsLoading(true);
     setResult(null);
+
+    // Build user content query based on uploaded courses or file content details
+    let finalContent = "Questions testing Projectile Motion equations and electromagnetism induction flux.";
+    if (useActiveSlip) {
+      finalContent = `Student Course Slip details containing courses: ${coursesList.join(", ")}`;
+    }
 
     try {
       const res = await fetch("/api/ai/upload", {
@@ -44,7 +74,7 @@ export default function DocumentUploadAssistantPage() {
         body: JSON.stringify({
           filename: filename,
           mode: mode,
-          fileContent: "Sample questions testing Projectile Motion H = 45m and electromagnetism induction flux calculations.",
+          fileContent: finalContent,
         }),
       });
 
@@ -101,14 +131,14 @@ export default function DocumentUploadAssistantPage() {
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5 text-left">
             <div className="space-y-1">
               <h2 className="text-lg font-black uppercase text-black leading-tight">
-                Upload Outlines & Papers
+                Upload Outlines & Slips
               </h2>
               <p className="text-xs font-bold text-stone-500">
-                Submit an exam paper or syllabus outline to generate summaries, solve equations, or outline studies.
+                Submit a new file or compile details directly using your submitted Course Slip or Form B.
               </p>
             </div>
 
-            {/* Dynamic Drop-Zone/File Upload selector */}
+            {/* Drag & Drop zone */}
             <div className="flex flex-col items-center justify-center border-[3px] border-dashed border-black rounded-xl p-4 bg-stone-50 text-center relative hover:bg-stone-100 transition-colors">
               <input 
                 type="file" 
@@ -118,41 +148,38 @@ export default function DocumentUploadAssistantPage() {
               />
               <span className="text-3xl mb-1 select-none">📂</span>
               <p className="font-extrabold text-sm text-black">
-                {mockFileName || "Click to browse files"}
+                {useActiveSlip ? `Active Slip: ${slipName}` : mockFileName || "Click to browse files"}
               </p>
               <p className="text-[10px] font-bold text-stone-500 mt-0.5">
                 Supports PDF, Images or Outlines (Max 10MB)
               </p>
             </div>
 
-            {/* Quick Test Document Selector Mocks */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-600 block">
-                Or select a test document:
-              </label>
-              <div className="flex gap-2">
+            {/* Course Slip Quick Load Actions */}
+            {hasSlip ? (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-stone-600 block">
+                  Select active database documents:
+                </label>
                 <button
-                  onClick={() => triggerMockFile("Faraday_Induction_Exam.pdf")}
-                  className={`flex-1 py-1.5 font-bold text-[11px] rounded-lg border-2 border-black transition-all ${
-                    mockFileName === "Faraday_Induction_Exam.pdf"
-                      ? "bg-[#B6FF00] shadow-[1.5px_1.5px_0px_0px_#000]"
-                      : "bg-white hover:bg-stone-50 shadow-[2px_2px_0px_0px_#000]"
+                  onClick={handleUseSlipToggle}
+                  className={`w-full py-2.5 px-3 rounded-xl border-[2.5px] border-black font-black text-xs text-left flex items-center justify-between transition-all ${
+                    useActiveSlip 
+                      ? "bg-[#B6FF00] shadow-[2.5px_2.5px_0px_0px_#000] translate-y-0.5" 
+                      : "bg-white shadow-[3px_3px_0px_0px_#000] active:translate-y-0.5"
                   }`}
                 >
-                  📄 Faraday induction
-                </button>
-                <button
-                  onClick={() => triggerMockFile("Mechanics_Limits_Outline.pdf")}
-                  className={`flex-1 py-1.5 font-bold text-[11px] rounded-lg border-2 border-black transition-all ${
-                    mockFileName === "Mechanics_Limits_Outline.pdf"
-                      ? "bg-[#B6FF00] shadow-[1.5px_1.5px_0px_0px_#000]"
-                      : "bg-white hover:bg-stone-50 shadow-[2px_2px_0px_0px_#000]"
-                  }`}
-                >
-                  📄 Projectile Outline
+                  <span className="truncate pr-4">📄 Load My Compiled Slip ({slipName})</span>
+                  <span className="text-[10px] bg-white border border-black rounded px-1.5 py-0.5 uppercase">
+                    Active
+                  </span>
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="bg-[#FFE5C4] border-2 border-black rounded-xl p-3 text-center text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                ℹ️ Tip: Go to the <Link href="/explore/materials" className="underline font-black text-[#965A18]">Materials tab</Link> to submit your Course Slip / Form B once for easy study outlines.
+              </div>
+            )}
 
             {/* Selector Option Modes (Summarize, Study, Solve) */}
             <div className="flex flex-col space-y-1.5">
@@ -179,9 +206,9 @@ export default function DocumentUploadAssistantPage() {
             {/* Run Button */}
             <button
               onClick={handleAnalyze}
-              disabled={isLoading || !mockFileName}
+              disabled={isLoading || (!mockFileName && !useActiveSlip)}
               className={`w-full border-[3.5px] border-black rounded-xl py-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2 transition-all ${
-                mockFileName && !isLoading
+                (mockFileName || useActiveSlip) && !isLoading
                   ? "bg-[#B6FF00] hover:bg-[#a3e600] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                   : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
               }`}
@@ -201,7 +228,7 @@ export default function DocumentUploadAssistantPage() {
             <div className="bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-center space-y-3">
               <div className="w-10 h-10 border-[4.5px] border-black border-t-[#FFB040] rounded-full animate-spin mx-auto"></div>
               <p className="text-sm font-black uppercase tracking-wider text-black">
-                Reading document structures...
+                Querying Gemini AI Engine...
               </p>
             </div>
           ) : result ? (

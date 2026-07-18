@@ -140,7 +140,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
         </button>
 
         {/* Circular Progress Ring in Top-Right */}
-        <div className="absolute top-5 right-5 w-14 h-14 flex items-center justify-center relative">
+        <div className="absolute top-4 right-4 w-14 h-14 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90">
             <circle cx="28" cy="28" r="22" stroke="black" strokeWidth="4.5" fill="transparent" className="text-stone-200" />
             <circle 
@@ -155,8 +155,8 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               className="transition-all duration-500 ease-out"
             />
           </svg>
-          <span className="absolute font-black text-[10px] text-black">
-            {completedCount} of 5
+          <span className="absolute font-black text-[9px] text-black leading-none mt-[-1px]">
+            {completedCount}/5
           </span>
         </div>
 

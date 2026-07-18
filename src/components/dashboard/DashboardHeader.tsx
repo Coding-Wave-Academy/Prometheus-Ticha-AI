@@ -10,6 +10,7 @@ interface DashboardHeaderProps {
   streakCount: number;
   notificationCount: number;
   onNotificationClick: () => void;
+  avatar?: string;
 }
 
 /**
@@ -20,6 +21,7 @@ export default function DashboardHeader({
   streakCount,
   notificationCount,
   onNotificationClick,
+  avatar,
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
 
@@ -27,14 +29,22 @@ export default function DashboardHeader({
     <header className="flex items-center justify-between w-full mb-6 relative">
       <div className="flex items-center gap-3">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
-          <Image
-            src="/images/amadou-avatar.png"
-            alt={`${userName}'s profile`}
-            width={48}
-            height={48}
-            className="object-cover"
-          />
+        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 bg-white flex items-center justify-center">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={`${userName}'s profile`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              src="/images/amadou-avatar.png"
+              alt={`${userName}'s profile`}
+              width={48}
+              height={48}
+              className="object-cover"
+            />
+          )}
         </div>
         <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight">
           {t("dashboard.hello")} {userName}{" "}

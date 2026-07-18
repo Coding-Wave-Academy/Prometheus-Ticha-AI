@@ -38,9 +38,64 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // Build context-aware fallback data based on struggles list
+    const hasMath = struggles?.some((s: string) => s.toLowerCase().includes("math") || s.toLowerCase().includes("calculus"));
+    const hasChem = struggles?.some((s: string) => s.toLowerCase().includes("chem"));
+
+    let activeFallback = fallbackIntel;
+    if (hasMath) {
+      activeFallback = {
+        bigIdea: {
+          text: "Limits allow us to evaluate functions at infinity without ever arriving there. Not magic. Just calculus.",
+          label: "Mind = blown!",
+        },
+        story: {
+          text: "Imagine zooming in infinitely on a curved line. Classically, it always keeps its curve.",
+        },
+        reality: {
+          text: "In calculus, any smooth curve is locally linear, meaning it looks completely straight if you zoom in infinitely. This lets us calculate rates of change directly.",
+        },
+        whyItMatters: {
+          bullets: [
+            "Powers architectural stress load calculations.",
+            "Vital for machine learning gradient descents.",
+            "Enables orbital dynamics calculations for satellite routes.",
+          ],
+          ahaMoment: "So, limits aren't just equations—they're windows defining the calculus wave.",
+        },
+        proTip: {
+          text: "85% of students fail to evaluate the indeterminate limits correctly. Practice factoring first!",
+        },
+      };
+    } else if (hasChem) {
+      activeFallback = {
+        bigIdea: {
+          text: "Atoms share valence electrons to create stable molecular bounds. Not magic. Just chemistry orbital overlaps.",
+          label: "Mind = blown!",
+        },
+        story: {
+          text: "Imagine two people trying to hold onto the same pair of ropes at the same time to remain balanced.",
+        },
+        reality: {
+          text: "In chemistry, covalent bounds share electron densities, balancing electrostatic pull between adjacent nuclei.",
+        },
+        whyItMatters: {
+          bullets: [
+            "Dictates pharmaceutical drug binding behaviors.",
+            "The foundation of organic plastics synthesis.",
+            "Creates the structures sustaining biological life.",
+          ],
+          ahaMoment: "So, covalent bounds aren't just lines—they're electrostatic waves balancing atoms.",
+        },
+        proTip: {
+          text: "75% of students fail to balance redox half-reactions accurately on exams. Watch your charges!",
+        },
+      };
+    }
+
     if (!apiKey) {
       console.log("No GEMINI_API_KEY configured for intel, returning premium fallback mocks.");
-      return NextResponse.json({ intel: fallbackIntel });
+      return NextResponse.json({ intel: activeFallback });
     }
 
     const prompt = `

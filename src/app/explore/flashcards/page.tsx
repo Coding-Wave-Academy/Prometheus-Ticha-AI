@@ -21,11 +21,17 @@ export default function FlashcardsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
+  // Customizer state
+  const [count, setCount] = useState(4);
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [vector, setVector] = useState<any>(null);
+
   // Read struggles from onboarding vector
   useEffect(() => {
     const vectorStr = localStorage.getItem("ticha_user_profile_vector");
     if (vectorStr) {
       const data = JSON.parse(vectorStr);
+      setVector(data);
       if (data.struggles && data.struggles.length > 0) {
         setStruggles(data.struggles);
         setSubject(data.struggles[0]);
@@ -46,7 +52,13 @@ export default function FlashcardsPage() {
       const res = await fetch("/api/ai/flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject }),
+        body: JSON.stringify({
+          subject,
+          count,
+          difficulty,
+          goal: vector?.goal || "gce",
+          education: vector?.education || "al",
+        }),
       });
       if (!res.ok) throw new Error("Failed to load flashcards");
       const data = await res.json();
@@ -63,7 +75,7 @@ export default function FlashcardsPage() {
           front: `How can you master ${subject} for examinations?`,
           back: "Through daily active recall training, summary bite reviews, and GCE past papers drills.",
         },
-      ]);
+      ].slice(0, count));
     } finally {
       setIsLoading(false);
     }
@@ -128,24 +140,73 @@ export default function FlashcardsPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col space-y-2 text-left">
-                <label className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
-                  Target Subject
-                </label>
-                <select
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-white border-[2.5px] border-black rounded-xl p-3.5 font-bold text-sm outline-none transition-all focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                >
-                  {struggles.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                  <option value="Physics">Physics</option>
-                  <option value="Pure Mathematics">Pure Mathematics</option>
-                  <option value="Advanced Chemistry">Advanced Chemistry</option>
-                  <option value="Biology">Biology</option>
-                  <option value="Computer Science">Computer Science</option>
-                </select>
+              <div className="space-y-4">
+                {/* Subject Selector */}
+                <div className="flex flex-col space-y-1.5 text-left">
+                  <label className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
+                    Target Subject
+                  </label>
+                  <select
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full bg-white border-[2.5px] border-black rounded-xl p-3.5 font-bold text-sm outline-none transition-all focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    {struggles.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                    <option value="Physics">Physics</option>
+                    <option value="Pure Mathematics">Pure Mathematics</option>
+                    <option value="Advanced Chemistry">Advanced Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Computer Science">Computer Science</option>
+                  </select>
+                </div>
+
+                {/* Card Count select button group */}
+                <div className="flex flex-col space-y-1.5 text-left">
+                  <label className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
+                    Number of Cards
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[3, 4, 5, 6].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setCount(num)}
+                        className={`py-2 font-black rounded-xl border-[2.5px] border-black text-xs transition-all ${
+                          count === num
+                            ? "bg-[#B6FF00] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] translate-y-0.5"
+                            : "bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 hover:bg-stone-50"
+                        }`}
+                      >
+                        {num} Cards
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Difficulty selector button group */}
+                <div className="flex flex-col space-y-1.5 text-left">
+                  <label className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
+                    Difficulty Level
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["Easy", "Medium", "Hard"].map((lvl) => (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => setDifficulty(lvl)}
+                        className={`py-2.5 font-black rounded-xl border-[2.5px] border-black text-xs transition-all ${
+                          difficulty === lvl
+                            ? "bg-[#FFB040] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] translate-y-0.5"
+                            : "bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 hover:bg-stone-50"
+                        }`}
+                      >
+                        {lvl}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <button
