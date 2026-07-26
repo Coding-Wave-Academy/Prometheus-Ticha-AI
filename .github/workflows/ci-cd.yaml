@@ -1,0 +1,105 @@
+name: CI/CD Pipeline & Discord Alerts
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+
+jobs:
+  # ==========================================
+  # 1. LINT & CODE QUALITY JOB
+  # ==========================================
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+
+  # ==========================================
+  # 2. PLAYWRIGHT E2E TESTS JOB
+  # ==========================================
+  e2e-tests:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright Tests
+        run: npm run test:e2e
+
+  # ==========================================
+  # 3. DISCORD NOTIFICATIONS JOB
+  # ==========================================
+  discord-notify:
+    needs: [lint, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always() # Runs regardless of whether tests pass or fail
+    steps:
+      - name: Notify Discord on CI Failure
+        if: needs.lint.result == 'failure' || needs.e2e-tests.result == 'failure'
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_TICHA_WEBHOOK }}
+          embed-title: "❌ CI/CD Pipeline Failed"
+          embed-description: |
+            **Repository:** `${{ github.repository }}`
+            **Branch:** `${{ github.ref_name }}`
+            **Triggered By:** `${{ github.actor }}`
+            **Commit:** `${{ github.event.head_commit.message || 'Pull Request Update' }}`
+            
+            [View Workflow Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          embed-color: 15158332 # Red hex color code
+
+      - name: Notify Discord on PR / Push Success
+        if: needs.lint.result == 'success' && needs.e2e-tests.result == 'success' && github.event_name == 'pull_request'
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_TICHA_WEBHOOK }}
+          embed-title: "🔀 Pull Request Ready for Merge"
+          embed-description: |
+            **PR Title:** `${{ github.event.pull_request.title }}`
+            **Author:** `${{ github.actor }}`
+            **Status:** All Linting & Playwright E2E Tests Passed!
+            
+            [Review Pull Request](${{ github.event.pull_request.html_url }})
+          embed-color: 3066993 # Green hex color code
+
+      - name: Notify Discord on Main Branch Deployment Success
+        if: needs.lint.result == 'success' && needs.e2e-tests.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_TICHA_WEBHOOK }}
+          embed-title: "🚀 Production Build & Deployment Passed"
+          embed-description: |
+            **Repository:** `${{ github.repository }}`
+            **Author:** `${{ github.actor }}`
+            **Commit:** `${{ github.event.head_commit.message }}`
+            
+            All checks passed cleanly! App is verified and ready.
+          embed-color: 3447003 # Blue/Cyan hex color code
