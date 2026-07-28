@@ -12,11 +12,18 @@ import {
   FireIcon,
   Mortarboard01Icon,
   Camera01Icon,
+  Settings01Icon,
+  QuestionIcon,
+  Logout01Icon,
+  ArrowRight01Icon,
 } from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import BottomNav from "@/components/layout/BottomNav";
 import EditProfileModal from "@/components/profile/EditProfileModal";
+import HelpCenterModal from "@/components/profile/HelpCenterModal";
+import AccountSettingsModal from "@/components/profile/AccountSettingsModal";
 import "@/lib/i18n";
 
 interface BadgeItem {
@@ -32,9 +39,14 @@ interface BadgeItem {
 export function ProfilePageContent() {
   const router = useRouter();
   const navItems = useNavItems();
+  const { signOut } = useAuth();
   const { profile, isLoading, isUploading, updateProfile, uploadAvatar } = useProfile();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const [toastMessage, setToastMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +63,6 @@ export function ProfilePageContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       showToast("⚠️ Image too large. Max 5MB.");
       return;
@@ -80,6 +91,19 @@ export function ProfilePageContent() {
       showToast(`⚠️ ${result.error}`);
     } else {
       showToast("Profile changes saved successfully!");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      showToast("Logging out...");
+      await signOut();
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      showToast("Failed to log out");
+      setIsLoggingOut(false);
     }
   };
 
@@ -250,6 +274,68 @@ export function ProfilePageContent() {
           </div>
         </section>
 
+        {/* Account & Support Settings Section */}
+        <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 text-left space-y-3">
+          <h3 className="text-base font-black uppercase tracking-wider text-stone-900 border-b-[2.5px] border-black pb-2">
+            Account & Support
+          </h3>
+
+          <div className="space-y-2.5 pt-1">
+            {/* Account Settings Button */}
+            <button
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="w-full bg-[#FAF7EC] hover:bg-[#F2ECD8] border-[2.5px] border-black rounded-xl p-3.5 flex items-center justify-between shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#FFB040] border-[2px] border-black rounded-lg flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                  <Settings01Icon size={20} className="text-black" />
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-xs uppercase text-black">Account Settings</p>
+                  <p className="text-[11px] font-medium text-stone-600">Language, preferences & security</p>
+                </div>
+              </div>
+              <ArrowRight01Icon size={18} className="text-black group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Help Center Button */}
+            <button
+              onClick={() => setIsHelpModalOpen(true)}
+              className="w-full bg-[#FAF7EC] hover:bg-[#F2ECD8] border-[2.5px] border-black rounded-xl p-3.5 flex items-center justify-between shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#D3E2FF] border-[2px] border-black rounded-lg flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                  <QuestionIcon size={20} className="text-black" />
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-xs uppercase text-black">Help Center & FAQ</p>
+                  <p className="text-[11px] font-medium text-stone-600">GCE guide & support channels</p>
+                </div>
+              </div>
+              <ArrowRight01Icon size={18} className="text-black group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Log Out Button */}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full bg-[#FF9494] hover:bg-[#ff7b7b] border-[2.5px] border-black rounded-xl p-3.5 flex items-center justify-between shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all disabled:opacity-50 mt-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-white border-[2px] border-black rounded-lg flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                  <Logout01Icon size={20} className="text-black" />
+                </div>
+                <p className="font-black text-xs uppercase text-black">Log Out</p>
+              </div>
+              {isLoggingOut ? (
+                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <ArrowRight01Icon size={18} className="text-black" />
+              )}
+            </button>
+          </div>
+        </section>
+
         {/* Toast Notification */}
         <AnimatePresence>
           {toastMessage && (
@@ -265,7 +351,7 @@ export function ProfilePageContent() {
         </AnimatePresence>
       </main>
 
-      {/* Edit Profile Modal Dialog */}
+      {/* Modals */}
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -276,6 +362,17 @@ export function ProfilePageContent() {
           region,
           educationLevel,
         }}
+      />
+
+      <HelpCenterModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
+
+      <AccountSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        onShowToast={showToast}
       />
 
       <BottomNav items={navItems} />
