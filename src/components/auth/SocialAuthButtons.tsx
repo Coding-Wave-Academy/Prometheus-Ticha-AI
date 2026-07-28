@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
 
 interface SocialAuthButtonsProps {
@@ -20,11 +21,7 @@ export default function SocialAuthButtons({
   onApple,
 }: SocialAuthButtonsProps) {
   const { t } = useTranslation();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useIsMounted();
 
   return (
     <section className="space-y-3 w-full">

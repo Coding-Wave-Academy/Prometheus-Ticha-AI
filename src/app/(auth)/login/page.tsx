@@ -1,54 +1,69 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import ToastContainer from "@/components/ui/Toast";
+import { useToast } from "@/hooks/useToast";
+import { useIsMounted } from "@/hooks/useIsMounted";
+import { loginSchema, extractZodErrors } from "@/lib/validation";
+import { sanitizeString } from "@/lib/security";
 import "@/lib/i18n";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const { toasts, addToast, removeToast } = useToast();
+  const isMounted = useIsMounted();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+
+    const cleanEmail = sanitizeString(email.trim());
+    const parseResult = loginSchema.safeParse({ email: cleanEmail, password });
+
+    if (!parseResult.success) {
+      const fieldErrors = extractZodErrors(parseResult.error);
+      setErrors(fieldErrors);
+      addToast("Please check the form for errors.", "warning", "Validation Failed");
       return;
     }
-    setError("");
+
+    setErrors({});
     setIsLoading(true);
+
+    // Simulated login process
     setTimeout(() => {
       setIsLoading(false);
-      console.log("Logged in with:", email);
-    }, 1500);
+      addToast("Welcome back, scholar!", "success", "Signed In");
+    }, 1200);
   };
 
   const handleGoogleLogin = () => {
-    console.log("Google authentication triggered");
+    addToast("Connecting to Google Auth...", "info");
   };
 
   const handleAppleLogin = () => {
-    console.log("Apple authentication triggered");
+    addToast("Connecting to Apple Auth...", "info");
   };
 
   return (
     <main className="w-full flex flex-col justify-between px-2 text-black space-y-4 md:space-y-6">
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
+
       {/* Header Section */}
-      <header className="text-center space-y-2 mt-4">
+      <header className="text-center space-y-2 mt-4 animate-spring-slide-up">
         <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none text-[#1A1A1A]">
           {isMounted ? (
             <>
-              Welcome back, <span className="text-[#B6FF00]">scholar!</span>
+              Welcome back, <span className="text-[#965A18] underline decoration-[3.5px]">scholar!</span>
             </>
           ) : (
             "Welcome back, scholar!"
@@ -61,37 +76,31 @@ export default function LoginPage() {
 
       {/* Login Form Card */}
       <section className="bg-white border-[3.5px] border-black rounded-2xl p-5 md:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-        <form onSubmit={handleSubmit} className="space-y-3.5 md:space-y-4">
-          {error && (
-            <div className="bg-[#FF9494] border-[2.5px] border-black rounded-xl p-3 font-bold text-sm text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              ⚠️ {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          {/* Email Field */}
+          <Input
+            id="login-email"
+            type="email"
+            label={isMounted ? t("login.emailLabel") : "Email Address"}
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            onClear={() => setEmail("")}
+            error={errors.email}
+          />
 
-          {/* Email field */}
-          <div className="flex flex-col space-y-1.5">
-            <label
-              htmlFor="login-email"
-              className="text-xs font-extrabold uppercase tracking-widest text-stone-800"
-            >
-              {isMounted ? t("login.emailLabel") : "Email Address"}
-            </label>
-            <input
-              id="login-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white border-[3.5px] border-black rounded-xl p-3.5 text-[15px] font-medium outline-none placeholder-stone-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all"
-            />
-          </div>
-
-          {/* Password field with show/hide */}
+          {/* Password Field with Show/Hide toggle */}
           <PasswordInput
             id="login-password"
             label={isMounted ? t("login.passwordLabel") : "Password"}
             value={password}
-            onChange={setPassword}
+            onChange={(val) => {
+              setPassword(val);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+            }}
             labelRight={
               <Link
                 href="/forgot-password"
@@ -103,17 +112,19 @@ export default function LoginPage() {
           />
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl py-4 px-4 font-black uppercase text-[17px] tracking-wider transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-[#a3e600] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+            variant="primary"
+            size="lg"
+            isLoading={isLoading}
+            className="w-full mt-2"
           >
-            {isLoading ? "Signing In..." : (isMounted ? t("login.submit") : "Log In →")}
-          </button>
+            {isMounted ? t("login.submit") : "Log In →"}
+          </Button>
         </form>
       </section>
 
-      {/* Social Authentication */}
+      {/* Social Auth */}
       <SocialAuthButtons
         onGoogle={handleGoogleLogin}
         onApple={handleAppleLogin}

@@ -1,4 +1,6 @@
-export default async function CourseDetailPage(props: PageProps<"/courses/[courseId]">) {
+export default async function CourseDetailPage(props: {
+  params: Promise<{ courseId: string }>;
+}) {
   const { courseId } = await props.params;
 
   return (

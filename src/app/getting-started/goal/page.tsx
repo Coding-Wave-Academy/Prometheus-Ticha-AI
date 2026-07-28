@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
 
 interface GoalOption {
@@ -18,12 +19,8 @@ interface GoalOption {
 export default function GoalSelectionPage() {
   const { t } = useTranslation();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const router = useRouter();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const goals: GoalOption[] = [
     {

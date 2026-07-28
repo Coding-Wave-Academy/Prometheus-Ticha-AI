@@ -1,25 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n"; // Import initialization
 
 export default function LanguageSelectionPage() {
   const { t, i18n: i18nInstance } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "fr">("en");
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const router = useRouter();
 
-  // Load language preference after mounting on the client to avoid hydration mismatch
-  useEffect(() => {
-    setIsMounted(true);
-    const savedLang = localStorage.getItem("ticha_lang") as "en" | "fr";
-    if (savedLang === "en" || savedLang === "fr") {
-      setSelectedLanguage(savedLang);
+  // Lazy state initialization from local storage without setState in useEffect
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "fr">(() => {
+    if (typeof window !== "undefined") {
+      const savedLang = localStorage.getItem("ticha_lang") as "en" | "fr";
+      if (savedLang === "en" || savedLang === "fr") return savedLang;
     }
-  }, []);
+    return "en";
+  });
 
   const handleLanguageChange = (lang: "en" | "fr") => {
     setSelectedLanguage(lang);
