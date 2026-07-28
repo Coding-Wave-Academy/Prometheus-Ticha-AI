@@ -10,7 +10,7 @@ interface LeaderboardCardProps {
 }
 
 /**
- * LeaderboardCard — full-width orange CTA card with trophy image overlay,
+ * LeaderboardCard — full-width orange CTA card with trophy SVG,
  * animated arrow, and national/school ranking subtitle.
  */
 export default function LeaderboardCard({ onClick }: LeaderboardCardProps) {
@@ -24,7 +24,9 @@ export default function LeaderboardCard({ onClick }: LeaderboardCardProps) {
     >
       {/* Trophy icon circle */}
       <div className="w-14 h-14 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 relative z-10">
-        <span role="img" aria-label="trophy" className="text-3xl leading-none">🏆</span>
+        <svg className="w-7 h-7 text-black fill-current" viewBox="0 0 24 24">
+          <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.16-.4 3.84-2.11 4.39-4.36C19.85 11.23 21 9.25 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+        </svg>
       </div>
 
       {/* Text */}

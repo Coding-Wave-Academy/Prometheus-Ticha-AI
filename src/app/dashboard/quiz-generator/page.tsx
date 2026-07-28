@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -13,8 +12,13 @@ interface QuizQuestion {
   explanation: string;
 }
 
+interface ProfileVector {
+  goal?: string;
+  education?: string;
+  struggles?: string[];
+}
+
 export default function QuizGeneratorPage() {
-  const router = useRouter();
   const navItems = useNavItems();
 
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
@@ -23,7 +27,7 @@ export default function QuizGeneratorPage() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [vector, setVector] = useState<any>(null);
+  const [vector, setVector] = useState<ProfileVector | null>(null);
 
   // Load vector and fetch quiz
   const loadQuiz = async () => {
@@ -35,7 +39,7 @@ export default function QuizGeneratorPage() {
 
     try {
       const vectorStr = localStorage.getItem("ticha_user_profile_vector");
-      let vectorData = { goal: "gce", education: "al", struggles: ["Physics", "Pure Mathematics"] };
+      let vectorData: ProfileVector = { goal: "gce", education: "al", struggles: ["Physics", "Pure Mathematics"] };
       if (vectorStr) {
         vectorData = JSON.parse(vectorStr);
       }
@@ -116,7 +120,7 @@ export default function QuizGeneratorPage() {
         <header className="flex items-center justify-between w-full mb-6 py-2">
           <Link
             href="/dashboard"
-            className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
+            className="w-11 h-11 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
             aria-label="Back to dashboard"
           >
             <svg className="w-6 h-6 stroke-[3.5px] text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +157,9 @@ export default function QuizGeneratorPage() {
             /* Quiz Results Card */
             <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-6">
               <div className="w-16 h-16 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
-                <span className="text-3xl select-none">🏆</span>
+                <svg className="w-8 h-8 text-black fill-current" viewBox="0 0 24 24">
+                  <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.16-.4 3.84-2.11 4.39-4.36C19.85 11.23 21 9.25 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                </svg>
               </div>
 
               <div className="space-y-1.5">
@@ -174,15 +180,21 @@ export default function QuizGeneratorPage() {
               <div className="space-y-3 pt-2">
                 <button
                   onClick={loadQuiz}
-                  className="w-full bg-white hover:bg-stone-50 border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black"
+                  className="w-full bg-white hover:bg-stone-50 border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                 >
-                  🔄 Generate New Quiz
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                  </svg>
+                  <span>Generate New Quiz</span>
                 </button>
                 <Link
                   href="/dashboard"
-                  className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all block text-center text-black"
+                  className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 text-black"
                 >
-                  🏠 Back to Dashboard
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                  </svg>
+                  <span>Back to Dashboard</span>
                 </Link>
               </div>
             </div>
@@ -240,10 +252,14 @@ export default function QuizGeneratorPage() {
                       
                       {/* Checkmark Status indicator */}
                       {isAnswered && isCorrect && (
-                        <span className="text-black font-black text-lg select-none">✓</span>
+                        <svg className="w-5 h-5 fill-current text-black shrink-0" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
                       )}
                       {isAnswered && isSelected && !isCorrect && (
-                        <span className="text-black font-black text-lg select-none">✗</span>
+                        <svg className="w-5 h-5 stroke-[3] text-black shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       )}
                     </button>
                   );
@@ -253,9 +269,12 @@ export default function QuizGeneratorPage() {
               {/* Feedback and Explanation Block */}
               {isAnswered && (
                 <div className="bg-[#FFE5C4] border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-left animate-page-in">
-                  <span className="text-[10px] font-black uppercase text-[#965A18] tracking-widest block mb-1">
-                    💡 Study Explanation
-                  </span>
+                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-[#965A18] tracking-widest mb-1">
+                    <svg className="w-3.5 h-3.5 fill-current text-[#965A18]" viewBox="0 0 24 24">
+                      <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
+                    </svg>
+                    <span>Study Explanation</span>
+                  </div>
                   <p className="text-xs font-bold text-[#1A1A1A] leading-snug">
                     {quiz[currentIdx].explanation}
                   </p>

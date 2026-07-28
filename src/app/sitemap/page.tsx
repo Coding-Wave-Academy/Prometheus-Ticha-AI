@@ -14,12 +14,11 @@ interface RouteItem {
 
 interface RouteSection {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   routes: RouteItem[];
 }
 
 export default function SitemapPage() {
-  // States for testing dynamic routes
   const [testCourseId, setTestCourseId] = useState("calculus-101");
   const [testLessonId, setTestLessonId] = useState("limits-and-derivatives");
   const [testQuizId, setTestQuizId] = useState("midterm-quiz");
@@ -27,7 +26,11 @@ export default function SitemapPage() {
   const sections: RouteSection[] = [
     {
       title: "Onboarding & Auth Flow",
-      icon: "🚪",
+      icon: (
+        <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+        </svg>
+      ),
       routes: [
         {
           name: "Landing / Home",
@@ -53,7 +56,7 @@ export default function SitemapPage() {
         {
           name: "Goal Selection",
           path: "/getting-started/goal",
-          description: "Choose primary educational motivation (e.g. GCE exams, study habits).",
+          description: "Choose primary educational motivation.",
           badge: "New",
           badgeBg: "bg-[#B6FF00]",
         },
@@ -74,7 +77,7 @@ export default function SitemapPage() {
         {
           name: "Personalized Exam Intel",
           path: "/getting-started/intel",
-          description: "Bespoke subject insights preview (Quantum Tunneling showcase).",
+          description: "Bespoke subject insights preview.",
           badge: "New",
           badgeBg: "bg-[#B6FF00]",
         },
@@ -96,7 +99,11 @@ export default function SitemapPage() {
     },
     {
       title: "Explore Hub",
-      icon: "🧑‍🎓",
+      icon: (
+        <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+        </svg>
+      ),
       routes: [
         {
           name: "Explore Hub",
@@ -116,7 +123,11 @@ export default function SitemapPage() {
     },
     {
       title: "Student Portal",
-      icon: "🎓",
+      icon: (
+        <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+        </svg>
+      ),
       routes: [
         {
           name: "Dashboard Home",
@@ -133,16 +144,16 @@ export default function SitemapPage() {
           badgeBg: "bg-[#FFB040]",
         },
         {
-          name: "Progress Tracker",
-          path: "/dashboard/progress",
-          description: "Visual charts detailing lesson completions.",
-          badge: "Portal",
-          badgeBg: "bg-blue-300",
+          name: "Screen Coming Soon",
+          path: "/coming-soon",
+          description: "Screen for unreleased features with notification form.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
         },
         {
           name: "Profile Settings",
           path: "/dashboard/profile",
-          description: "Personal settings (name, region, school, 2FA) with checklist indicator.",
+          description: "Personal settings with checklist indicator.",
           badge: "New",
           badgeBg: "bg-[#B6FF00]",
         },
@@ -150,7 +161,11 @@ export default function SitemapPage() {
     },
     {
       title: "API Endpoints (Testing)",
-      icon: "⚡",
+      icon: (
+        <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
       routes: [
         {
           name: "Course API",
@@ -177,7 +192,9 @@ export default function SitemapPage() {
         {/* Header Title */}
         <header className="space-y-3">
           <div className="flex items-center gap-2.5">
-            <span className="text-3xl">🗺️</span>
+            <svg className="w-6 h-6 fill-current text-black" viewBox="0 0 24 24">
+              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
+            </svg>
             <span className="text-xs font-black uppercase tracking-widest bg-[#B6FF00] border-[2.5px] border-black rounded-full px-3.5 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               Developer Directory
             </span>
@@ -193,7 +210,9 @@ export default function SitemapPage() {
         {/* Dynamic Route Constructor Card */}
         <section className="bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-lg">⚙️</span>
+            <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+            </svg>
             <h2 className="text-lg font-black uppercase tracking-tight">
               Test Dynamic Segments
             </h2>
@@ -242,7 +261,6 @@ export default function SitemapPage() {
         {/* Sitemap Content Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Static Route Sections */}
           {sections.map((section) => (
             <section
               key={section.title}
@@ -250,7 +268,7 @@ export default function SitemapPage() {
             >
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b-[3px] border-black">
-                  <span className="text-2xl">{section.icon}</span>
+                  {section.icon}
                   <h2 className="text-lg font-black uppercase tracking-tight">
                     {section.title}
                   </h2>
@@ -294,15 +312,15 @@ export default function SitemapPage() {
           <section className="bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between md:col-span-2">
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b-[3px] border-black">
-                <span className="text-2xl">📖</span>
+                <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+                  <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
+                </svg>
                 <h2 className="text-lg font-black uppercase tracking-tight">
                   Course & Assessment Directory (Dynamic Segment Paths)
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                
-                {/* Courses Main & Detail Page */}
                 <div className="space-y-4">
                   <div className="group flex flex-col space-y-1">
                     <div className="flex items-center justify-between">
@@ -345,7 +363,6 @@ export default function SitemapPage() {
                   </div>
                 </div>
 
-                {/* Lesson & Quizzes Pages */}
                 <div className="space-y-4">
                   <div className="group flex flex-col space-y-1">
                     <div className="flex items-center justify-between">
