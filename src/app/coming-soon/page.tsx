@@ -8,8 +8,7 @@ export default function ComingSoonPage() {
     <main className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4">
       <ComingSoon
         title="Screen Coming Soon"
-        featureName="This Module"
-        description="Our AI engineering team is actively building this experience. Sign up below to get early access as soon as it launches!"
+        description="Our AI engineering team is actively building this experience for Cameroonian students. Check back soon for updates!"
         showBackHome={true}
       />
     </main>

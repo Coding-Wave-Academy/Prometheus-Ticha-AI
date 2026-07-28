@@ -66,6 +66,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      // 1. Sign up user with full_name metadata
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
@@ -82,14 +83,31 @@ export default function RegisterPage() {
         return;
       }
 
-      addToast("Account created successfully! Welcome to Ticha AI.", "success", "Welcome");
       localStorage.setItem("ticha_user_fullname", cleanName);
 
+      // 2. Direct Signup -> Dashboard transition
       if (data.session) {
+        addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
         router.push("/dashboard?showSetup=true");
       } else {
-        addToast("Please check your email to confirm your account.", "info", "Confirmation Sent");
-        router.push("/login");
+        // Attempt instant sign-in to bypass email confirmation step
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (!signInError) {
+          addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
+          router.push("/dashboard?showSetup=true");
+        } else {
+          // If email confirmation is strictly enforced in Supabase Dashboard settings:
+          addToast(
+            "Account registered! If prompted by your project settings, confirm your email or disable 'Confirm email' in Supabase to land directly on Dashboard.",
+            "info",
+            "Account Registered"
+          );
+          router.push("/dashboard?showSetup=true");
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration service unavailable.";

@@ -121,9 +121,13 @@ function StudentDashboardPageContent() {
 
   useEffect(() => {
     const savedName = localStorage.getItem("ticha_user_fullname");
-    if (savedName) setUserName(savedName);
+    if (savedName) setUserName(savedName.split(" ")[0]);
 
-    if (searchParams.get("showSetup") === "true") {
+    // Check if new user signup or profile incomplete
+    const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
+    const showSetupQuery = searchParams.get("showSetup") === "true";
+
+    if (showSetupQuery || !profileCompleted) {
       setIsSetupModalOpen(true);
     }
   }, [searchParams]);
@@ -139,7 +143,7 @@ function StudentDashboardPageContent() {
           userName={userName}
           streakCount={streakCount}
           notificationCount={notificationCount}
-          onNotificationClick={() => console.log("Notifications clicked")}
+          onNotificationClick={() => router.push("/coming-soon")}
         />
 
         <StreakCalendar streakCount={streakCount} days={streakDays} />

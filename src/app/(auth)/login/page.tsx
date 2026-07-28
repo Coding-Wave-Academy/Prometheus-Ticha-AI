@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -44,6 +45,7 @@ export default function LoginPage() {
 
     setErrors({});
     setIsLoading(true);
+    setUnconfirmedEmail(null);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -52,7 +54,16 @@ export default function LoginPage() {
       });
 
       if (error) {
-        addToast(error.message || "Invalid login credentials.", "error", "Sign In Failed");
+        if (error.code === "email_not_confirmed" || error.message.includes("Email not confirmed")) {
+          setUnconfirmedEmail(cleanEmail);
+          addToast(
+            "Please check your email inbox to confirm your account before logging in.",
+            "warning",
+            "Email Not Confirmed"
+          );
+        } else {
+          addToast(error.message || "Invalid login credentials.", "error", "Sign In Failed");
+        }
         setIsLoading(false);
         return;
       }
@@ -66,6 +77,24 @@ export default function LoginPage() {
       const msg = err instanceof Error ? err.message : "Authentication service unavailable.";
       addToast(msg, "error", "Login Error");
       setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: unconfirmedEmail,
+      });
+      if (error) {
+        addToast(error.message, "error", "Resend Failed");
+      } else {
+        addToast(`Confirmation email sent to ${unconfirmedEmail}.`, "success", "Sent!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to resend confirmation email.";
+      addToast(msg, "error");
     }
   };
 
@@ -114,6 +143,29 @@ export default function LoginPage() {
             : "Ready to pick up where you left off?"}
         </p>
       </header>
+
+      {/* Unconfirmed Email Warning Banner */}
+      {unconfirmedEmail && (
+        <div className="bg-[#FFB040] border-[3.5px] border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left space-y-2 animate-spring-slide-up">
+          <div className="flex items-center gap-2 font-black text-sm uppercase">
+            <svg className="w-5 h-5 text-black fill-current" viewBox="0 0 24 24">
+              <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
+            </svg>
+            <span>Email Confirmation Required</span>
+          </div>
+          <p className="text-xs font-bold text-black">
+            Supabase requires verifying <span className="underline">{unconfirmedEmail}</span> before logging in.
+          </p>
+          <div className="pt-1 flex gap-2">
+            <button
+              onClick={handleResendConfirmation}
+              className="bg-white border-[2px] border-black rounded-lg px-3 py-1.5 text-xs font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none"
+            >
+              Resend Confirmation Email
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Login Form Card */}
       <section className="bg-white border-[3.5px] border-black rounded-2xl p-5 md:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
