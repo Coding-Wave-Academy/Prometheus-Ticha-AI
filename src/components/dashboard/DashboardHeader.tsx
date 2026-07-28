@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { Notification01Icon, FireIcon } from "hugeicons-react";
 import "@/lib/i18n";
 
 interface DashboardHeaderProps {
@@ -12,9 +13,6 @@ interface DashboardHeaderProps {
   onNotificationClick: () => void;
 }
 
-/**
- * DashboardHeader — top bar with avatar, greeting, streak pill, and notification bell.
- */
 export default function DashboardHeader({
   userName,
   streakCount,
@@ -27,13 +25,13 @@ export default function DashboardHeader({
     <header className="flex items-center justify-between w-full mb-6 relative">
       <div className="flex items-center gap-3">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
+        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 bg-[#B6FF00]">
           <Image
             src="/images/amadou-avatar.png"
             alt={`${userName}'s profile`}
             width={48}
             height={48}
-            className="object-cover"
+            className="object-cover w-full h-full"
           />
         </div>
         <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight flex items-center gap-1.5">
@@ -47,9 +45,7 @@ export default function DashboardHeader({
       <div className="flex items-center gap-2">
         {/* Streak Pill */}
         <div className="bg-[#FAF7EC] border-[2.5px] border-black rounded-full py-1.5 px-3 flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold text-sm">
-          <svg className="w-4 h-4 fill-current text-orange-600 shrink-0" viewBox="0 0 24 24">
-            <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.6 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.52-4.5-9.33-6.5-13.33z" />
-          </svg>
+          <FireIcon size={18} className="text-orange-600 fill-current" />
           <span>{streakCount}</span>
         </div>
 
@@ -60,9 +56,7 @@ export default function DashboardHeader({
           aria-label={`${notificationCount} notifications`}
           className="relative w-11 h-11 bg-[#FAF7EC] border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
         >
-          <svg className="w-6 h-6 stroke-[3px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-          </svg>
+          <Notification01Icon size={22} className="text-black" />
           {notificationCount > 0 && (
             <span className="absolute -top-1 -right-1.5 bg-[#FFB040] border-[2px] border-black rounded-full w-6 h-6 flex items-center justify-center font-black text-xs shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
               {notificationCount}

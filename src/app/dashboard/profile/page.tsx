@@ -2,125 +2,95 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { PencilEdit01Icon, StarIcon, FireIcon, Mortarboard01Icon } from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
 import BottomNav from "@/components/layout/BottomNav";
-import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
+import EditProfileModal from "@/components/profile/EditProfileModal";
 import "@/lib/i18n";
 
-function ProfilePageContent() {
+interface BadgeItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  icon: React.ReactNode;
+  unlocked: boolean;
+  bgColor: string;
+}
+
+export function ProfilePageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const navItems = useNavItems();
 
-  // State values saved in localStorage for the setup steps checklist
-  const [profileCompleted, setProfileCompleted] = useState(false);
-  const [tfaEnabled, setTfaEnabled] = useState(false);
-  const [regionSelected, setRegionSelected] = useState(false);
-  const [schoolAdded, setSchoolAdded] = useState(false);
+  const [fullName, setFullName] = useState("Amadou");
+  const [schoolName, setSchoolName] = useState("GBHS Molyko");
+  const [region, setRegion] = useState("littoral");
+  const [educationLevel, setEducationLevel] = useState("al");
 
-  // Form input states
-  const [fullName, setFullName] = useState("");
-  const [schoolName, setSchoolName] = useState("");
-  const [region, setRegion] = useState("");
-  const [twoFactor, setTwoFactor] = useState(false);
-  
-  // Notification banner state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // Refs for focusing inputs from query parameters
-  const nameRef = useRef<HTMLInputElement>(null);
-  const schoolRef = useRef<HTMLInputElement>(null);
-  const regionRef = useRef<HTMLSelectElement>(null);
-  const tfaRef = useRef<HTMLButtonElement>(null);
-
-  // Modal open control
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   useEffect(() => {
-    // Initial load from localStorage
     const savedName = localStorage.getItem("ticha_user_fullname") || "Amadou";
-    const savedSchool = localStorage.getItem("ticha_school_name") || "";
-    const savedRegion = localStorage.getItem("ticha_region") || "";
-    const savedTfa = localStorage.getItem("ticha_2fa_enabled") === "true";
+    const savedSchool = localStorage.getItem("ticha_school_name") || "GBHS Molyko";
+    const savedRegion = localStorage.getItem("ticha_region") || "littoral";
+    const savedLevel = localStorage.getItem("ticha_education_level") || "al";
 
     setFullName(savedName);
     setSchoolName(savedSchool);
     setRegion(savedRegion);
-    setTwoFactor(savedTfa);
-
-    // Initial setup steps verification
-    setProfileCompleted(localStorage.getItem("ticha_profile_completed") === "true");
-    setTfaEnabled(savedTfa);
-    setRegionSelected(localStorage.getItem("ticha_region_selected") === "true");
-    setSchoolAdded(localStorage.getItem("ticha_school_added") === "true");
-
-    // Optional query parameter focus handling
-    const focus = searchParams.get("focus");
-    setTimeout(() => {
-      if (focus === "name") {
-        nameRef.current?.focus();
-        nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (focus === "school") {
-        schoolRef.current?.focus();
-        schoolRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (focus === "region") {
-        regionRef.current?.focus();
-        regionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (focus === "2fa") {
-        tfaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 300);
-  }, [searchParams]);
-
-  // Calculate percentage of checklist completed
-  const checklist = [
-    { label: "Account Created", done: true },
-    { label: "Complete Profile", done: profileCompleted },
-    { label: "Enable 2FA", done: tfaEnabled },
-    { label: "Select Region", done: regionSelected },
-    { label: "Add School Name", done: schoolAdded },
-  ];
-  const doneCount = checklist.filter((x) => x.done).length;
-  const progressPercent = (doneCount / 5) * 100;
+    setEducationLevel(savedLevel);
+  }, []);
 
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(""), 3000);
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveModal = (data: { fullName: string; schoolName: string; region: string }) => {
+    setFullName(data.fullName);
+    setSchoolName(data.schoolName);
+    setRegion(data.region);
 
-    // Persist profile inputs
-    localStorage.setItem("ticha_user_fullname", fullName);
-    localStorage.setItem("ticha_school_name", schoolName);
-    localStorage.setItem("ticha_region", region);
+    localStorage.setItem("ticha_user_fullname", data.fullName);
+    localStorage.setItem("ticha_school_name", data.schoolName);
+    localStorage.setItem("ticha_region", data.region);
 
-    // Dynamic checks
-    const nameDone = fullName.trim().length > 3;
-    const regionDone = region !== "";
-    const schoolDone = schoolName.trim().length > 2;
-
-    localStorage.setItem("ticha_profile_completed", nameDone ? "true" : "false");
-    localStorage.setItem("ticha_region_selected", regionDone ? "true" : "false");
-    localStorage.setItem("ticha_school_added", schoolDone ? "true" : "false");
-
-    setProfileCompleted(nameDone);
-    setRegionSelected(regionDone);
-    setSchoolAdded(schoolDone);
-
-    showToast("Profile settings saved successfully!");
+    showToast("Profile changes saved successfully!");
   };
 
-  const handleToggleTfa = () => {
-    const nextTfa = !twoFactor;
-    setTwoFactor(nextTfa);
-    localStorage.setItem("ticha_2fa_enabled", nextTfa ? "true" : "false");
-    setTfaEnabled(nextTfa);
-    showToast(nextTfa ? "2FA Enabled successfully!" : "2FA Disabled successfully!");
-  };
+  const badges: BadgeItem[] = [
+    {
+      id: "novice",
+      name: "Level 1: Novice",
+      category: "Starter",
+      description: "Unlocked upon joining Ticha AI",
+      unlocked: true,
+      bgColor: "bg-[#B6FF00]",
+      icon: <StarIcon size={24} className="text-black" />,
+    },
+    {
+      id: "streak",
+      name: "Streak Master",
+      category: "Consistency",
+      description: "Maintained a 7-day study streak",
+      unlocked: true,
+      bgColor: "bg-[#FFB040]",
+      icon: <FireIcon size={24} className="text-orange-600" />,
+    },
+    {
+      id: "gce-pioneer",
+      name: "GCE Pioneer",
+      category: "Academic",
+      description: "Completed 5 GCE Past Paper practice sets",
+      unlocked: true,
+      bgColor: "bg-[#D3E2FF]",
+      icon: <Mortarboard01Icon size={24} className="text-blue-700" />,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
@@ -129,7 +99,7 @@ function ProfilePageContent() {
         {/* Header */}
         <header className="flex items-center justify-between w-full mb-6 border-b-[3.5px] border-black pb-3">
           <h1 className="text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
-            Profile Settings
+            Student Profile
           </h1>
           <button
             onClick={() => router.push("/dashboard")}
@@ -140,159 +110,79 @@ function ProfilePageContent() {
           </button>
         </header>
 
-        {/* Setup Progress Checklist Card */}
-        <section className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-8 relative overflow-hidden">
-          <div className="relative z-10 space-y-3.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest bg-black text-[#B6FF00] px-2.5 py-0.5 rounded-full border-[1.5px] border-black">
-                Setup Progress
-              </span>
-              <span className="text-sm font-black text-black">
-                {doneCount} of 5 Completed
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <h2 className="text-lg font-black text-black tracking-tight">
-                Complete Setup Checklist
-              </h2>
-              <p className="text-xs font-bold text-black/80 leading-snug">
-                {progressPercent === 100 
-                  ? "Congratulations! Your account is fully verified." 
-                  : "Complete all verification steps to unlock the full platform."
-                }
-              </p>
-            </div>
-
-            {/* Custom Neobrutalist Progress Bar */}
-            <div className="w-full h-3.5 bg-white rounded-full border-[2.5px] border-black overflow-hidden shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-              <div 
-                className="h-full bg-[#FFB040] border-r-[2px] border-black transition-all duration-500 ease-out"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            {/* Open Checklist Dialog Button */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full bg-white hover:bg-stone-50 text-black py-2.5 rounded-lg font-black text-xs uppercase tracking-wider border-[2.5px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-center"
-            >
-              Complete Setup Checklist
-            </button>
+        {/* Main Profile Header Card */}
+        <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 text-center flex flex-col items-center relative">
+          
+          {/* Avatar Photo */}
+          <div className="relative w-24 h-24 rounded-full border-[3.5px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 bg-[#B6FF00]">
+            <Image
+              src="/images/amadou-avatar.png"
+              alt={`${fullName}'s profile photo`}
+              width={96}
+              height={96}
+              className="object-cover w-full h-full"
+            />
           </div>
+
+          {/* User Bio */}
+          <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">
+            {fullName}
+          </h2>
+          <p className="text-xs font-bold text-stone-600 mt-0.5">
+            {schoolName} • <span className="uppercase">{region}</span>
+          </p>
+
+          {/* Badges pills */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="bg-[#B6FF00] border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+              Level 1: Novice
+            </span>
+            <span className="bg-[#FFB040] border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
+              <FireIcon size={14} className="text-orange-600" />
+              <span>12 Day Streak</span>
+            </span>
+          </div>
+
+          {/* Edit Profile Action Button */}
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="mt-5 w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 text-black"
+          >
+            <PencilEdit01Icon size={16} className="text-black" />
+            <span>Edit Profile</span>
+          </button>
         </section>
 
-        {/* Profile Info Form */}
-        <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-8 text-left">
-          <h3 className="text-base font-black uppercase tracking-wider text-stone-900 border-b-[2.5px] border-black pb-2 mb-4">
-            Personal Information
-          </h3>
+        {/* Badges Showcase Section */}
+        <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 text-left">
+          <div className="flex items-center justify-between border-b-[2.5px] border-black pb-2 mb-4">
+            <h3 className="text-base font-black uppercase tracking-wider text-stone-900 flex items-center gap-2">
+              <StarIcon size={20} className="text-black" />
+              <span>Earned Badges</span>
+            </h3>
+            <span className="text-xs font-extrabold uppercase bg-stone-100 border-[1.5px] border-black rounded-full px-2.5 py-0.5">
+              3 / 3 Unlocked
+            </span>
+          </div>
 
-          <form onSubmit={handleSaveProfile} className="space-y-4">
-            {/* Full Name */}
-            <div className="flex flex-col space-y-1.5">
-              <label htmlFor="profile-name" className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
-                Full Name
-              </label>
-              <input
-                id="profile-name"
-                ref={nameRef}
-                type="text"
-                placeholder="Your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-white border-[3.5px] border-black rounded-xl p-3 text-[15px] font-medium outline-none placeholder-stone-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all"
-              />
-            </div>
-
-            {/* School Name */}
-            <div className="flex flex-col space-y-1.5">
-              <label htmlFor="profile-school" className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
-                School / Community Name
-              </label>
-              <input
-                id="profile-school"
-                ref={schoolRef}
-                type="text"
-                placeholder="GBHS Molyko, Lycée Joss..."
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                className="w-full bg-white border-[3.5px] border-black rounded-xl p-3 text-[15px] font-medium outline-none placeholder-stone-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all"
-              />
-            </div>
-
-            {/* Region Selection */}
-            <div className="flex flex-col space-y-1.5">
-              <label htmlFor="profile-region" className="text-xs font-extrabold uppercase tracking-widest text-stone-850">
-                Study Region
-              </label>
-              <div className="relative rounded-xl border-[3.5px] border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus-within:translate-x-[-2px] focus-within:translate-y-[-2px] focus-within:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all">
-                <select
-                  id="profile-region"
-                  ref={regionRef}
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="w-full bg-transparent p-3 pr-10 text-[15px] font-medium outline-none text-black appearance-none"
-                >
-                  <option value="" disabled>Select your region...</option>
-                  <option value="littoral">Littoral Region</option>
-                  <option value="centre">Centre Region</option>
-                  <option value="southwest">Southwest Region</option>
-                  <option value="northwest">Northwest Region</option>
-                  <option value="west">West Region</option>
-                  <option value="other">Other Region</option>
-                </select>
-                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700">
-                  ▼
+          <div className="grid grid-cols-3 gap-3">
+            {badges.map((badge) => (
+              <div
+                key={badge.id}
+                className={`p-3 border-[2.5px] border-black rounded-xl flex flex-col items-center text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${badge.bgColor}`}
+              >
+                <div className="w-10 h-10 bg-white border-[2px] border-black rounded-full flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                  {badge.icon}
                 </div>
+                <h4 className="font-black text-[11px] uppercase text-black leading-tight">
+                  {badge.name}
+                </h4>
               </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black"
-            >
-              Save Changes
-            </button>
-          </form>
-        </section>
-
-        {/* Security Settings Section */}
-        <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-left mb-8">
-          <h3 className="text-base font-black uppercase tracking-wider text-stone-900 border-b-[2.5px] border-black pb-2 mb-4">
-            Security settings
-          </h3>
-
-          <div className="flex items-center justify-between p-3.5 bg-stone-50 border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <div className="min-w-0 pr-4">
-              <h4 className="text-sm font-black text-black leading-tight">
-                Two-Factor Authentication (2FA)
-              </h4>
-              <p className="text-[11px] font-bold text-stone-600 leading-snug mt-0.5">
-                Protect your educational score with one-time verification.
-              </p>
-            </div>
-
-            {/* Custom Neobrutalist Switch Toggle */}
-            <button
-              id="tfa-toggle-button"
-              ref={tfaRef}
-              onClick={handleToggleTfa}
-              className={`w-14 h-8 rounded-full border-[3px] border-black flex items-center p-0.5 transition-colors relative shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] ${
-                twoFactor ? "bg-[#B6FF00]" : "bg-stone-300"
-              }`}
-              aria-label="Toggle two-factor authentication"
-            >
-              <div 
-                className={`w-5.5 h-5.5 bg-white border-[2.5px] border-black rounded-full transition-transform transform ${
-                  twoFactor ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </button>
+            ))}
           </div>
         </section>
 
-        {/* Save Notification Toast */}
+        {/* Toast Notification */}
         {toastMessage && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#B6FF00] border-[2.5px] border-black rounded-xl py-3.5 px-6 font-black text-sm text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 animate-bounce">
             <span>✨</span> {toastMessage}
@@ -301,9 +191,17 @@ function ProfilePageContent() {
 
       </main>
 
-      <FinishSetupModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      {/* Edit Profile Modal Dialog */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveModal}
+        initialData={{
+          fullName,
+          schoolName,
+          region,
+          educationLevel,
+        }}
       />
 
       <BottomNav items={navItems} />
