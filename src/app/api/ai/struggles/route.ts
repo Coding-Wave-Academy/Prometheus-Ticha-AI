@@ -6,7 +6,7 @@ interface StruggleSubject {
   id: string;
   name: string;
   iconBg: string;
-  emoji: string;
+  iconSlug: string;
 }
 
 /**
@@ -23,19 +23,19 @@ export async function POST(req: NextRequest) {
     // Standard high-quality fallback subject options mapped by education level
     const defaultMocks: Record<string, StruggleSubject[]> = {
       ol: [
-        { id: "math", name: "O-Level Mathematics", iconBg: "bg-[#A6B7CE]", emoji: "📐" },
-        { id: "physics", name: "O-Level Physics", iconBg: "bg-[#B6FF00]", emoji: "⚡" },
-        { id: "chemistry", name: "O-Level Chemistry", iconBg: "bg-[#FFD9E0]", emoji: "🧪" },
+        { id: "math", name: "O-Level Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
+        { id: "physics", name: "O-Level Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
+        { id: "chemistry", name: "O-Level Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
       ],
       al: [
-        { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", emoji: "📐" },
-        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", emoji: "⚡" },
-        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", emoji: "🧪" },
+        { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
+        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
+        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
       ],
       university: [
-        { id: "calculus", name: "Advanced Calculus", iconBg: "bg-[#A6B7CE]", emoji: "📈" },
-        { id: "cs", name: "Computer Programming", iconBg: "bg-[#B6FF00]", emoji: "💻" },
-        { id: "physics", name: "Quantum Mechanics", iconBg: "bg-[#FFD9E0]", emoji: "⚛️" },
+        { id: "calculus", name: "Advanced Calculus", iconBg: "bg-[#A6B7CE]", iconSlug: "calculus" },
+        { id: "cs", name: "Computer Programming", iconBg: "bg-[#B6FF00]", iconSlug: "cs" },
+        { id: "physics", name: "Quantum Mechanics", iconBg: "bg-[#FFD9E0]", iconSlug: "physics" },
       ],
     };
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       Return the result strictly as a JSON object of this structure:
       {
         "subjects": [
-          { "id": "subject_slug", "name": "Subject Name", "iconBg": "bg_tailwind_color_class", "emoji": "single_emoji_representing_subject" }
+          { "id": "subject_slug", "name": "Subject Name", "iconBg": "bg_tailwind_color_class", "iconSlug": "subject_slug" }
         ]
       }
       
@@ -91,12 +91,11 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("Gemini query failed, bailing out to mock data:", error);
-    // Fallback safe return
     return NextResponse.json({
       subjects: [
-        { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", emoji: "📐" },
-        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", emoji: "⚡" },
-        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", emoji: "🧪" },
+        { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
+        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
+        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
       ]
     });
   }

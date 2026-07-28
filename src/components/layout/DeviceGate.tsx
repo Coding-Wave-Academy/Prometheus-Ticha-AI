@@ -80,13 +80,16 @@ export default function DeviceGate({ children }: DeviceGateProps) {
             <Button
               variant="primary"
               size="lg"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
               onClick={() => {
                 hapticTap();
                 setSimulateMobile(true);
               }}
             >
-              Simulate Mobile Frame 📱
+              <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+                <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z" />
+              </svg>
+              <span>Simulate Mobile Frame</span>
             </Button>
           </div>
         </div>
@@ -100,8 +103,11 @@ export default function DeviceGate({ children }: DeviceGateProps) {
       <div className="min-h-screen bg-stone-900 flex flex-col items-center justify-center p-4 antialiased font-sans">
         {/* Top Control Bar */}
         <div className="w-full max-w-[410px] mb-3 flex items-center justify-between text-white">
-          <span className="text-xs font-black uppercase tracking-wider text-[#B6FF00]">
-            📱 Mobile Simulation Mode
+          <span className="text-xs font-black uppercase tracking-wider text-[#B6FF00] flex items-center gap-1.5">
+            <svg className="w-4 h-4 fill-current text-[#B6FF00]" viewBox="0 0 24 24">
+              <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z" />
+            </svg>
+            Mobile Simulation Mode
           </span>
           <button
             onClick={() => {

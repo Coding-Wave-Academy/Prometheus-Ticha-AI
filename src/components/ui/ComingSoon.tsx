@@ -77,8 +77,11 @@ export default function ComingSoon({
                 onChange={(e) => setEmail(e.target.value)}
                 onClear={() => setEmail("")}
               />
-              <Button type="submit" variant="primary" size="md" className="w-full">
-                Notify Me 🚀
+              <Button type="submit" variant="primary" size="md" className="w-full flex items-center justify-center gap-2">
+                <span>Notify Me</span>
+                <svg className="w-4 h-4 fill-current text-black" viewBox="0 0 24 24">
+                  <path d="M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 9.15l-1.92.64 1.34 2.01L7.7 17.5c1.86 2.08 4.6 3.5 7.7 3.5.54 0 1.07-.05 1.6-.14l-2.07-2.07c-2.54-.25-4.73-1.63-6.02-3.66.1-2.92 1.25-5.6 3.12-7.53L9.19 6.35zM19.07 4.93C17.03 2.89 14.17 1.66 11 1.66v2c2.61 0 4.98 1.02 6.66 2.7l1.41-1.43z" />
+                </svg>
               </Button>
             </form>
           ) : (

@@ -10,7 +10,7 @@ export interface StreakDay {
 
 export interface QuickAction {
   name: string;
-  icon: string;
+  icon: React.ReactNode;
   bgColor: string;
   badge?: number;
 }
@@ -37,7 +37,7 @@ export interface HubCard {
   bgColor: string;
   /** Renders as a full-width row instead of a square */
   large?: boolean;
-  /** Optional decorative text/emoji shown as background graphic on large cards */
+  /** Optional decorative text shown as background graphic on large cards */
   bgGraphic?: string;
 }
 

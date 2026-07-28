@@ -15,8 +15,6 @@ import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import { SubjectData, StreakDay, QuickAction } from "@/types";
 import "@/lib/i18n";
 
-// ─── Static data (replace with API calls once useAuth / useCourseProgress are wired up) ──
-
 const streakDays: StreakDay[] = [
   { day: "S", active: true },
   { day: "M", active: true },
@@ -28,10 +26,43 @@ const streakDays: StreakDay[] = [
 ];
 
 const quickActions: QuickAction[] = [
-  { name: "Daily Quiz", icon: "🔥", bgColor: "bg-[#FFB040]", badge: 3 },
-  { name: "Summaries", icon: "⊞", bgColor: "bg-[#B6FF00]" },
-  { name: "Past Papers", icon: "✏️", bgColor: "bg-[#D3E2FF]" },
-  { name: "Practice", icon: "≡", bgColor: "bg-[#FFD9E0]" },
+  {
+    name: "Daily Quiz",
+    icon: (
+      <svg className="w-6 h-6 fill-current text-black" viewBox="0 0 24 24">
+        <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.16-.4 3.84-2.11 4.39-4.36C19.85 11.23 21 9.25 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+      </svg>
+    ),
+    bgColor: "bg-[#FFB040]",
+    badge: 3,
+  },
+  {
+    name: "Summaries",
+    icon: (
+      <svg className="w-6 h-6 fill-current text-black" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+      </svg>
+    ),
+    bgColor: "bg-[#B6FF00]",
+  },
+  {
+    name: "Past Papers",
+    icon: (
+      <svg className="w-6 h-6 fill-current text-black" viewBox="0 0 24 24">
+        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+      </svg>
+    ),
+    bgColor: "bg-[#D3E2FF]",
+  },
+  {
+    name: "Practice",
+    icon: (
+      <svg className="w-6 h-6 stroke-[2.5] text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.037-.501.087-.75.15m.75-.15a15.228 15.228 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19 14.5M14.25 3.104c.251.037.501.087.75.15M3 17.25h18" />
+      </svg>
+    ),
+    bgColor: "bg-[#FFD9E0]",
+  },
 ];
 
 const featuredSubjects: SubjectData[] = [
@@ -43,9 +74,8 @@ const featuredSubjects: SubjectData[] = [
     progress: 82,
     bgColor: "bg-[#B6FF00]",
     icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="4" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v2m0 16v2M2 12h2m16 0h2m-3.636-6.364-1.414 1.414M6.05 17.95l-1.414 1.414M17.95 17.95l-1.414-1.414M6.05 6.05 4.636 4.636" />
+      <svg className="w-6 h-6 text-black stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     ),
   },
@@ -57,8 +87,8 @@ const featuredSubjects: SubjectData[] = [
     progress: 45,
     bgColor: "bg-[#D3E2FF]",
     icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15M19.5 19.5l-15-15m0 15 15-15" />
+      <svg className="w-6 h-6 text-black fill-current" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
       </svg>
     ),
   },
@@ -70,8 +100,8 @@ const featuredSubjects: SubjectData[] = [
     progress: 94,
     bgColor: "bg-[#FFD9E0]",
     icon: (
-      <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+      <svg className="w-6 h-6 text-black fill-current" viewBox="0 0 24 24">
+        <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" />
       </svg>
     ),
   },
@@ -80,8 +110,6 @@ const featuredSubjects: SubjectData[] = [
 const regionalUpdates = [
   { id: "littoral-mock", title: "Littoral Region Mock dates released!", date: "May 12th, 2024" },
 ];
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 function StudentDashboardPageContent() {
   const router = useRouter();
@@ -92,11 +120,9 @@ function StudentDashboardPageContent() {
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
 
   useEffect(() => {
-    // Read dynamic user name configured in profile setup
     const savedName = localStorage.getItem("ticha_user_fullname");
     if (savedName) setUserName(savedName);
 
-    // Open setup modal if ?showSetup=true query parameter is present
     if (searchParams.get("showSetup") === "true") {
       setIsSetupModalOpen(true);
     }
@@ -124,7 +150,7 @@ function StudentDashboardPageContent() {
             if (name === "Daily Quiz") {
               router.push("/dashboard/quiz-generator");
             } else {
-              console.log("Quick action:", name);
+              router.push("/coming-soon");
             }
           }}
         />
@@ -138,7 +164,7 @@ function StudentDashboardPageContent() {
 
         <RegionalUpdates
           updates={regionalUpdates}
-          onUpdateClick={(id) => console.log("Update clicked:", id)}
+          onUpdateClick={() => router.push("/coming-soon")}
         />
       </main>
 

@@ -21,7 +21,9 @@ export default function StreakCalendar({ streakCount, days }: StreakCalendarProp
       <div className="flex gap-4 items-start mb-4">
         {/* Fire Icon Box */}
         <div className="w-16 h-16 bg-white border-[3px] border-black rounded-xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
-          <span role="img" aria-label="streak fire" className="text-4xl leading-none">🔥</span>
+          <svg className="w-9 h-9 text-orange-600 fill-current" viewBox="0 0 24 24">
+            <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.6 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.52-4.5-9.33-6.5-13.33z" />
+          </svg>
         </div>
 
         <div className="flex-1 space-y-0.5">

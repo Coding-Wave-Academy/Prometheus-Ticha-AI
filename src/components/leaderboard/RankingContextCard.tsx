@@ -11,8 +11,7 @@ interface RankingContextCardProps {
 
 /**
  * RankingContextCard — lime-green card showing the current user's rank,
- * points, and how many students they are ahead of. Matches the design:
- * "Ranking #42 / You're ahead of 12,400 students!"
+ * points, and how many students they are ahead of.
  */
 export default function RankingContextCard({ rank, points, aheadOf }: RankingContextCardProps) {
   return (
@@ -20,7 +19,9 @@ export default function RankingContextCard({ rank, points, aheadOf }: RankingCon
       {/* Left: text info */}
       <div className="flex-1 space-y-1 relative z-10">
         <div className="inline-flex bg-black/80 rounded-full py-0.5 px-3 items-center gap-1">
-          <span aria-hidden="true" className="text-xs">⚡</span>
+          <svg className="w-3 h-3 fill-current text-[#B6FF00]" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
           <span className="text-[10px] font-black uppercase tracking-wider text-white">
             Top 1% Daily
           </span>

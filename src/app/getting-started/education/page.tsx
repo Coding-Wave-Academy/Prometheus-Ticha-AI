@@ -9,8 +9,7 @@ interface EducationOption {
   id: string;
   titleKey: string;
   subtitleKey: string;
-  // Using an emoji representation of the character graphics for the local setup
-  emojiGraphic: string; 
+  icon: React.ReactNode;
 }
 
 export default function EducationLevelPage() {
@@ -28,19 +27,31 @@ export default function EducationLevelPage() {
       id: "ol",
       titleKey: "education.ol.title",
       subtitleKey: "education.ol.subtitle",
-      emojiGraphic: "🧑‍🎓",
+      icon: (
+        <svg className="w-8 h-8 text-black fill-current" viewBox="0 0 24 24">
+          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+        </svg>
+      ),
     },
     {
       id: "al",
       titleKey: "education.al.title",
       subtitleKey: "education.al.subtitle",
-      emojiGraphic: "🧑‍🎓",
+      icon: (
+        <svg className="w-8 h-8 text-black fill-current" viewBox="0 0 24 24">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM3.88 12.88L12 17.3l8.12-4.42L12 8.46l-8.12 4.42z" />
+        </svg>
+      ),
     },
     {
       id: "university",
       titleKey: "education.university.title",
       subtitleKey: "education.university.subtitle",
-      emojiGraphic: "🎓",
+      icon: (
+        <svg className="w-8 h-8 text-black fill-current" viewBox="0 0 24 24">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 8.7L5.3 8 12 4.3 18.7 8 12 11.7z" />
+        </svg>
+      ),
     },
   ];
 
@@ -50,17 +61,14 @@ export default function EducationLevelPage() {
 
   const handleContinue = () => {
     if (!selectedLevel) return;
-    console.log(`Education level chosen: ${selectedLevel}`);
     localStorage.setItem("ticha_onboarding_education", selectedLevel);
     router.push("/getting-started/struggles");
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
-      {/* PWA Mobile-First Wrapper Container */}
       <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
         
-        {/* Navigation & Progress Header */}
         <header className="flex items-center gap-4 w-full">
           <button 
             onClick={handleBack}
@@ -72,7 +80,6 @@ export default function EducationLevelPage() {
             </svg>
           </button>
 
-          {/* Progress Tracker (Step 3 of 5 Active) */}
           <div className="flex gap-1.5 w-full items-center">
             <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
             <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
@@ -82,14 +89,12 @@ export default function EducationLevelPage() {
           </div>
         </header>
 
-        {/* Heading Section */}
         <div className="text-center mt-8 mb-4">
           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
             {isMounted ? t("education.title") : "Your Education Level"}
           </h1>
         </div>
 
-        {/* Cards Stack */}
         <div className="space-y-5 my-auto w-full">
           {levels.map((level) => {
             const isSelected = selectedLevel === level.id;
@@ -103,9 +108,8 @@ export default function EducationLevelPage() {
                     : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
                 }`}
               >
-                {/* Character Graphic Spacer/Placeholder */}
-                <div className="text-2xl mb-2 select-none filter drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">
-                  {level.emojiGraphic}
+                <div className="w-12 h-12 bg-white border-[2.5px] border-black rounded-xl flex items-center justify-center mb-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  {level.icon}
                 </div>
 
                 <h2 className="font-black text-lg text-[#1A1A1A] tracking-tight">
@@ -119,7 +123,6 @@ export default function EducationLevelPage() {
           })}
         </div>
 
-        {/* Footer Action Bar */}
         <footer className="w-full mt-6">
           <button
             onClick={handleContinue}
