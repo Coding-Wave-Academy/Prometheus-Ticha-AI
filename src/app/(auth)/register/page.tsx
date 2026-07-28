@@ -111,7 +111,10 @@ export default function RegisterPage() {
           Level 1: Novice
         </h2>
         <Badge variant="white" className="relative z-40">
-          🔥 1 Day Streak!
+          <svg className="w-3.5 h-3.5 fill-current text-orange-600 inline mr-1" viewBox="0 0 24 24">
+            <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.6 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.52-4.5-9.33-6.5-13.33z" />
+          </svg>
+          <span>1 Day Streak!</span>
         </Badge>
       </Card>
 
@@ -159,7 +162,12 @@ export default function RegisterPage() {
               }}
             />
             {errors.password && (
-              <p className="text-xs font-bold text-red-600 mt-1">⚠️ {errors.password}</p>
+              <p className="text-xs font-bold text-red-600 mt-1 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 fill-current text-red-600 inline" viewBox="0 0 24 24">
+                  <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
+                </svg>
+                <span>{errors.password}</span>
+              </p>
             )}
             <PasswordStrengthBar strength={strength} showChecks />
           </div>
@@ -176,16 +184,27 @@ export default function RegisterPage() {
               }}
             />
             {errors.confirmPassword && (
-              <p className="text-xs font-bold text-red-600 mt-1">⚠️ {errors.confirmPassword}</p>
+              <p className="text-xs font-bold text-red-600 mt-1 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 fill-current text-red-600 inline" viewBox="0 0 24 24">
+                  <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
+                </svg>
+                <span>{errors.confirmPassword}</span>
+              </p>
             )}
             {passwordsMatch && !errors.confirmPassword && (
               <p className="text-xs font-bold text-green-700 mt-1.5 flex items-center gap-1">
-                <span>✓</span> Passwords match
+                <svg className="w-3.5 h-3.5 fill-current text-green-700 inline" viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+                <span>Passwords match</span>
               </p>
             )}
             {passwordsMismatch && !errors.confirmPassword && (
               <p className="text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1">
-                <span>✗</span> Passwords do not match
+                <svg className="w-3.5 h-3.5 stroke-[3] text-red-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Passwords do not match</span>
               </p>
             )}
           </div>

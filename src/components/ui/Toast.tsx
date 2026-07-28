@@ -18,11 +18,35 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
     info: "bg-white text-black",
   };
 
-  const icons: Record<ToastMessage["type"], string> = {
-    success: "✓",
-    error: "⚠️",
-    warning: "⚡",
-    info: "ℹ️",
+  const renderIcon = (type: ToastMessage["type"]) => {
+    switch (type) {
+      case "success":
+        return (
+          <svg className="w-5 h-5 fill-current text-black shrink-0 mt-0.5" viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+          </svg>
+        );
+      case "error":
+        return (
+          <svg className="w-5 h-5 text-black shrink-0 stroke-[3] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+        );
+      case "warning":
+        return (
+          <svg className="w-5 h-5 text-black shrink-0 fill-current mt-0.5" viewBox="0 0 24 24">
+            <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
+          </svg>
+        );
+      case "info":
+      default:
+        return (
+          <svg className="w-5 h-5 text-black shrink-0 stroke-[2.5] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path strokeLinecap="round" d="M12 16v-4m0-4h.01" />
+          </svg>
+        );
+    }
   };
 
   return (
@@ -38,9 +62,7 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
           }`}
         >
           <div className="flex items-start gap-2.5">
-            <span className="text-lg font-black leading-none mt-0.5">
-              {icons[toast.type]}
-            </span>
+            {renderIcon(toast.type)}
             <div className="space-y-0.5">
               {toast.title && (
                 <h4 className="font-extrabold uppercase text-xs tracking-wider">

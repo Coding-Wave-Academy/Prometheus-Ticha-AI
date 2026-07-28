@@ -78,14 +78,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
 
-        {/* Error message */}
+        {/* Error message with SVG Icon */}
         {error && (
           <div
             id={`${inputId}-error`}
             role="alert"
             className="bg-[#FF9494] border-[2.5px] border-black rounded-xl p-2.5 font-bold text-xs text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-spring-slide-up flex items-center gap-1.5"
           >
-            <span>⚠️</span>
+            <svg className="w-4 h-4 text-black shrink-0 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
+            </svg>
             <span>{error}</span>
           </div>
         )}
