@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Award01Icon,
@@ -14,6 +14,7 @@ import {
   ComputerIcon,
 } from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useProfile } from "@/hooks/useProfile";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StreakCalendar from "@/components/dashboard/StreakCalendar";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -86,32 +87,39 @@ function StudentDashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const navItems = useNavItems();
+  const { profile, isLoading } = useProfile();
 
-  const [userName, setUserName] = useState("Amadou");
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
 
-  useEffect(() => {
-    const savedName = localStorage.getItem("ticha_user_fullname");
-    if (savedName) setUserName(savedName.split(" ")[0]);
-
-    // Check if new user signup or profile incomplete
-    const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
+  // Show setup modal if profile is not completed
+  React.useEffect(() => {
+    if (isLoading) return;
     const showSetupQuery = searchParams.get("showSetup") === "true";
-
-    if (showSetupQuery || !profileCompleted) {
+    if (showSetupQuery || !profile?.profile_completed) {
       setIsSetupModalOpen(true);
     }
-  }, [searchParams]);
+  }, [searchParams, isLoading, profile?.profile_completed]);
 
-  const currentLevel = "GCE A-Level";
-  const streakCount = 12;
+  const userName = profile?.full_name?.split(" ")[0] || "Student";
+  const avatarUrl = profile?.avatar_url || null;
+  const streakCount = profile?.streak_count || 1;
+  const currentLevel = profile?.education_level === "ol" ? "GCE O-Level" : "GCE A-Level";
   const notificationCount = 3;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
+        <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center animate-page-in">
         <DashboardHeader
           userName={userName}
+          avatarUrl={avatarUrl}
           streakCount={streakCount}
           notificationCount={notificationCount}
           onNotificationClick={() => router.push("/coming-soon")}

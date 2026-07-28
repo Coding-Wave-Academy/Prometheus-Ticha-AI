@@ -11,9 +11,12 @@ export interface UserProfile {
   education_level?: string;
   goal?: string;
   streak_count: number;
+  freezes_remaining: number;
+  last_active_date?: string;
   points: number;
   region?: string;
   school_name?: string;
+  profile_completed: boolean;
 }
 
 export function useAuth() {
@@ -87,7 +90,7 @@ export function useAuth() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/dashboard?showSetup=true`,
+        redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
       },
     });
     if (error) {

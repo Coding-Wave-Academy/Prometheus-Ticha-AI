@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fireSideCannons } from "@/lib/confetti";
 import { hapticSuccess } from "@/lib/haptics";
+import { useProfile } from "@/hooks/useProfile";
 
 export interface StreakDayItem {
   day: string;
@@ -11,10 +12,11 @@ export interface StreakDayItem {
 }
 
 export function useStreak() {
-  const [streakCount, setStreakCount] = useState(12);
-  const [freezesRemaining, setFreezesRemaining] = useState(1);
+  const { profile, updateProfile } = useProfile();
+  const [streakCount, setStreakCount] = useState(1);
+  const [freezesRemaining, setFreezesRemaining] = useState(2);
   const [isTodayClaimed, setIsTodayClaimed] = useState(false);
-  const [isFrozen, setIsFrozen] = useState(true); // Demonstrating Chess.com paused streak feature
+  const [isFrozen, setIsFrozen] = useState(false);
 
   const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>([
     { day: "S", status: "active", label: "Sunday" },
@@ -27,33 +29,38 @@ export function useStreak() {
   ]);
 
   useEffect(() => {
-    const savedStreak = localStorage.getItem("ticha_streak_count");
-    const savedClaimed = localStorage.getItem("ticha_streak_claimed_today") === "true";
-    const savedFreezes = localStorage.getItem("ticha_streak_freezes");
+    if (profile) {
+      setStreakCount(profile.streak_count || 1);
+      setFreezesRemaining(profile.freezes_remaining ?? 2);
 
-    if (savedStreak) setStreakCount(parseInt(savedStreak, 10));
-    if (savedClaimed) setIsTodayClaimed(savedClaimed);
-    if (savedFreezes) setFreezesRemaining(parseInt(savedFreezes, 10));
-  }, []);
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (profile.last_active_date === todayStr) {
+        setIsTodayClaimed(true);
+      }
+    }
+  }, [profile]);
 
-  const claimDailyStreak = () => {
+  const claimDailyStreak = async () => {
     if (isTodayClaimed) return;
 
     hapticSuccess();
     fireSideCannons();
 
     const newStreak = streakCount + 1;
+    const todayStr = new Date().toISOString().split("T")[0];
+
     setStreakCount(newStreak);
     setIsTodayClaimed(true);
     setIsFrozen(false);
 
-    // Update today in weekly array
     setWeeklyDays((prev) =>
       prev.map((item, idx) => (idx === 4 ? { ...item, status: "active" } : item))
     );
 
-    localStorage.setItem("ticha_streak_count", newStreak.toString());
-    localStorage.setItem("ticha_streak_claimed_today", "true");
+    await updateProfile({
+      streak_count: newStreak,
+      last_active_date: todayStr,
+    });
   };
 
   return {

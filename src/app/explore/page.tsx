@@ -116,7 +116,7 @@ export default function ExploreHubPage() {
       flashcards: "/coming-soon",
       "upload-materials": "/coming-soon",
       practice: "/practice",
-      "ai-tutor": "/coming-soon",
+      "ai-tutor": "/dashboard/tutor",
     };
     router.push(routes[id] ?? "/coming-soon");
   };

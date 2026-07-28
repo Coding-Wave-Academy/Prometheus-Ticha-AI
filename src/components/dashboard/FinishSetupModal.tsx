@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { UserIcon, SchoolIcon, Location01Icon, Award01Icon } from "hugeicons-react";
 import { fireConfettiBurst } from "@/lib/confetti";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
+import { useProfile } from "@/hooks/useProfile";
 
 interface FinishSetupModalProps {
   isOpen: boolean;
@@ -11,40 +12,41 @@ interface FinishSetupModalProps {
 }
 
 export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalProps) {
+  const { profile, updateProfile } = useProfile();
   const [fullName, setFullName] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [region, setRegion] = useState("littoral");
   const [educationLevel, setEducationLevel] = useState("al");
 
   const [isSaved, setIsSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setFullName(localStorage.getItem("ticha_user_fullname") || "");
-      setSchoolName(localStorage.getItem("ticha_school_name") || "");
-      setRegion(localStorage.getItem("ticha_region") || "littoral");
-      setEducationLevel(localStorage.getItem("ticha_education_level") || "al");
-      
-      const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
-      setIsSaved(profileCompleted);
+      setFullName(profile?.full_name || "");
+      setSchoolName(profile?.school_name || "");
+      setRegion(profile?.region || "littoral");
+      setEducationLevel(profile?.education_level || "al");
+      setIsSaved(profile?.profile_completed || false);
     }
-  }, [isOpen]);
+  }, [isOpen, profile]);
 
   if (!isOpen) return null;
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     hapticSuccess();
-    
-    // Save to localStorage
-    localStorage.setItem("ticha_user_fullname", fullName);
-    localStorage.setItem("ticha_school_name", schoolName);
-    localStorage.setItem("ticha_region", region);
-    localStorage.setItem("ticha_education_level", educationLevel);
-    localStorage.setItem("ticha_profile_completed", "true");
-    localStorage.setItem("ticha_region_selected", "true");
-    localStorage.setItem("ticha_school_added", "true");
+    setIsSubmitting(true);
 
+    await updateProfile({
+      full_name: fullName,
+      school_name: schoolName,
+      region,
+      education_level: educationLevel,
+      profile_completed: true,
+    });
+
+    setIsSubmitting(false);
     setIsSaved(true);
     fireConfettiBurst();
 
@@ -54,9 +56,9 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
   };
 
   const totalSteps = 4;
-  const completedCount = isSaved ? 4 : 1; // 1: Account Created, 4: All Completed
+  const completedCount = isSaved ? 4 : 1;
   const percentage = (completedCount / totalSteps) * 100;
-  const strokeDasharray = 2 * Math.PI * 20; // r = 20
+  const strokeDasharray = 2 * Math.PI * 20;
   const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 100;
 
   return (
@@ -65,7 +67,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
         id="finish-setup-modal"
         className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col text-left space-y-5"
       >
-        {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 w-9 h-9 bg-white border-[3px] border-black rounded-full flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none hover:bg-stone-50 z-10"
@@ -74,7 +75,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
           ✕
         </button>
 
-        {/* Header Section (Title & Progress Circle neatly side-by-side) */}
         <div className="flex items-center justify-between border-b-[3px] border-black pb-4 pr-10">
           <div>
             <h2 className="text-xl font-black uppercase text-black leading-tight">
@@ -85,7 +85,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
             </p>
           </div>
 
-          {/* Neatly positioned Progress Circle */}
           <div className="w-12 h-12 flex items-center justify-center relative flex-shrink-0">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="24" cy="24" r="20" stroke="black" strokeWidth="4" fill="transparent" className="text-stone-200" />
@@ -121,7 +120,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-4">
-            {/* Full Name */}
             <div className="flex flex-col space-y-1">
               <label htmlFor="setup-name" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
                 <UserIcon size={14} className="text-black" />
@@ -138,7 +136,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               />
             </div>
 
-            {/* School Name */}
             <div className="flex flex-col space-y-1">
               <label htmlFor="setup-school" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
                 <SchoolIcon size={14} className="text-black" />
@@ -155,7 +152,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               />
             </div>
 
-            {/* Region */}
             <div className="flex flex-col space-y-1">
               <label htmlFor="setup-region" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
                 <Location01Icon size={14} className="text-black" />
@@ -181,7 +177,6 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               </div>
             </div>
 
-            {/* Education Target */}
             <div className="flex flex-col space-y-1">
               <label htmlFor="setup-level" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
                 <Award01Icon size={14} className="text-black" />
@@ -204,13 +199,13 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               </div>
             </div>
 
-            {/* Save Button */}
             <button
               type="submit"
+              disabled={isSubmitting}
               onClick={() => hapticTap()}
-              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black mt-2"
+              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black mt-2 disabled:opacity-50"
             >
-              Complete Setup
+              {isSubmitting ? "Saving..." : "Complete Setup"}
             </button>
           </form>
         )}

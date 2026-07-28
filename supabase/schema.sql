@@ -13,9 +13,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   goal TEXT,
   struggles JSONB DEFAULT '[]'::jsonb,
   streak_count INT NOT NULL DEFAULT 1,
+  freezes_remaining INT NOT NULL DEFAULT 2,
+  last_active_date DATE,
   points INT NOT NULL DEFAULT 0,
   region TEXT DEFAULT 'Littoral',
   school_name TEXT,
+  profile_completed BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -37,7 +40,8 @@ CREATE POLICY "Users can insert their own profile"
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
   TO authenticated
-  USING (auth.uid() = id);
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
 -- Trigger to automatically create a profile entry when a new user signs up (Email or OAuth)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -147,3 +151,67 @@ CREATE POLICY "Knowledge embeddings viewable by authenticated users"
   ON public.knowledge_embeddings FOR SELECT
   TO authenticated
   USING (true);
+
+
+-- 5. AI TUTOR SESSIONS & MESSAGES
+CREATE TABLE IF NOT EXISTS public.tutor_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  subject TEXT NOT NULL,
+  topic TEXT,
+  education_level TEXT,
+  performance_score FLOAT NOT NULL DEFAULT 0.5,
+  total_messages INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.tutor_sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own tutor sessions"
+  ON public.tutor_sessions FOR SELECT
+  TO authenticated
+  USING ((select auth.uid()) = user_id);
+
+CREATE POLICY "Users can create their own tutor sessions"
+  ON public.tutor_sessions FOR INSERT
+  TO authenticated
+  WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE POLICY "Users can update their own tutor sessions"
+  ON public.tutor_sessions FOR UPDATE
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE TABLE IF NOT EXISTS public.tutor_messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES public.tutor_sessions(id) ON DELETE CASCADE,
+  role TEXT CHECK (role IN ('user', 'assistant', 'system')) NOT NULL,
+  content TEXT NOT NULL,
+  content_type TEXT CHECK (content_type IN ('text', 'micro_lesson', 'exercise', 'feedback', 'image')) DEFAULT 'text',
+  is_correct BOOLEAN,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.tutor_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view messages in their sessions"
+  ON public.tutor_messages FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.tutor_sessions ts
+      WHERE ts.id = session_id AND ts.user_id = (select auth.uid())
+    )
+  );
+
+CREATE POLICY "Users can insert messages in their sessions"
+  ON public.tutor_messages FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.tutor_sessions ts
+      WHERE ts.id = session_id AND ts.user_id = (select auth.uid())
+    )
+  );

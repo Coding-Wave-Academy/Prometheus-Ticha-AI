@@ -2,11 +2,19 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { PencilEdit01Icon, StarIcon, FireIcon, Mortarboard01Icon } from "hugeicons-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  PencilEdit01Icon,
+  StarIcon,
+  FireIcon,
+  Mortarboard01Icon,
+  Camera01Icon,
+} from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useProfile } from "@/hooks/useProfile";
 import BottomNav from "@/components/layout/BottomNav";
 import EditProfileModal from "@/components/profile/EditProfileModal";
 import "@/lib/i18n";
@@ -24,43 +32,63 @@ interface BadgeItem {
 export function ProfilePageContent() {
   const router = useRouter();
   const navItems = useNavItems();
-
-  const [fullName, setFullName] = useState("Amadou");
-  const [schoolName, setSchoolName] = useState("GBHS Molyko");
-  const [region, setRegion] = useState("littoral");
-  const [educationLevel, setEducationLevel] = useState("al");
+  const { profile, isLoading, isUploading, updateProfile, uploadAvatar } = useProfile();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-
-  useEffect(() => {
-    const savedName = localStorage.getItem("ticha_user_fullname") || "Amadou";
-    const savedSchool = localStorage.getItem("ticha_school_name") || "GBHS Molyko";
-    const savedRegion = localStorage.getItem("ticha_region") || "littoral";
-    const savedLevel = localStorage.getItem("ticha_education_level") || "al";
-
-    setFullName(savedName);
-    setSchoolName(savedSchool);
-    setRegion(savedRegion);
-    setEducationLevel(savedLevel);
-  }, []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(""), 3000);
   };
 
-  const handleSaveModal = (data: { fullName: string; schoolName: string; region: string }) => {
-    setFullName(data.fullName);
-    setSchoolName(data.schoolName);
-    setRegion(data.region);
-
-    localStorage.setItem("ticha_user_fullname", data.fullName);
-    localStorage.setItem("ticha_school_name", data.schoolName);
-    localStorage.setItem("ticha_region", data.region);
-
-    showToast("Profile changes saved successfully!");
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
   };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("⚠️ Image too large. Max 5MB.");
+      return;
+    }
+
+    const result = await uploadAvatar(file);
+    if (result.error) {
+      showToast(`⚠️ ${result.error}`);
+    } else {
+      showToast("Profile photo updated! ✨");
+    }
+  };
+
+  const handleSaveModal = async (data: {
+    fullName: string;
+    schoolName: string;
+    region: string;
+  }) => {
+    const result = await updateProfile({
+      full_name: data.fullName,
+      school_name: data.schoolName,
+      region: data.region,
+    });
+
+    if (result.error) {
+      showToast(`⚠️ ${result.error}`);
+    } else {
+      showToast("Profile changes saved successfully!");
+    }
+  };
+
+  const fullName = profile?.full_name || "Student";
+  const schoolName = profile?.school_name || "Not set";
+  const region = profile?.region || "Not set";
+  const educationLevel = profile?.education_level || "ol";
+  const avatarUrl = profile?.avatar_url || null;
+  const streakCount = profile?.streak_count || 1;
 
   const badges: BadgeItem[] = [
     {
@@ -77,7 +105,7 @@ export function ProfilePageContent() {
       name: "Streak Master",
       category: "Consistency",
       description: "Maintained a 7-day study streak",
-      unlocked: true,
+      unlocked: streakCount >= 7,
       bgColor: "bg-[#FFB040]",
       icon: <FireIcon size={24} className="text-orange-600" />,
     },
@@ -86,16 +114,23 @@ export function ProfilePageContent() {
       name: "GCE Pioneer",
       category: "Academic",
       description: "Completed 5 GCE Past Paper practice sets",
-      unlocked: true,
+      unlocked: false,
       bgColor: "bg-[#D3E2FF]",
       icon: <Mortarboard01Icon size={24} className="text-blue-700" />,
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
+        <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center">
-        
         {/* Header */}
         <header className="flex items-center justify-between w-full mb-6 border-b-[3.5px] border-black pb-3">
           <h1 className="text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
@@ -112,15 +147,45 @@ export function ProfilePageContent() {
 
         {/* Main Profile Header Card */}
         <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 text-center flex flex-col items-center relative">
-          
-          {/* Avatar Photo */}
-          <div className="relative w-24 h-24 rounded-full border-[3.5px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 bg-[#B6FF00]">
-            <Image
-              src="/images/amadou-avatar.png"
-              alt={`${fullName}'s profile photo`}
-              width={96}
-              height={96}
-              className="object-cover w-full h-full"
+          {/* Avatar Photo with Camera Overlay */}
+          <div className="relative group">
+            <div className="relative w-24 h-24 rounded-full border-[3.5px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 bg-[#B6FF00]">
+              {isUploading ? (
+                <div className="w-full h-full flex items-center justify-center bg-[#B6FF00]">
+                  <div className="w-8 h-8 border-[3px] border-black border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={`${fullName}'s profile photo`}
+                  width={96}
+                  height={96}
+                  className="object-cover w-full h-full"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl font-black text-black">
+                  {fullName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Camera overlay button */}
+            <button
+              onClick={handleAvatarClick}
+              className="absolute -bottom-0.5 -right-0.5 w-9 h-9 bg-[#B6FF00] border-[2.5px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all z-10"
+              aria-label="Change profile photo"
+            >
+              <Camera01Icon size={16} className="text-black" />
+            </button>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
             />
           </div>
 
@@ -139,7 +204,7 @@ export function ProfilePageContent() {
             </span>
             <span className="bg-[#FFB040] border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
               <FireIcon size={14} className="text-orange-600" />
-              <span>12 Day Streak</span>
+              <span>{streakCount} Day Streak</span>
             </span>
           </div>
 
@@ -161,7 +226,8 @@ export function ProfilePageContent() {
               <span>Earned Badges</span>
             </h3>
             <span className="text-xs font-extrabold uppercase bg-stone-100 border-[1.5px] border-black rounded-full px-2.5 py-0.5">
-              3 / 3 Unlocked
+              {badges.filter((b) => b.unlocked).length} / {badges.length}{" "}
+              Unlocked
             </span>
           </div>
 
@@ -169,7 +235,9 @@ export function ProfilePageContent() {
             {badges.map((badge) => (
               <div
                 key={badge.id}
-                className={`p-3 border-[2.5px] border-black rounded-xl flex flex-col items-center text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${badge.bgColor}`}
+                className={`p-3 border-[2.5px] border-black rounded-xl flex flex-col items-center text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${
+                  badge.unlocked ? badge.bgColor : "bg-stone-200 opacity-60"
+                }`}
               >
                 <div className="w-10 h-10 bg-white border-[2px] border-black rounded-full flex items-center justify-center mb-1.5 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                   {badge.icon}
@@ -183,12 +251,18 @@ export function ProfilePageContent() {
         </section>
 
         {/* Toast Notification */}
-        {toastMessage && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#B6FF00] border-[2.5px] border-black rounded-xl py-3.5 px-6 font-black text-sm text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 animate-bounce">
-            <span>✨</span> {toastMessage}
-          </div>
-        )}
-
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#B6FF00] border-[2.5px] border-black rounded-xl py-3.5 px-6 font-black text-sm text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2"
+            >
+              <span>✨</span> {toastMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Edit Profile Modal Dialog */}
@@ -211,7 +285,9 @@ export function ProfilePageContent() {
 
 export default function ProfilePage() {
   return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
+    <React.Suspense
+      fallback={<div className="min-h-screen bg-[#FAF7EC]" />}
+    >
       <ProfilePageContent />
     </React.Suspense>
   );
