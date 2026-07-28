@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/ui/PasswordInput";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import "@/lib/i18n";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +32,14 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       console.log("Logged in with:", email);
+
+      // Derive a name from email prefix as fallback
+      const derivedName = email.split("@")[0];
+      const displayName =
+        derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+      localStorage.setItem("ticha_user_fullname", displayName);
+
+      router.push("/dashboard");
     }, 1500);
   };
 
@@ -55,7 +65,9 @@ export default function LoginPage() {
           )}
         </h1>
         <p className="text-base text-stone-600 font-medium">
-          {isMounted ? t("login.subtitle") : "Ready to pick up where you left off?"}
+          {isMounted
+            ? t("login.subtitle")
+            : "Ready to pick up where you left off?"}
         </p>
       </header>
 
@@ -108,7 +120,11 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl py-4 px-4 font-black uppercase text-[17px] tracking-wider transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-[#a3e600] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
           >
-            {isLoading ? "Signing In..." : (isMounted ? t("login.submit") : "Log In →")}
+            {isLoading
+              ? "Signing In..."
+              : isMounted
+                ? t("login.submit")
+                : "Log In →"}
           </button>
         </form>
       </section>

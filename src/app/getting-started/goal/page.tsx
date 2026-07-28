@@ -148,18 +148,19 @@ export default function GoalSelectionPage() {
   const handleContinue = () => {
     if (!selectedGoal) return;
     console.log(`Goal chosen: ${selectedGoal}`);
-    router.push("/register");
+    localStorage.setItem("ticha_onboarding_goal", selectedGoal);
+    router.push("/getting-started/education");
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
       {/* PWA Mobile-First Wrapper Container */}
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
         {/* Navigation & Progress Header */}
         <header className="flex items-center gap-4 w-full">
           <button
             onClick={handleBack}
-            className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
+            className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px transition-all shrink-0"
             aria-label="Go back"
           >
             <svg
@@ -213,7 +214,7 @@ export default function GoalSelectionPage() {
                 }`}
               >
                 {/* Left Circular Icon Bubble */}
-                <div className="w-11 h-11 bg-white border-[2.5px] border-black rounded-full flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-11 h-11 bg-white border-[2.5px] border-black rounded-full flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {goal.icon}
                 </div>
 
@@ -229,7 +230,7 @@ export default function GoalSelectionPage() {
                   </div>
 
                   {/* Context Badge Row */}
-                  <div className="inline-flex bg-white border-[2px] border-black rounded-md py-0.5 px-2 items-center gap-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="inline-flex bg-white border-2 border-black rounded-md py-0.5 px-2 items-center gap-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                     {goal.badgeIcon}
                     <span className="text-[9px] font-black tracking-wide text-black uppercase">
                       {isMounted ? t(goal.badgeTextKey) : goal.badgeTextKey}

@@ -58,6 +58,27 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Education Level",
+          path: "/getting-started/education",
+          description: "Select between O/L, A/L, or University academic targets.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "Struggles Identification",
+          path: "/getting-started/struggles",
+          description: "Select subjects where help is needed.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "Personalized Exam Intel",
+          path: "/getting-started/intel",
+          description: "Bespoke subject insights preview (Quantum Tunneling showcase).",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "Log In",
           path: "/login",
           description: "Sign in with email/password and social login options.",
@@ -74,15 +95,42 @@ export default function SitemapPage() {
       ],
     },
     {
+      title: "Explore Hub",
+      icon: "🧑‍🎓",
+      routes: [
+        {
+          name: "Explore Hub",
+          path: "/explore",
+          description: "Core learning, practice tools, and social rankings.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "National & School Leaderboards",
+          path: "/leaderboard",
+          description: "Podium, daily rankings, level toggle and context filters.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+      ],
+    },
+    {
       title: "Student Portal",
       icon: "🎓",
       routes: [
         {
           name: "Dashboard Home",
           path: "/dashboard",
-          description: "Student overview panel with course list & statistics.",
-          badge: "Portal",
-          badgeBg: "bg-blue-300",
+          description: "Student overview: streak, quick actions, subjects & regional updates.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
+          name: "AI Quiz Generator",
+          path: "/dashboard/quiz-generator",
+          description: "Interactive dynamically generated MCQ quizzes using student profile vector data.",
+          badge: "AI",
+          badgeBg: "bg-[#FFB040]",
         },
         {
           name: "Progress Tracker",
@@ -94,9 +142,9 @@ export default function SitemapPage() {
         {
           name: "Profile Settings",
           path: "/dashboard/profile",
-          description: "Personal credentials and system preferences.",
-          badge: "Portal",
-          badgeBg: "bg-blue-300",
+          description: "Personal settings (name, region, school, 2FA) with checklist indicator.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
         },
       ],
     },

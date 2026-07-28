@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/ui/PasswordInput";
 import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import ConfettiOverlay from "@/components/auth/ConfettiOverlay";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import "@/lib/i18n";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +25,8 @@ export default function RegisterPage() {
   const strength = usePasswordStrength(password);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +48,8 @@ export default function RegisterPage() {
     setTimeout(() => {
       setIsLoading(false);
       console.log("Registered:", { name, email });
+      localStorage.setItem("ticha_user_fullname", name);
+      router.push("/dashboard?showSetup=true");
     }, 1500);
   };
 
@@ -61,7 +67,7 @@ export default function RegisterPage() {
     confirmPassword.length > 0 && password !== confirmPassword;
 
   return (
-    <main className="w-full flex flex-col justify-between px-2 text-black space-y-6">
+    <main className="w-full flex flex-col justify-between px-2 text-black space-y-6 animate-page-in">
       {/* Header Section */}
       <header className="text-center space-y-2 mt-4">
         <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none text-[#1A1A1A]">
@@ -74,8 +80,10 @@ export default function RegisterPage() {
 
       {/* Milestone Achievement Card */}
       <section className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 flex flex-col items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center relative overflow-hidden">
+        <ConfettiOverlay />
+
         {/* Inner Star Circle Badge */}
-        <div className="w-16 h-16 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-4">
+        <div className="w-16 h-16 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-4 relative z-40">
           <svg
             className="w-8 h-8 text-[#A05E1B] fill-current"
             viewBox="0 0 24 24"
@@ -84,15 +92,15 @@ export default function RegisterPage() {
           </svg>
         </div>
 
-        <span className="text-xs font-extrabold uppercase tracking-widest text-stone-800 opacity-90">
+        <span className="text-xs font-extrabold uppercase tracking-widest text-stone-850 opacity-90 relative z-40">
           Milestone Reached
         </span>
-        <h2 className="text-2xl font-black text-black mt-1 mb-4">
+        <h2 className="text-2xl font-black text-black mt-1 mb-4 relative z-40">
           Level 1: Novice
         </h2>
 
         {/* Streak Badge */}
-        <div className="bg-white border-[2.5px] border-black rounded-full py-1.5 px-5 flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold text-sm">
+        <div className="bg-white border-[2.5px] border-black rounded-full py-1.5 px-5 flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold text-sm relative z-40">
           <span
             role="img"
             aria-label="streak fire"
