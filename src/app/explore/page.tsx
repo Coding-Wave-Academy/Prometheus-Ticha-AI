@@ -65,13 +65,13 @@ const studyToolCards: HubCard[] = [
     ),
   },
   {
-    id: "cheatsheets",
-    title: "Formula Sheets",
-    subtitle: "Quick exam equations",
+    id: "upload-materials",
+    title: "Upload Materials",
+    subtitle: "Outlines, notes & PDFs",
     bgColor: "bg-[#B6FF00]",
     icon: (
-      <svg className="w-7 h-7 text-black fill-current" viewBox="0 0 24 24">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+      <svg className="w-7 h-7 text-black stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
       </svg>
     ),
   },
@@ -111,11 +111,11 @@ export default function ExploreHubPage() {
       return;
     }
     const routes: Record<string, string> = {
-      summaries: "/courses?type=summaries",
-      "past-papers": "/courses?type=past-papers",
+      summaries: "/summaries",
+      "past-papers": "/past-papers",
       flashcards: "/coming-soon",
-      cheatsheets: "/coming-soon",
-      practice: "/courses?type=practice",
+      "upload-materials": "/coming-soon",
+      practice: "/practice",
       "ai-tutor": "/coming-soon",
     };
     router.push(routes[id] ?? "/coming-soon");
