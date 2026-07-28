@@ -1,6 +1,6 @@
-export default async function LessonPage(
-  props: PageProps<"/courses/[courseId]/lessons/[lessonId]">
-) {
+export default async function LessonPage(props: {
+  params: Promise<{ courseId: string; lessonId: string }>;
+}) {
   const { courseId, lessonId } = await props.params;
 
   return (

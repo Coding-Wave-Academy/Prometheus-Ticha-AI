@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n"; // Import i18n instance
 
 export default function WelcomePage() {
   const { t } = useTranslation();
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const router = useRouter();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleGetStarted = () => {
     router.push("/getting-started/language");

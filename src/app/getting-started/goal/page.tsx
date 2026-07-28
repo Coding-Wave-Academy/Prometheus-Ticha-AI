@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
 
 interface GoalOption {
@@ -18,12 +19,8 @@ interface GoalOption {
 export default function GoalSelectionPage() {
   const { t } = useTranslation();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const router = useRouter();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const goals: GoalOption[] = [
     {
@@ -62,7 +59,11 @@ export default function GoalSelectionPage() {
       descriptionKey: "goal.habit.description",
       bgColor: "bg-[#B6FF00]",
       badgeTextKey: "goal.habit.badge",
-      badgeIcon: <span className="text-xs leading-none">🔥</span>,
+      badgeIcon: (
+        <svg className="w-3.5 h-3.5 text-orange-600 fill-current" viewBox="0 0 24 24">
+          <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.6 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.52-4.5-9.33-6.5-13.33z" />
+        </svg>
+      ),
       icon: (
         <svg
           className="w-6 h-6 text-[#4A6700]"
@@ -147,16 +148,13 @@ export default function GoalSelectionPage() {
 
   const handleContinue = () => {
     if (!selectedGoal) return;
-    console.log(`Goal chosen: ${selectedGoal}`);
     localStorage.setItem("ticha_onboarding_goal", selectedGoal);
     router.push("/getting-started/education");
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
-      {/* PWA Mobile-First Wrapper Container */}
       <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
-        {/* Navigation & Progress Header */}
         <header className="flex items-center gap-4 w-full">
           <button
             onClick={handleBack}
@@ -177,7 +175,6 @@ export default function GoalSelectionPage() {
             </svg>
           </button>
 
-          {/* Progress Tracker (Step 2 of 5 Active) */}
           <div className="flex gap-1.5 w-full items-center">
             <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
             <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
@@ -187,7 +184,6 @@ export default function GoalSelectionPage() {
           </div>
         </header>
 
-        {/* Heading Section */}
         <div className="text-center space-y-1 mt-6 mb-4">
           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
             {isMounted ? t("goal.title") : "What is your primary goal?"}
@@ -199,7 +195,6 @@ export default function GoalSelectionPage() {
           </p>
         </div>
 
-        {/* Goal Stack Layout */}
         <div className="space-y-4 my-auto w-full">
           {goals.map((goal) => {
             const isSelected = selectedGoal === goal.id;
@@ -213,12 +208,10 @@ export default function GoalSelectionPage() {
                     : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
                 }`}
               >
-                {/* Left Circular Icon Bubble */}
                 <div className="w-11 h-11 bg-white border-[2.5px] border-black rounded-full flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {goal.icon}
                 </div>
 
-                {/* Card Main Info Content */}
                 <div className="space-y-1.5 flex-1 text-left">
                   <div>
                     <h2 className="font-black text-base leading-tight text-[#1A1A1A]">
@@ -229,7 +222,6 @@ export default function GoalSelectionPage() {
                     </p>
                   </div>
 
-                  {/* Context Badge Row */}
                   <div className="inline-flex bg-white border-2 border-black rounded-md py-0.5 px-2 items-center gap-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                     {goal.badgeIcon}
                     <span className="text-[9px] font-black tracking-wide text-black uppercase">
@@ -242,7 +234,6 @@ export default function GoalSelectionPage() {
           })}
         </div>
 
-        {/* Action Button Footer */}
         <footer className="w-full mt-6">
           <button
             onClick={handleContinue}
