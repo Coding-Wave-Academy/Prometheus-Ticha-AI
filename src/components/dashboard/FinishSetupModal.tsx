@@ -20,12 +20,11 @@ interface FinishSetupModalProps {
 export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalProps) {
   const router = useRouter();
   const [steps, setSteps] = useState<SetupStep[]>([]);
-  const [completedCount, setCompletedCount] = useState(1); // At least 1 (Account Created) is always true
+  const [completedCount, setCompletedCount] = useState(1);
 
   useEffect(() => {
     // Read actual setup state from localStorage
     const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
-    const tfaEnabled = localStorage.getItem("ticha_2fa_enabled") === "true";
     const regionSelected = localStorage.getItem("ticha_region_selected") === "true";
     const schoolAdded = localStorage.getItem("ticha_school_added") === "true";
 
@@ -47,32 +46,20 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
         title: "Complete Profile",
         description: "Tell us about yourself",
         icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 448 512">
-            <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C75.8 288 32 331.8 32 385.6V464c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-78.4c0-53.8-43.8-97.6-97.6-97.6z" />
+          <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
           </svg>
         ),
         isCompleted: profileCompleted,
         href: "/dashboard/profile?focus=name",
       },
       {
-        id: "tfa",
-        title: "Enable 2FA",
-        description: "Secure your account",
-        icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 512 512">
-            <path d="M256 0c14.1 0 27.2 9.3 31.9 22.6l16 45.4C377.7 85.9 432 143.6 432 216v51.1c0 58.7 41 110.1 97.7 122.9 14.2 3.2 22.7 17.5 19.5 31.7S531.7 444 517.5 440.8C440.9 423.5 384 353.6 384 267.1V216c0-48.4-32.9-90.1-78.6-102.7l16.1 45.5c4.7 13.3-2.3 28-15.6 32.7s-28-2.3-32.7-15.6L256 128l-17.2 48.7c-4.7 13.3-19.4 20.3-32.7 15.6s-20.3-19.4-15.6-32.7l16.1-45.5C160.9 125.9 128 167.6 128 216v51.1c0 86.5-56.9 156.4-133.5 173.7C-19.7 444-28.2 429.7-25 415.5s17.5-22.7 31.7-19.5C65 383.2 106 331.8 106 273.1V216c0-72.4 54.3-130.1 128.1-148L224 22.6C228.8 9.3 241.9 0 256 0z" />
-          </svg>
-        ),
-        isCompleted: tfaEnabled,
-        href: "/dashboard/profile?focus=2fa",
-      },
-      {
         id: "region",
         title: "Select Region",
         description: "Localize your learning",
         icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512">
-            <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z" />
+          <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
         ),
         isCompleted: regionSelected,
@@ -83,8 +70,8 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
         title: "Add School Name",
         description: "Find your community",
         icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 640 512">
-            <path d="M620.8 104.3L338.9 4.4a32.2 32.2 0 0 0-18.1 0L38.4 104.3A32 32 0 0 0 32 134.4v264a32 32 0 0 0 20.3 29.8l268.8 96a32.1 32.1 0 0 0 17.8 0l268.8-96A32 32 0 0 0 608 398.4V134.4a32 32 0 0 0-6.4-30.1z" />
+          <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
+            <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
           </svg>
         ),
         isCompleted: schoolAdded,
@@ -103,7 +90,8 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
 
   if (!isOpen) return null;
 
-  const percentage = (completedCount / 5) * 100;
+  const totalSteps = 4;
+  const percentage = (completedCount / totalSteps) * 100;
   const strokeDasharray = 2 * Math.PI * 22; // r = 22
   const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 100;
 
@@ -156,7 +144,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
             />
           </svg>
           <span className="absolute font-black text-[10px] text-black">
-            {completedCount} of 5
+            {completedCount} of {totalSteps}
           </span>
         </div>
 
@@ -166,7 +154,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
             Finish Setup
           </h2>
           <p className="text-xs font-bold text-stone-600 leading-snug">
-            Almost there, Amadou! You&apos;re {100 - percentage}% away from unlocking your full potential.
+            Almost there! Complete your profile to unlock your full potential.
           </p>
         </div>
 
@@ -184,8 +172,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               }`}
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                {/* SVG Icon */}
-                <div className={`w-9 h-9 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0 bg-white`}>
+                <div className="w-9 h-9 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0 bg-white">
                   {step.icon}
                 </div>
                 <div className="min-w-0">

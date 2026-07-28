@@ -133,7 +133,7 @@ function StudentDashboardPageContent() {
   }, [searchParams]);
 
   const currentLevel = "GCE A-Level";
-  const streakCount = 12;
+  const streakCount = 2;
   const notificationCount = 3;
 
   return (
