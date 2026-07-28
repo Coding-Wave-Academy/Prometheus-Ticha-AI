@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/useToast";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { loginSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
+import { createClient } from "@/utils/supabase/client";
 import "@/lib/i18n";
 
 export default function LoginPage() {
@@ -26,7 +27,9 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const supabase = createClient();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const cleanEmail = sanitizeString(email.trim());
@@ -42,21 +45,48 @@ export default function LoginPage() {
     setErrors({});
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (error) {
+        addToast(error.message || "Invalid login credentials.", "error", "Sign In Failed");
+        setIsLoading(false);
+        return;
+      }
+
       addToast("Welcome back, scholar!", "success", "Signed In");
-
-      const derivedName = cleanEmail.split("@")[0];
-      const displayName =
-        derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
-      localStorage.setItem("ticha_user_fullname", displayName);
-
+      if (data.user?.user_metadata?.full_name) {
+        localStorage.setItem("ticha_user_fullname", data.user.user_metadata.full_name);
+      }
       router.push("/dashboard");
-    }, 1200);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Authentication service unavailable.";
+      addToast(msg, "error", "Login Error");
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    addToast("Connecting to Google Auth...", "info");
+  const handleGoogleLogin = async () => {
+    try {
+      addToast("Connecting to Google Auth...", "info");
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/dashboard?showSetup=true`,
+        },
+      });
+
+      if (error) {
+        addToast(error.message, "error", "Google Sign In Failed");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Google auth service error";
+      addToast(msg, "error");
+    }
   };
 
   const handleAppleLogin = () => {
@@ -114,7 +144,7 @@ export default function LoginPage() {
             }}
             labelRight={
               <Link
-                href="/forgot-password"
+                href="/coming-soon"
                 className="text-xs font-bold text-[#965A18] hover:text-[#7A4711] underline decoration-2 underline-offset-2"
               >
                 {isMounted ? t("login.forgotPassword") : "Forgot?"}
