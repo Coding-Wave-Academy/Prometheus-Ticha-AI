@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -18,6 +19,8 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
   const isMounted = useIsMounted();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,10 +42,16 @@ export default function LoginPage() {
     setErrors({});
     setIsLoading(true);
 
-    // Simulated login process
     setTimeout(() => {
       setIsLoading(false);
       addToast("Welcome back, scholar!", "success", "Signed In");
+
+      const derivedName = cleanEmail.split("@")[0];
+      const displayName =
+        derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+      localStorage.setItem("ticha_user_fullname", displayName);
+
+      router.push("/dashboard");
     }, 1200);
   };
 
@@ -70,7 +79,9 @@ export default function LoginPage() {
           )}
         </h1>
         <p className="text-base text-stone-600 font-medium">
-          {isMounted ? t("login.subtitle") : "Ready to pick up where you left off?"}
+          {isMounted
+            ? t("login.subtitle")
+            : "Ready to pick up where you left off?"}
         </p>
       </header>
 

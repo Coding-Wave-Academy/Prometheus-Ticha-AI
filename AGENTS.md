@@ -22,6 +22,15 @@ This is a **Progressive Web App** targeting mobile-first with full web responsiv
 
 ---
 
+## Internationalization & Translations (i18n)
+
+Every user-facing string MUST support internationalization using React-i18next:
+- **Always translate content**: All text elements (titles, descriptions, labels, button text) must have corresponding English (`en`) and French (`fr`) translation keys inside `src/lib/i18n.ts`.
+- **Selected Language Persistence**: Ensure layout, content, hooks, and pages react to and load the user's selected primary language from `localStorage` preference (`ticha_lang`), falling back to `"en"`.
+- **Avoid Hydration Mismatch**: Use a client-side mount state indicator (e.g., `isMounted`) before rendering localized content that reads from client storage (`localStorage`) so that SSR and hydration line up perfectly.
+
+---
+
 ## Responsive Design Strategy
 
 ### Mobile-First (Default)

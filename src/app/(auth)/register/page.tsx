@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import ConfettiOverlay from "@/components/auth/ConfettiOverlay";
 import ToastContainer from "@/components/ui/Toast";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -22,6 +24,8 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
   const isMounted = useIsMounted();
+  const router = useRouter();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,11 +63,12 @@ export default function RegisterPage() {
     setErrors({});
     setIsLoading(true);
 
-    // Simulated registration
     setTimeout(() => {
       setIsLoading(false);
       addToast("Account created successfully! Welcome to Ticha AI.", "success", "Welcome");
-    }, 1500);
+      localStorage.setItem("ticha_user_fullname", cleanName);
+      router.push("/dashboard?showSetup=true");
+    }, 1200);
   };
 
   const handleGoogleLogin = () => {
@@ -78,7 +83,7 @@ export default function RegisterPage() {
   const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   return (
-    <main className="w-full flex flex-col justify-between px-2 text-black space-y-6">
+    <main className="w-full flex flex-col justify-between px-2 text-black space-y-6 animate-page-in">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
       {/* Header Section */}
@@ -92,19 +97,20 @@ export default function RegisterPage() {
       </header>
 
       {/* Milestone Card */}
-      <Card variant="accent" className="text-center flex flex-col items-center justify-center">
-        <div className="w-14 h-14 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-3">
+      <Card variant="accent" className="text-center flex flex-col items-center justify-center relative overflow-hidden">
+        <ConfettiOverlay />
+        <div className="w-14 h-14 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-3 relative z-40">
           <svg className="w-7 h-7 text-[#965A18] fill-current" viewBox="0 0 24 24">
             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
           </svg>
         </div>
-        <span className="text-xs font-extrabold uppercase tracking-widest text-stone-800 opacity-90">
+        <span className="text-xs font-extrabold uppercase tracking-widest text-stone-800 opacity-90 relative z-40">
           Milestone Reached
         </span>
-        <h2 className="text-2xl font-black text-black mt-0.5 mb-3">
+        <h2 className="text-2xl font-black text-black mt-0.5 mb-3 relative z-40">
           Level 1: Novice
         </h2>
-        <Badge variant="white">
+        <Badge variant="white" className="relative z-40">
           🔥 1 Day Streak!
         </Badge>
       </Card>
