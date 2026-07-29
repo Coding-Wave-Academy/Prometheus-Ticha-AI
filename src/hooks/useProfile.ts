@@ -66,7 +66,6 @@ export function useProfile() {
         .upsert(
           {
             id: user.id,
-            email: user.email,
             ...updates,
             updated_at: new Date().toISOString(),
           },
