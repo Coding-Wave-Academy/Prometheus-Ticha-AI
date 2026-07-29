@@ -23,6 +23,7 @@ import FeaturedSubjects from "@/components/dashboard/FeaturedSubjects";
 import RegionalUpdates from "@/components/dashboard/RegionalUpdates";
 import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
+import PWAInstaller from "@/components/layout/PWAInstaller";
 import { SubjectData, QuickAction } from "@/types";
 import "@/lib/i18n";
 
@@ -149,6 +150,7 @@ function StudentDashboardPageContent() {
         className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center"
       >
         <motion.div variants={itemVariants} className="w-full">
+          <PWAInstaller />
           <DashboardHeader
             userName={userName}
             avatarUrl={avatarUrl}

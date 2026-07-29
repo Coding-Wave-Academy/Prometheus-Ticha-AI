@@ -38,7 +38,7 @@ export default function BottomNav({ items }: BottomNavProps) {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#FAF7EC] border-t-[3.5px] border-black px-4 py-2 flex items-center justify-between shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] z-50">
+    <nav className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#FAF7EC] border-t-[3.5px] border-black px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] z-50">
       {items.map((item) => (
         <button
           key={item.id}
@@ -47,12 +47,13 @@ export default function BottomNav({ items }: BottomNavProps) {
             hapticTap();
             item.onClick();
           }}
-          className={`flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-xl transition-all duration-150 active:scale-90 ${
+          className={`flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] px-2 py-1 rounded-xl transition-all duration-150 active:scale-95 touch-manipulation ${
             item.active
               ? "bg-[#FFB040] border-[2.5px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               : "border-transparent hover:bg-stone-100"
           }`}
           aria-current={item.active ? "page" : undefined}
+          aria-label={item.labelKey || t(`dashboard.nav.${item.id}`)}
         >
           <span
             className={`leading-none transition-transform ${
