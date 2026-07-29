@@ -23,37 +23,65 @@ const baseDays = [
 
 export function useStreak() {
   const { profile, updateProfile } = useProfile();
-  const [streakCount, setStreakCount] = useState(1);
+  const [streakCount, setStreakCount] = useState(0);
   const [freezesRemaining, setFreezesRemaining] = useState(2);
   const [isTodayClaimed, setIsTodayClaimed] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
 
+  // Initialize weekly days grid: all days start as "upcoming" (black)
   const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>(() => {
-    const todayIndex = new Date().getDay(); // 0 = Sun, 6 = Sat
-    return baseDays.map((d, idx) => {
-      let status: "active" | "frozen" | "upcoming" = "upcoming";
-      if (idx < todayIndex) {
-        status = idx === 2 ? "frozen" : "active";
-      } else if (idx === todayIndex) {
-        status = "active";
-      } else {
-        status = "upcoming";
-      }
-      return { ...d, status };
-    });
+    return baseDays.map((d) => ({ ...d, status: "upcoming" }));
   });
 
   useEffect(() => {
     if (profile) {
-      setStreakCount(profile.streak_count || 1);
+      const userStreak = profile.streak_count ?? 0;
+      setStreakCount(userStreak);
       setFreezesRemaining(profile.freezes_remaining ?? 2);
 
       const todayStr = new Date().toISOString().split("T")[0];
-      if (profile.last_active_date === todayStr) {
-        setIsTodayClaimed(true);
-      } else {
-        setIsTodayClaimed(false);
+      const todayIndex = new Date().getDay();
+      const isClaimedToday = profile.last_active_date === todayStr;
+      setIsTodayClaimed(isClaimedToday);
+
+      // Read claimed streak dates from localStorage or profile vector
+      let claimedDates: string[] = [];
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("ticha_streak_dates");
+        if (stored) {
+          try {
+            claimedDates = JSON.parse(stored);
+          } catch {
+            // ignore
+          }
+        }
       }
+
+      // Calculate current week's dates to map correctly to calendar days
+      const now = new Date();
+      const sundayDate = new Date(now);
+      sundayDate.setDate(now.getDate() - todayIndex);
+
+      setWeeklyDays(
+        baseDays.map((d, idx) => {
+          const thisDay = new Date(sundayDate);
+          thisDay.setDate(sundayDate.getDate() + idx);
+          const dateStr = thisDay.toISOString().split("T")[0];
+
+          let status: "active" | "frozen" | "upcoming" = "upcoming";
+
+          if (dateStr === todayStr && isClaimedToday) {
+            status = "active";
+          } else if (claimedDates.includes(dateStr)) {
+            status = "active";
+          } else if (idx < todayIndex && userStreak > 0 && idx === 2) {
+            // Example freeze logic for past missed days if streak active
+            status = "frozen";
+          }
+
+          return { ...d, status };
+        })
+      );
     }
   }, [profile]);
 
@@ -68,12 +96,27 @@ export function useStreak() {
     hapticSuccess();
     fireSideCannons();
 
-    const newStreak = (profile?.streak_count || streakCount || 1) + 1;
+    const currentCount = profile?.streak_count ?? streakCount ?? 0;
+    const newStreak = currentCount + 1; // 0 -> 1 on first claim!
     const todayIndex = new Date().getDay();
 
     setStreakCount(newStreak);
     setIsTodayClaimed(true);
     setIsFrozen(false);
+
+    // Save date to streak dates storage
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("ticha_streak_dates");
+        const existing: string[] = stored ? JSON.parse(stored) : [];
+        if (!existing.includes(todayStr)) {
+          existing.push(todayStr);
+          localStorage.setItem("ticha_streak_dates", JSON.stringify(existing));
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     setWeeklyDays((prev) =>
       prev.map((item, idx) => (idx === todayIndex ? { ...item, status: "active" } : item))

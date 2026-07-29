@@ -120,7 +120,7 @@ export function ProfilePageContent() {
   const region = profile?.region || "Not set";
   const educationLevel = profile?.education_level || "ol";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count || 1;
+  const streakCount = profile?.streak_count ?? 0;
 
   const badges: BadgeItem[] = [
     {

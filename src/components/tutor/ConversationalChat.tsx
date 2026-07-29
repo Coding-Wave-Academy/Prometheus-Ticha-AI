@@ -14,6 +14,7 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { useStreak } from "@/hooks/useStreak";
+import { formatAIText } from "@/lib/formatAIText";
 
 type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 type AgentMode = "listening" | "speaking" | "thinking" | "idle";
@@ -138,12 +139,13 @@ export default function ConversationalChat() {
         },
         onMessage: ({ source, message: text }) => {
           const role = source === "user" ? "user" : "agent";
+          const formattedText = role === "agent" ? formatAIText(text) : text;
           if (text?.trim()) {
             setTranscripts((prev) => [
               ...prev,
               {
                 role,
-                text,
+                text: formattedText,
                 id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               },
             ]);

@@ -127,11 +127,11 @@ export default function ExploreHubPage() {
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count || 1;
+  const streakCount = profile?.streak_count ?? 0;
 
   const handleCardClick = (id: string) => {
     if (id === "daily-quiz") {
-      router.push("/dashboard/quiz-generator");
+      router.push("/dashboard/daily-lessons");
       return;
     }
     const routes: Record<string, string> = {

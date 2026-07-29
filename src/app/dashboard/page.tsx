@@ -18,11 +18,12 @@ import {
 } from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
 import { useProfile } from "@/hooks/useProfile";
+import { useNotifications } from "@/hooks/useNotifications";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StreakCalendar from "@/components/dashboard/StreakCalendar";
 import QuickActions from "@/components/dashboard/QuickActions";
 import FeaturedSubjects from "@/components/dashboard/FeaturedSubjects";
-import RegionalUpdates from "@/components/dashboard/RegionalUpdates";
+import UpgradeCard from "@/components/dashboard/UpgradeCard";
 import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import PWAInstaller from "@/components/layout/PWAInstaller";
@@ -31,7 +32,7 @@ import "@/lib/i18n";
 
 const quickActions: QuickAction[] = [
   {
-    name: "Daily Quiz",
+    name: "Daily Lessons",
     icon: <Award01Icon size={24} className="text-black" />,
     bgColor: "bg-[#FFB040]",
     badge: 3,
@@ -90,6 +91,7 @@ function StudentDashboardPageContent() {
   const searchParams = useSearchParams();
   const navItems = useNavItems();
   const { profile, isLoading } = useProfile();
+  const { unreadCount } = useNotifications();
 
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [dynamicFeaturedSubjects, setDynamicFeaturedSubjects] = useState<SubjectData[]>([]);
@@ -111,13 +113,22 @@ function StudentDashboardPageContent() {
       }
     }
 
+    // Helper to get real stored progress (defaults to 0% for weak subjects until student completes lessons)
+    const getProgress = (subjectKey: string): number => {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(`ticha_progress_${subjectKey.toLowerCase()}`);
+        if (stored) return Math.min(100, Number(stored));
+      }
+      return 0; // 0% initial progress for new users!
+    };
+
     const subjectMap: Record<string, SubjectData> = {
       physics: {
         id: "phys",
         category: "Sciences",
         title: "Physics",
         subtitle: "Electromagnetism & Quantum Physics",
-        progress: 42,
+        progress: getProgress("physics"),
         bgColor: "bg-[#FFB040]",
         icon: <FlashIcon size={24} className="text-black" />,
       },
@@ -126,7 +137,7 @@ function StudentDashboardPageContent() {
         category: "Mathematics",
         title: "Pure Maths",
         subtitle: "Complex Numbers & Calculus Limits",
-        progress: 35,
+        progress: getProgress("pure mathematics"),
         bgColor: "bg-[#B6FF00]",
         icon: <SquareIcon size={24} className="text-black" />,
       },
@@ -135,7 +146,7 @@ function StudentDashboardPageContent() {
         category: "Technology",
         title: "ICT & Computing",
         subtitle: "Database Normalization & Networks",
-        progress: 58,
+        progress: getProgress("ict"),
         bgColor: "bg-[#FFDF9E]",
         icon: <ComputerIcon size={24} className="text-black" />,
       },
@@ -144,7 +155,7 @@ function StudentDashboardPageContent() {
         category: "Sciences",
         title: "Chemistry",
         subtitle: "Organic Reactions & Energetics",
-        progress: 48,
+        progress: getProgress("chemistry"),
         bgColor: "bg-[#D3E2FF]",
         icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
       },
@@ -153,7 +164,7 @@ function StudentDashboardPageContent() {
         category: "Sciences",
         title: "Biology",
         subtitle: "Genetics & Cell Structure",
-        progress: 64,
+        progress: getProgress("biology"),
         bgColor: "bg-[#FFD9E0]",
         icon: <Award01Icon size={24} className="text-black" />,
       },
@@ -162,7 +173,7 @@ function StudentDashboardPageContent() {
         category: "Arts",
         title: "English Language",
         subtitle: "Essay Structure & Comprehension",
-        progress: 72,
+        progress: getProgress("english"),
         bgColor: "bg-[#E2D3FF]",
         icon: <Book01Icon size={24} className="text-black" />,
       },
@@ -171,7 +182,7 @@ function StudentDashboardPageContent() {
         category: "Arts",
         title: "French Language",
         subtitle: "Grammar & Expression Écrite",
-        progress: 60,
+        progress: getProgress("french"),
         bgColor: "bg-[#A8FFD3]",
         icon: <Globe02Icon size={24} className="text-black" />,
       },
@@ -192,11 +203,6 @@ function StudentDashboardPageContent() {
     }
   }, [profile]);
 
-  const regionName = profile?.region ? profile.region.charAt(0).toUpperCase() + profile.region.slice(1) : "Littoral";
-  const regionalUpdates = [
-    { id: "regional-mock", title: `${regionName} Region GCE Mock Schedule & Updates`, date: "Updated Live" },
-  ];
-
   // Show setup modal if profile is not completed
   useEffect(() => {
     if (isLoading) return;
@@ -208,9 +214,8 @@ function StudentDashboardPageContent() {
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count || 1;
+  const streakCount = profile?.streak_count ?? 0; // 0 for new users
   const currentLevel = profile?.education_level === "ol" ? "GCE O-Level" : "GCE A-Level";
-  const notificationCount = 3;
 
   if (isLoading) {
     return (
@@ -234,8 +239,8 @@ function StudentDashboardPageContent() {
             userName={userName}
             avatarUrl={avatarUrl}
             streakCount={streakCount}
-            notificationCount={notificationCount}
-            onNotificationClick={() => router.push("/coming-soon")}
+            notificationCount={unreadCount}
+            onNotificationClick={() => router.push("/dashboard/notifications")}
           />
         </motion.div>
 
@@ -247,8 +252,8 @@ function StudentDashboardPageContent() {
           <QuickActions
             actions={quickActions}
             onAction={(name) => {
-              if (name === "Daily Quiz") {
-                router.push("/dashboard/quiz-generator");
+              if (name === "Daily Lessons") {
+                router.push("/dashboard/daily-lessons");
               } else if (name === "Summaries") {
                 router.push("/summaries");
               } else if (name === "Past Papers") {
@@ -264,16 +269,13 @@ function StudentDashboardPageContent() {
           <FeaturedSubjects
             subjects={dynamicFeaturedSubjects}
             currentLevel={currentLevel}
-            onSubjectClick={(id) => router.push(`/courses/${id}`)}
+            onSubjectClick={() => router.push("/dashboard/daily-lessons")}
             onSeeMore={() => router.push("/courses")}
           />
         </motion.div>
 
         <motion.div variants={itemVariants} className="w-full">
-          <RegionalUpdates
-            updates={regionalUpdates}
-            onUpdateClick={() => router.push("/coming-soon")}
-          />
+          <UpgradeCard onUpgradeClick={() => router.push("/coming-soon")} />
         </motion.div>
       </motion.main>
 

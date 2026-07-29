@@ -37,7 +37,7 @@ export default function LeaderboardsPage() {
   const userName = profile?.full_name || "Student";
   const firstName = userName.split(" ")[0];
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count || 1;
+  const streakCount = profile?.streak_count ?? 0;
   const schoolName = profile?.school_name || "GCE Candidate";
 
   // Calculate dynamic user points: (streak * 50) + base activity points

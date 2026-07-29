@@ -6,6 +6,8 @@ import { TutorMessage as ITutorMessage } from '@/hooks/useTutor';
 import ExerciseBlock from './ExerciseBlock';
 import { PlayIcon } from 'hugeicons-react';
 
+import { formatAIText } from '@/lib/formatAIText';
+
 interface TutorMessageProps {
   message: ITutorMessage;
   onPlayAudio?: (text: string) => void;
@@ -15,12 +17,14 @@ interface TutorMessageProps {
 export default function TutorMessage({ message, onPlayAudio, onSubmitAnswer }: TutorMessageProps) {
   const isUser = message.role === 'user';
   
-  // Clean up markers from display
-  let displayText = message.content
+  // Clean up markers and format AI text
+  let rawText = message.content
     .replace(/\[LESSON\]/g, '')
     .replace(/\[EXERCISE\]/g, '')
     .replace(/\[FEEDBACK\]/g, '')
     .trim();
+
+  let displayText = isUser ? rawText : formatAIText(rawText);
 
   return (
     <motion.div
