@@ -45,7 +45,7 @@ export function useProfile() {
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       setProfile(data as UserProfile);
@@ -63,13 +63,17 @@ export function useProfile() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id)
+        .upsert(
+          {
+            id: user.id,
+            email: user.email,
+            ...updates,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        )
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error updating profile:", error);

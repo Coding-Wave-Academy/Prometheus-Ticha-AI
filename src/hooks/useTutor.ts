@@ -25,26 +25,36 @@ export function useTutor() {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData?.user) throw new Error("Not authenticated");
 
+      // Ensure profile row exists to prevent Foreign Key constraint 23503
+      await supabase.from("profiles").upsert(
+        {
+          id: userData.user.id,
+          email: userData.user.email,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+
       const { data, error } = await supabase
-        .from('tutor_sessions')
+        .from("tutor_sessions")
         .insert({
           user_id: userData.user.id,
           subject,
           topic,
-          education_level: 'GCE O Level', // Default or fetch from profile
+          education_level: "GCE O Level",
           performance_score: 0.5,
-          total_messages: 0
+          total_messages: 0,
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) throw error || new Error("Failed to create session");
 
       setSessionId(data.id);
       setCurrentSubject(subject);
       setMessages([]);
       setPerformanceScore(0.5);
-      
+
       // Start initial conversation
       await sendMessage("Hello! Let's start the lesson on " + topic, data.id, subject);
     } catch (err) {
@@ -188,7 +198,14 @@ export function useTutor() {
       audioRef.current = audio;
       audio.play();
     } catch (err) {
-      console.error("Audio error:", err);
+      console.warn("ElevenLabs TTS unavailable, falling back to browser Speech Synthesis:", err);
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
     }
   };
 

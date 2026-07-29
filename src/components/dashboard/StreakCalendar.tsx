@@ -75,7 +75,7 @@ export default function StreakCalendar() {
                   ? "bg-[#B6FF00] text-black"
                   : item.status === "frozen"
                   ? "bg-white text-black"
-                  : "bg-stone-900 text-white"
+                  : "bg-black text-white"
               }`}
             >
               <span>{item.day}</span>

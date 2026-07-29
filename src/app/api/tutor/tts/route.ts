@@ -5,7 +5,10 @@ export async function POST(req: NextRequest) {
     const { text } = await req.json();
 
     if (!process.env.ELEVENLABS_API_KEY) {
-      return NextResponse.json({ error: "Missing ElevenLabs API key" }, { status: 500 });
+      return NextResponse.json(
+        { error: "ElevenLabs API key not configured, fallback to client speech synthesis" },
+        { status: 404 }
+      );
     }
 
     if (!text) {

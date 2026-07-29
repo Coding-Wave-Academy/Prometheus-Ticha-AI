@@ -96,7 +96,13 @@ export function ProfilePageContent() {
     }
   };
 
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
   const handleLogout = async () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleConfirmLogout = async () => {
     try {
       setIsLoggingOut(true);
       showToast("Logging out...");
@@ -382,6 +388,43 @@ export function ProfilePageContent() {
         onClose={() => setIsSettingsModalOpen(false)}
         onShowToast={showToast}
       />
+
+      {/* Log Out Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-spring-pop">
+          <div className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-3xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
+            <div className="w-14 h-14 bg-[#FF9494] border-[3px] border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto rotate-[-3deg]">
+              <span className="text-2xl">⚠️</span>
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black uppercase tracking-tight text-black">
+                Log Out of Ticha AI?
+              </h3>
+              <p className="text-xs font-medium text-stone-700 leading-relaxed">
+                Are you sure you want to sign out? Your learning progress is saved automatically.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="bg-white hover:bg-stone-50 border-[3px] border-black rounded-xl py-2.5 px-4 font-black text-xs uppercase text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleConfirmLogout}
+                disabled={isLoggingOut}
+                className="bg-[#FF9494] hover:bg-[#ff7b7b] border-[3px] border-black rounded-xl py-2.5 px-4 font-black text-xs uppercase text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5"
+              >
+                {isLoggingOut ? "Logging out..." : "Yes, Log Out"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav items={navItems} />
     </div>

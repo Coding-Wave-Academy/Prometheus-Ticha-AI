@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -13,6 +13,8 @@ import {
   FlashIcon,
   SquareIcon,
   ComputerIcon,
+  Globe02Icon,
+  CheckmarkCircle02Icon,
 } from "hugeicons-react";
 import { useNavItems } from "@/hooks/useNavItems";
 import { useProfile } from "@/hooks/useProfile";
@@ -51,36 +53,6 @@ const quickActions: QuickAction[] = [
   },
 ];
 
-const featuredSubjects: SubjectData[] = [
-  {
-    id: "phys",
-    category: "Sciences",
-    title: "Physics",
-    subtitle: "Electromagnetism & Quantum",
-    progress: 82,
-    bgColor: "bg-[#B6FF00]",
-    icon: <FlashIcon size={24} className="text-black" />,
-  },
-  {
-    id: "math",
-    category: "Mathematics",
-    title: "Pure Maths",
-    subtitle: "Complex Numbers & Calculus",
-    progress: 45,
-    bgColor: "bg-[#D3E2FF]",
-    icon: <SquareIcon size={24} className="text-black" />,
-  },
-  {
-    id: "ict",
-    category: "Technology",
-    title: "ICT",
-    subtitle: "Networking Basics",
-    progress: 94,
-    bgColor: "bg-[#FFD9E0]",
-    icon: <ComputerIcon size={24} className="text-black" />,
-  },
-];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -105,6 +77,14 @@ const itemVariants = {
   },
 };
 
+export default function StudentDashboardPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
+      <StudentDashboardPageContent />
+    </React.Suspense>
+  );
+}
+
 function StudentDashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -112,6 +92,105 @@ function StudentDashboardPageContent() {
   const { profile, isLoading } = useProfile();
 
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [dynamicFeaturedSubjects, setDynamicFeaturedSubjects] = useState<SubjectData[]>([]);
+
+  useEffect(() => {
+    // Read struggles from localStorage or profile vector
+    let struggles: string[] = ["physics", "math", "ict"];
+    if (typeof window !== "undefined") {
+      const storedStruggles = localStorage.getItem("ticha_onboarding_struggles");
+      if (storedStruggles) {
+        try {
+          const parsed = JSON.parse(storedStruggles);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            struggles = parsed;
+          }
+        } catch {
+          // ignore error
+        }
+      }
+    }
+
+    const subjectMap: Record<string, SubjectData> = {
+      physics: {
+        id: "phys",
+        category: "Sciences",
+        title: "Physics",
+        subtitle: "Electromagnetism & Quantum Physics",
+        progress: 42,
+        bgColor: "bg-[#FFB040]",
+        icon: <FlashIcon size={24} className="text-black" />,
+      },
+      math: {
+        id: "math",
+        category: "Mathematics",
+        title: "Pure Maths",
+        subtitle: "Complex Numbers & Calculus Limits",
+        progress: 35,
+        bgColor: "bg-[#B6FF00]",
+        icon: <SquareIcon size={24} className="text-black" />,
+      },
+      ict: {
+        id: "ict",
+        category: "Technology",
+        title: "ICT & Computing",
+        subtitle: "Database Normalization & Networks",
+        progress: 58,
+        bgColor: "bg-[#FFDF9E]",
+        icon: <ComputerIcon size={24} className="text-black" />,
+      },
+      chemistry: {
+        id: "chem",
+        category: "Sciences",
+        title: "Chemistry",
+        subtitle: "Organic Reactions & Energetics",
+        progress: 48,
+        bgColor: "bg-[#D3E2FF]",
+        icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
+      },
+      biology: {
+        id: "bio",
+        category: "Sciences",
+        title: "Biology",
+        subtitle: "Genetics & Cell Structure",
+        progress: 64,
+        bgColor: "bg-[#FFD9E0]",
+        icon: <Award01Icon size={24} className="text-black" />,
+      },
+      english: {
+        id: "eng",
+        category: "Arts",
+        title: "English Language",
+        subtitle: "Essay Structure & Comprehension",
+        progress: 72,
+        bgColor: "bg-[#E2D3FF]",
+        icon: <Book01Icon size={24} className="text-black" />,
+      },
+      french: {
+        id: "fr",
+        category: "Arts",
+        title: "French Language",
+        subtitle: "Grammar & Expression Écrite",
+        progress: 60,
+        bgColor: "bg-[#A8FFD3]",
+        icon: <Globe02Icon size={24} className="text-black" />,
+      },
+    };
+
+    const mapped = struggles
+      .map((s) => subjectMap[s.toLowerCase()])
+      .filter(Boolean);
+
+    if (mapped.length > 0) {
+      setDynamicFeaturedSubjects(mapped);
+    } else {
+      setDynamicFeaturedSubjects([
+        subjectMap.physics,
+        subjectMap.math,
+        subjectMap.ict,
+      ]);
+    }
+  }, [profile]);
 
   const regionName = profile?.region ? profile.region.charAt(0).toUpperCase() + profile.region.slice(1) : "Littoral";
   const regionalUpdates = [
@@ -119,7 +198,7 @@ function StudentDashboardPageContent() {
   ];
 
   // Show setup modal if profile is not completed
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoading) return;
     const showSetupQuery = searchParams.get("showSetup") === "true";
     if (showSetupQuery || !profile?.profile_completed) {
@@ -183,7 +262,7 @@ function StudentDashboardPageContent() {
 
         <motion.div variants={itemVariants} className="w-full">
           <FeaturedSubjects
-            subjects={featuredSubjects}
+            subjects={dynamicFeaturedSubjects}
             currentLevel={currentLevel}
             onSubjectClick={(id) => router.push(`/courses/${id}`)}
             onSeeMore={() => router.push("/courses")}
@@ -205,13 +284,5 @@ function StudentDashboardPageContent() {
 
       <BottomNav items={navItems} />
     </div>
-  );
-}
-
-export default function StudentDashboardPage() {
-  return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
-      <StudentDashboardPageContent />
-    </React.Suspense>
   );
 }

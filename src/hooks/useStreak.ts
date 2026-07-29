@@ -11,6 +11,16 @@ export interface StreakDayItem {
   label: string;
 }
 
+const baseDays = [
+  { day: "S", label: "Sunday" },
+  { day: "M", label: "Monday" },
+  { day: "T", label: "Tuesday" },
+  { day: "W", label: "Wednesday" },
+  { day: "TH", label: "Thursday" },
+  { day: "F", label: "Friday" },
+  { day: "S", label: "Saturday" },
+];
+
 export function useStreak() {
   const { profile, updateProfile } = useProfile();
   const [streakCount, setStreakCount] = useState(1);
@@ -18,15 +28,20 @@ export function useStreak() {
   const [isTodayClaimed, setIsTodayClaimed] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
 
-  const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>([
-    { day: "S", status: "active", label: "Sunday" },
-    { day: "M", status: "active", label: "Monday" },
-    { day: "T", status: "frozen", label: "Tuesday (Paused)" },
-    { day: "W", status: "active", label: "Wednesday" },
-    { day: "TH", status: "active", label: "Thursday" },
-    { day: "F", status: "upcoming", label: "Friday" },
-    { day: "S", status: "upcoming", label: "Saturday" },
-  ]);
+  const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>(() => {
+    const todayIndex = new Date().getDay(); // 0 = Sun, 6 = Sat
+    return baseDays.map((d, idx) => {
+      let status: "active" | "frozen" | "upcoming" = "upcoming";
+      if (idx < todayIndex) {
+        status = idx === 2 ? "frozen" : "active"; // Tuesday example frozen
+      } else if (idx === todayIndex) {
+        status = "active";
+      } else {
+        status = "upcoming";
+      }
+      return { ...d, status };
+    });
+  });
 
   useEffect(() => {
     if (profile) {
@@ -48,13 +63,14 @@ export function useStreak() {
 
     const newStreak = streakCount + 1;
     const todayStr = new Date().toISOString().split("T")[0];
+    const todayIndex = new Date().getDay();
 
     setStreakCount(newStreak);
     setIsTodayClaimed(true);
     setIsFrozen(false);
 
     setWeeklyDays((prev) =>
-      prev.map((item, idx) => (idx === 4 ? { ...item, status: "active" } : item))
+      prev.map((item, idx) => (idx === todayIndex ? { ...item, status: "active" } : item))
     );
 
     await updateProfile({

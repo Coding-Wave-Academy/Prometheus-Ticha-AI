@@ -2,299 +2,351 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic01Icon,
-  ArrowRight01Icon,
   VolumeHighIcon,
   SparklesIcon,
-  Chat01Icon,
+  ArrowRight01Icon,
+  RefreshIcon,
+  CheckmarkCircle02Icon,
 } from "hugeicons-react";
 import { useProfile } from "@/hooks/useProfile";
-import { hapticTap } from "@/lib/haptics";
+import { hapticTap, hapticSuccess } from "@/lib/haptics";
 
-interface ChatMessage {
+interface MicroChunk {
   id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
+  step: number;
+  text: string;
 }
 
-const promptPills = [
-  { label: "📝 GCE Study Timetable", prompt: "Help me create a high-yield 4-week GCE study timetable." },
-  { label: "⚡ Physics Memory Trick", prompt: "Give me a quick memorable trick to remember Electromagnetism formulas." },
-  { label: "🎯 Paper 2 Exam Strategy", prompt: "What is the best way to tackle section B questions in GCE Paper 2?" },
-  { label: "🧠 Fast Math Formula Tip", prompt: "Explain how to solve quadratic equations using the completing the square method simply." },
+const starterPrompts = [
+  "How do I study for Physics Paper 2?",
+  "Give me a calculus limits trick!",
+  "How to create a GCE study timetable?",
+  "Explain quantum physics simply!",
 ];
 
 export default function ConversationalChat() {
   const { profile } = useProfile();
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [chunks, setChunks] = useState<MicroChunk[]>([
     {
-      id: "welcome-1",
-      role: "assistant",
-      content: `Hello ${profile?.full_name?.split(" ")[0] || "Scholar"}! 👋 I am Madame Ticha, your personal AI Chat Assistant. Ask me anything about your GCE subjects, study strategies, homework questions, or exam tips!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      id: "chunk-0",
+      step: 1,
+      text: `Hi ${profile?.full_name?.split(" ")[0] || "Scholar"}! 👋 Tap the microphone below to talk to Madame Ticha!`,
     },
   ]);
-  const [input, setInput] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [textInput, setTextInput] = useState("");
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Initialize Speech Recognition if supported
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isStreaming]);
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = profile?.preferred_language === "fr" ? "fr-FR" : "en-US";
 
-  const handleSendText = async (textToSend: string) => {
-    if (!textToSend.trim() || isStreaming) return;
-    hapticTap();
+        recognition.onresult = (event: any) => {
+          const current = event.resultIndex;
+          const text = event.results[current][0].transcript;
+          setTranscript(text);
+        };
 
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
+        recognition.onend = () => {
+          setIsListening(false);
+        };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setIsStreaming(true);
+        recognition.onerror = (err: any) => {
+          console.warn("Speech recognition error:", err);
+          setIsListening(false);
+        };
 
-    const assistantMsgId = `assistant-${Date.now()}`;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantMsgId,
-        role: "assistant",
-        content: "",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
-
-    try {
-      const history = messages.map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      }));
-
-      const res = await fetch("/api/tutor/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "conv-session",
-          message: textToSend,
-          subject: "Conversational GCE Assistant",
-          educationLevel: profile?.education_level || "al",
-          performanceScore: 0.5,
-          history,
-        }),
-      });
-
-      if (!res.body) throw new Error("No response body");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let fullResponse = "";
-      let buffer = "";
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (value) {
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.replace("data: ", "").trim();
-              if (dataStr === "[DONE]") continue;
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                  const chunk = data.candidates[0].content.parts[0].text;
-                  // Clean markers if present
-                  const cleanChunk = chunk.replace(/\[LESSON\]|\[EXERCISE\]|\[FEEDBACK\]/g, "");
-                  fullResponse += cleanChunk;
-                  setMessages((prev) =>
-                    prev.map((m) => (m.id === assistantMsgId ? { ...m, content: fullResponse } : m))
-                  );
-                }
-              } catch {
-                // Ignore chunk parse errors
-              }
-            }
-          }
-        }
+        recognitionRef.current = recognition;
       }
-    } catch (err) {
-      console.error("Conversational chat error:", err);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? { ...m, content: "Sorry, I had trouble answering that. Please try asking again!" }
-            : m
-        )
-      );
-    } finally {
-      setIsStreaming(false);
+    }
+  }, [profile?.preferred_language]);
+
+  const toggleListening = () => {
+    hapticTap();
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported on this browser. You can type below!");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      if (transcript.trim()) {
+        processQuestion(transcript);
+      }
+    } else {
+      setTranscript("");
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.warn("Recognition start error:", err);
+      }
     }
   };
 
-  const playAudio = async (msgId: string, text: string) => {
+  const processQuestion = async (userPrompt: string) => {
+    if (!userPrompt.trim()) return;
+    setIsThinking(true);
+
     try {
-      setPlayingAudioId(msgId);
-      const res = await fetch("/api/tutor/tts", {
+      const prompt = `
+        You are Madame Ticha, a loving Cameroonian GCE teacher explaining concepts to a 5-year-old student.
+        Question: "${userPrompt}"
+
+        CRITICAL INSTRUCTIONS:
+        1. Break your answer into 3 to 4 very short, simple, bite-sized bullet chunks.
+        2. Use extremely simple words like you are talking to a 5-year-old child.
+        3. No long paragraphs! Each chunk must be only 1 or 2 short sentences max.
+        4. Separate each chunk with "---" on a new line.
+      `;
+
+      const res = await fetch("/api/ai/intel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          goal: "Explain simple micro chunks",
+          education: profile?.education_level || "ol",
+          struggles: [userPrompt],
+        }),
       });
-      if (!res.ok) throw new Error("Failed to fetch audio");
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      let rawChunks: string[] = [];
 
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (res.ok) {
+        const data = await res.json();
+        if (data.intel) {
+          rawChunks = [
+            `💡 ${data.intel.bigIdea?.text || userPrompt}`,
+            `📖 ${data.intel.story?.text || "Let's learn together!"}`,
+            `✨ ${data.intel.reality?.text || "Practice makes perfect!"}`,
+            `⭐ ${data.intel.proTip?.text || "You can do this!"}`,
+          ];
+        }
       }
 
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.play();
-      audio.onended = () => setPlayingAudioId(null);
+      if (rawChunks.length === 0) {
+        rawChunks = [
+          `💡 Great question! Let's break it down simply.`,
+          `📖 Imagine you have 3 study blocks every day.`,
+          `✨ Focus on 1 topic at a time without rushing!`,
+          `⭐ Review past papers to get A grades!`,
+        ];
+      }
+
+      const formattedChunks: MicroChunk[] = rawChunks.map((text, idx) => ({
+        id: `chunk-${Date.now()}-${idx}`,
+        step: idx + 1,
+        text,
+      }));
+
+      setChunks(formattedChunks);
+      hapticSuccess();
+
+      // Speak the first chunk aloud
+      speakText(formattedChunks.map((c) => c.text).join(" "));
     } catch (err) {
-      console.error("Audio error:", err);
-      setPlayingAudioId(null);
+      console.error("Failed to fetch micro chunks:", err);
+      setChunks([
+        {
+          id: `err-${Date.now()}`,
+          step: 1,
+          text: "💡 Don't worry! Practice a little bit every day and ask Ticha AI any question!",
+        },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const speakText = (text: string) => {
+    setIsSpeaking(true);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95; // Slightly slower child-friendly pace
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setIsSpeaking(false);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between w-full max-w-md mx-auto relative pb-28">
-      
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${
-              msg.role === "user" ? "items-end" : "items-start"
-            }`}
-          >
-            <div
-              className={`max-w-[85%] p-4 border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative space-y-2 ${
-                msg.role === "user"
-                  ? "bg-[#B6FF00] rounded-tr-sm text-black"
-                  : "bg-white rounded-tl-sm text-black"
-              }`}
-            >
-              {msg.role === "assistant" && (
-                <div className="flex items-center justify-between border-b-[2px] border-black pb-1.5 mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full border-[1.5px] border-black overflow-hidden bg-[#B6FF00] shrink-0">
-                      <Image
-                        src="/images/madame-ticha.png"
-                        alt="Madame Ticha"
-                        width={24}
-                        height={24}
-                        className="object-cover"
-                      />
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-black">
-                      Madame Ticha
-                    </span>
-                  </div>
-                  {msg.content && (
-                    <button
-                      onClick={() => playAudio(msg.id, msg.content)}
-                      className="p-1 hover:bg-stone-100 rounded-md transition-colors"
-                      aria-label="Listen to message audio"
-                    >
-                      <VolumeHighIcon
-                        size={16}
-                        className={playingAudioId === msg.id ? "text-amber-600 animate-bounce" : "text-black"}
-                      />
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <p className="text-xs md:text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                {msg.content || (
-                  <span className="inline-flex gap-1 items-center">
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce" />
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce delay-75" />
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce delay-150" />
-                  </span>
-                )}
-              </p>
-
-              <span className="block text-[9px] font-bold text-stone-500 text-right pt-0.5">
-                {msg.timestamp}
-              </span>
-            </div>
+    <div className="flex-1 flex flex-col justify-between w-full max-w-md mx-auto p-4 pb-28 text-center space-y-6 animate-page-in">
+      {/* Top Visualizer Status Header */}
+      <div className="bg-white border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
+        <div className="flex items-center gap-3 text-left">
+          <div className="w-12 h-12 rounded-full border-[2.5px] border-black overflow-hidden bg-[#B6FF00] shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <Image
+              src="/images/madame-ticha.png"
+              alt="Madame Ticha"
+              width={48}
+              height={48}
+              className="object-cover"
+            />
           </div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Starter Quick Prompt Pills */}
-      {messages.length < 3 && (
-        <div className="px-4 pb-2">
-          <p className="text-[10px] font-black uppercase tracking-wider text-stone-600 mb-2 flex items-center gap-1">
-            <SparklesIcon size={12} className="text-amber-600" />
-            <span>Quick Conversation Starters</span>
-          </p>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
-            {promptPills.map((pill, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSendText(pill.prompt)}
-                className="bg-white border-[2px] border-black rounded-full py-1.5 px-3 font-bold text-[11px] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none whitespace-nowrap shrink-0 hover:bg-[#FAF7EC] transition-all"
-              >
-                {pill.label}
-              </button>
-            ))}
+          <div>
+            <h3 className="font-black text-sm uppercase text-black">Madame Ticha Voice AI</h3>
+            <p className="text-[11px] font-bold text-stone-600">
+              {isListening
+                ? "🎙️ Listening to you..."
+                : isThinking
+                ? "🧠 Thinking simple answer..."
+                : isSpeaking
+                ? "🔊 Speaking micro chunks..."
+                : "✨ Ready! Tap microphone below"}
+            </p>
           </div>
         </div>
-      )}
 
-      {/* Floating Bottom Input */}
-      <div className="fixed bottom-16 left-0 right-0 w-full max-w-md mx-auto bg-white border-t-[3.5px] border-black p-3 z-30 shadow-[0_-4px_0px_0px_rgba(0,0,0,1)]">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendText(input);
-          }}
-          className="flex items-center gap-2"
-        >
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Madame Ticha anything..."
-              className="w-full bg-[#FAF7EC] border-[3px] border-black rounded-xl p-3 pr-10 text-xs md:text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+        {/* Dynamic Sound Wave Bars Visualizer */}
+        <div className="flex items-center gap-1.5 h-8 px-2 bg-[#FAF7EC] border-[2px] border-black rounded-xl">
+          {[0.4, 0.9, 0.6, 1, 0.5].map((scale, i) => (
+            <motion.span
+              key={i}
+              animate={{
+                scaleY: isListening || isSpeaking ? [0.3, scale * 1.5, 0.3] : 0.3,
+              }}
+              transition={{
+                duration: 0.5,
+                repeat: Infinity,
+                delay: i * 0.1,
+              }}
+              className={`w-1.5 rounded-full ${
+                isListening
+                  ? "bg-red-500"
+                  : isSpeaking
+                  ? "bg-[#B6FF00]"
+                  : "bg-stone-400"
+              } h-6 origin-center`}
             />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-black"
-            >
-              <Mic01Icon size={18} />
-            </button>
-          </div>
-          <button
-            type="submit"
-            disabled={!input.trim() || isStreaming}
-            className="w-11 h-11 bg-[#B6FF00] border-[3px] border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform disabled:opacity-50 shrink-0"
-          >
-            <ArrowRight01Icon size={20} className="text-black" />
-          </button>
-        </form>
+          ))}
+        </div>
       </div>
 
+      {/* Live Speech Transcriber Box */}
+      <div className="w-full bg-[#FAF7EC] border-[3px] border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-left min-h-[56px] flex items-center gap-2">
+        <SparklesIcon size={20} className="text-amber-600 shrink-0" />
+        <p className="text-xs font-bold text-black flex-1 italic">
+          {transcript || textInput || (isListening ? "Say your question out loud..." : "Your spoken question will appear here...")}
+        </p>
+        {(transcript || textInput) && (
+          <button
+            onClick={() => {
+              const q = transcript || textInput;
+              setTranscript("");
+              setTextInput("");
+              processQuestion(q);
+            }}
+            className="bg-[#B6FF00] border-[2px] border-black rounded-lg p-1.5 font-black text-xs text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all shrink-0"
+          >
+            Ask ➔
+          </button>
+        )}
+      </div>
+
+      {/* Micro-Chunked Bite-Sized Response Cards */}
+      <div className="space-y-3 text-left">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[11px] font-black uppercase tracking-wider text-stone-700">
+            Micro-Bite Explanations (5-Year-Old Level)
+          </span>
+          {chunks.length > 0 && (
+            <button
+              onClick={() => speakText(chunks.map((c) => c.text).join(" "))}
+              className="text-[11px] font-extrabold uppercase text-black underline flex items-center gap-1"
+            >
+              <VolumeHighIcon size={14} className="text-amber-600" />
+              Listen All
+            </button>
+          )}
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {chunks.map((chunk) => (
+            <motion.div
+              key={chunk.id}
+              initial={{ opacity: 0, y: 14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 280, damping: 22 }}
+              className="bg-white border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 relative"
+            >
+              <div className="w-8 h-8 rounded-xl bg-[#B6FF00] border-[2.5px] border-black flex items-center justify-center font-black text-xs shrink-0 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                #{chunk.step}
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-xs md:text-sm font-bold text-black leading-relaxed">
+                  {chunk.text}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Starter Prompts */}
+      <div className="space-y-2">
+        <p className="text-[10px] font-black uppercase tracking-wider text-stone-600 text-left">
+          Tap a Quick Voice Question:
+        </p>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
+          {starterPrompts.map((p, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setTranscript(p);
+                processQuestion(p);
+              }}
+              className="bg-white border-[2.5px] border-black rounded-full py-1.5 px-3 font-bold text-[11px] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none whitespace-nowrap shrink-0 hover:bg-[#FAF7EC] transition-all"
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* BIG Neobrutalist Tap-to-Speak Microphone Button */}
+      <div className="pt-2 flex flex-col items-center justify-center">
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          animate={
+            isListening
+              ? { scale: [1, 1.08, 1], boxShadow: "0px 0px 20px rgba(255, 0, 0, 0.6)" }
+              : {}
+          }
+          transition={{ duration: 1, repeat: Infinity }}
+          onClick={toggleListening}
+          className={`w-24 h-24 rounded-full border-[4px] border-black flex flex-col items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all ${
+            isListening
+              ? "bg-red-500 text-white shadow-none translate-x-[2px] translate-y-[2px]"
+              : "bg-[#B6FF00] text-black hover:bg-[#a3e600]"
+          }`}
+          aria-label={isListening ? "Stop listening" : "Tap to speak"}
+        >
+          <Mic01Icon size={36} className={isListening ? "animate-pulse text-white" : "text-black"} />
+          <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
+            {isListening ? "Stop" : "Tap to Speak"}
+          </span>
+        </motion.button>
+      </div>
     </div>
   );
 }
