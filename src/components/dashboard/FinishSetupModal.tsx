@@ -1,222 +1,372 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-interface SetupStep {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  isCompleted: boolean;
-  href: string;
-}
+import {
+  UserIcon,
+  SchoolIcon,
+  Location01Icon,
+  Award01Icon,
+  Globe02Icon,
+  AiBrain01Icon,
+} from "hugeicons-react";
+import { fireConfettiBurst } from "@/lib/confetti";
+import { hapticSuccess, hapticTap } from "@/lib/haptics";
+import { useProfile } from "@/hooks/useProfile";
+import i18n from "i18next";
 
 interface FinishSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface AiTip {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  tag: string;
+}
+
 export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalProps) {
-  const router = useRouter();
-  const [steps, setSteps] = useState<SetupStep[]>([]);
-  const [completedCount, setCompletedCount] = useState(1); // At least 1 (Account Created) is always true
+  const { profile, updateProfile } = useProfile();
+  const [fullName, setFullName] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [region, setRegion] = useState("littoral");
+  const [educationLevel, setEducationLevel] = useState("al");
+  const [preferredLanguage, setPreferredLanguage] = useState("en");
+
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [aiTips, setAiTips] = useState<AiTip[]>([]);
+  const [isLoadingTips, setIsLoadingTips] = useState(false);
 
   useEffect(() => {
-    // Read actual setup state from localStorage
-    const profileCompleted = localStorage.getItem("ticha_profile_completed") === "true";
-    const tfaEnabled = localStorage.getItem("ticha_2fa_enabled") === "true";
-    const regionSelected = localStorage.getItem("ticha_region_selected") === "true";
-    const schoolAdded = localStorage.getItem("ticha_school_added") === "true";
+    if (isOpen) {
+      setFullName(profile?.full_name || "");
+      setSchoolName(profile?.school_name || "");
+      setRegion(profile?.region || "littoral");
+      setEducationLevel(profile?.education_level || "al");
+      setPreferredLanguage(profile?.preferred_language || i18n.language || "en");
+      setIsSaved(profile?.profile_completed || false);
+    }
+  }, [isOpen, profile]);
 
-    const allSteps: SetupStep[] = [
-      {
-        id: "account",
-        title: "Account Created",
-        description: "Great start!",
-        icon: (
-          <svg className="w-5 h-5 stroke-[3.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        ),
-        isCompleted: true,
-        href: "#",
-      },
-      {
-        id: "profile",
-        title: "Complete Profile",
-        description: "Tell us about yourself",
-        icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 448 512">
-            <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C75.8 288 32 331.8 32 385.6V464c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-78.4c0-53.8-43.8-97.6-97.6-97.6z" />
-          </svg>
-        ),
-        isCompleted: profileCompleted,
-        href: "/dashboard/profile?focus=name",
-      },
-      {
-        id: "tfa",
-        title: "Enable 2FA",
-        description: "Secure your account",
-        icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 512 512">
-            <path d="M256 0c14.1 0 27.2 9.3 31.9 22.6l16 45.4C377.7 85.9 432 143.6 432 216v51.1c0 58.7 41 110.1 97.7 122.9 14.2 3.2 22.7 17.5 19.5 31.7S531.7 444 517.5 440.8C440.9 423.5 384 353.6 384 267.1V216c0-48.4-32.9-90.1-78.6-102.7l16.1 45.5c4.7 13.3-2.3 28-15.6 32.7s-28-2.3-32.7-15.6L256 128l-17.2 48.7c-4.7 13.3-19.4 20.3-32.7 15.6s-20.3-19.4-15.6-32.7l16.1-45.5C160.9 125.9 128 167.6 128 216v51.1c0 86.5-56.9 156.4-133.5 173.7C-19.7 444-28.2 429.7-25 415.5s17.5-22.7 31.7-19.5C65 383.2 106 331.8 106 273.1V216c0-72.4 54.3-130.1 128.1-148L224 22.6C228.8 9.3 241.9 0 256 0z" />
-          </svg>
-        ),
-        isCompleted: tfaEnabled,
-        href: "/dashboard/profile?focus=2fa",
-      },
-      {
-        id: "region",
-        title: "Select Region",
-        description: "Localize your learning",
-        icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512">
-            <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z" />
-          </svg>
-        ),
-        isCompleted: regionSelected,
-        href: "/dashboard/profile?focus=region",
-      },
-      {
-        id: "school",
-        title: "Add School Name",
-        description: "Find your community",
-        icon: (
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 640 512">
-            <path d="M620.8 104.3L338.9 4.4a32.2 32.2 0 0 0-18.1 0L38.4 104.3A32 32 0 0 0 32 134.4v264a32 32 0 0 0 20.3 29.8l268.8 96a32.1 32.1 0 0 0 17.8 0l268.8-96A32 32 0 0 0 608 398.4V134.4a32 32 0 0 0-6.4-30.1z" />
-          </svg>
-        ),
-        isCompleted: schoolAdded,
-        href: "/dashboard/profile?focus=school",
-      },
-    ];
-
-    const timer = setTimeout(() => {
-      setSteps(allSteps);
-      const count = allSteps.filter((s) => s.isCompleted).length;
-      setCompletedCount(count);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [isOpen]);
+  const fetchAiTips = async (level: string, reg: string, name: string, lang: string) => {
+    setIsLoadingTips(true);
+    try {
+      const res = await fetch("/api/ai/onboarding-tips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          educationLevel: level,
+          region: reg,
+          name,
+          preferredLanguage: lang,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tips && Array.isArray(data.tips)) {
+          setAiTips(data.tips);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch AI onboarding tips:", err);
+    } finally {
+      setIsLoadingTips(false);
+    }
+  };
 
   if (!isOpen) return null;
 
-  const percentage = (completedCount / 5) * 100;
-  const strokeDasharray = 2 * Math.PI * 22; // r = 22
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage("");
+    hapticSuccess();
+    setIsSubmitting(true);
+
+    const result = await updateProfile({
+      full_name: fullName,
+      school_name: schoolName,
+      region,
+      education_level: educationLevel,
+      preferred_language: preferredLanguage,
+      profile_completed: true,
+    });
+
+    setIsSubmitting(false);
+
+    if (result.error) {
+      setErrorMessage(`⚠️ Could not save: ${result.error}`);
+      return;
+    }
+
+    setIsSaved(true);
+    fireConfettiBurst();
+
+    // Fetch AI-generated exam tips
+    await fetchAiTips(educationLevel, region, fullName, preferredLanguage);
+  };
+
+  const totalSteps = 4;
+  const completedCount = isSaved ? 4 : 1;
+  const percentage = (completedCount / totalSteps) * 100;
+  const strokeDasharray = 2 * Math.PI * 20;
   const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 100;
 
-  // Next incomplete step logic
-  const nextIncompleteStep = steps.find((s) => !s.isCompleted);
-  const ctaText = nextIncompleteStep ? nextIncompleteStep.title : "All Set!";
-  const ctaHref = nextIncompleteStep ? nextIncompleteStep.href : "/dashboard";
-
-  const handleCtaClick = () => {
-    onClose();
-    router.push(ctaHref);
-  };
-
-  const handleStepClick = (step: SetupStep) => {
-    if (step.id === "account") return;
-    onClose();
-    router.push(step.href);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      {/* Modal Dialog */}
-      <div 
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 md:pt-20 bg-black/60 backdrop-blur-sm animate-page-in">
+      <div
         id="finish-setup-modal"
-        className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col"
+        className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-2xl p-5 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col text-left space-y-4 max-h-[90vh] overflow-y-auto"
       >
-        {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
-          className="absolute -top-3 -right-3 w-9 h-9 bg-white border-[3px] border-black rounded-full flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none hover:bg-stone-50"
-          aria-label="Close dialog"
+          className="absolute top-4 right-4 w-9 h-9 bg-white border-[3px] border-black rounded-full flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none hover:bg-stone-50 z-10"
+          aria-label="Close setup modal"
         >
           ✕
         </button>
 
-        {/* Circular Progress Ring in Top-Right */}
-        <div className="absolute top-5 right-5 w-14 h-14 flex items-center justify-center relative">
-          <svg className="w-full h-full transform -rotate-90">
-            <circle cx="28" cy="28" r="22" stroke="black" strokeWidth="4.5" fill="transparent" className="text-stone-200" />
-            <circle 
-              cx="28" 
-              cy="28" 
-              r="22" 
-              stroke="#FFB040" 
-              strokeWidth="4.5" 
-              fill="transparent" 
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-500 ease-out"
-            />
-          </svg>
-          <span className="absolute font-black text-[10px] text-black">
-            {completedCount} of 5
-          </span>
+        <div className="flex items-center justify-between border-b-[3px] border-black pb-3 pr-10">
+          <div>
+            <h2 className="text-xl font-black uppercase text-black leading-tight">
+              Complete Profile
+            </h2>
+            <p className="text-xs font-bold text-stone-600">
+              Unlock personalized learning tools
+            </p>
+          </div>
+
+          <div className="w-12 h-12 flex items-center justify-center relative flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90">
+              <circle
+                cx="24"
+                cy="24"
+                r="20"
+                stroke="black"
+                strokeWidth="4"
+                fill="transparent"
+                className="text-stone-200"
+              />
+              <circle
+                cx="24"
+                cy="24"
+                r="20"
+                stroke="#FFB040"
+                strokeWidth="4"
+                fill="transparent"
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-500 ease-out"
+              />
+            </svg>
+            <span className="absolute font-black text-[9px] text-black">
+              {completedCount}/{totalSteps}
+            </span>
+          </div>
         </div>
 
-        {/* Header Text */}
-        <div className="pr-12 space-y-1.5 mb-6 text-left">
-          <h2 className="text-2xl font-black text-black leading-tight">
-            Finish Setup
-          </h2>
-          <p className="text-xs font-bold text-stone-600 leading-snug">
-            Almost there, Amadou! You&apos;re {100 - percentage}% away from unlocking your full potential.
-          </p>
-        </div>
+        {errorMessage && (
+          <div className="bg-[#FF9494] border-[2.5px] border-black rounded-xl p-3 font-bold text-xs text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            {errorMessage}
+          </div>
+        )}
 
-        {/* Steps Stack */}
-        <div className="space-y-3 mb-6">
-          {steps.map((step) => (
+        {isSaved ? (
+          <div className="py-2 flex flex-col items-center text-center space-y-4">
+            <div className="w-14 h-14 bg-[#B6FF00] border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <span className="text-2xl">🎉</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-black uppercase text-black">
+                Profile Verified!
+              </h3>
+              <p className="text-xs font-bold text-stone-700 mt-0.5">
+                AI Exam Strategy tailored for {fullName}
+              </p>
+            </div>
+
+            {/* AI Generated Exam Tips Section */}
+            <div className="w-full text-left space-y-2.5">
+              <div className="flex items-center gap-1.5 border-b-[2px] border-black pb-1">
+                <AiBrain01Icon size={18} className="text-black" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-black">
+                  Live AI Exam Strategy Tips
+                </h4>
+              </div>
+
+              {isLoadingTips ? (
+                <div className="p-4 bg-white border-[2.5px] border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs font-black uppercase">Generating tips...</span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {aiTips.map((tip) => (
+                    <div
+                      key={tip.id}
+                      className="bg-white border-[2.5px] border-black rounded-xl p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-black flex items-center gap-1">
+                          <span>{tip.icon}</span> {tip.title}
+                        </span>
+                        <span className="text-[9px] font-black uppercase bg-[#B6FF00] border-[1px] border-black px-1.5 py-0.5 rounded-full">
+                          {tip.tag}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium text-stone-700 leading-snug">
+                        {tip.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
-              key={step.id}
-              onClick={() => handleStepClick(step)}
-              disabled={step.id === "account"}
-              className={`w-full p-3 rounded-xl border-[2.5px] border-black flex items-center justify-between transition-all text-left shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                step.isCompleted
-                  ? "bg-[#B6FF00]"
-                  : "bg-white hover:bg-stone-50 active:translate-x-px active:translate-y-px active:shadow-none"
-              }`}
+              onClick={onClose}
+              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                {/* SVG Icon */}
-                <div className={`w-9 h-9 rounded-lg border-[2px] border-black flex items-center justify-center flex-shrink-0 bg-white`}>
-                  {step.icon}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-black text-[13px] text-black leading-tight truncate">
-                    {step.title}
-                  </p>
-                  <p className="text-[10px] font-bold text-stone-600 leading-tight">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Status checkbox indicator */}
-              <div className="flex-shrink-0 w-5 h-5 rounded-full border-[2px] border-black bg-white flex items-center justify-center">
-                {step.isCompleted && (
-                  <svg className="w-3.5 h-3.5 text-black stroke-[3.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                )}
-              </div>
+              Start Learning Now →
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSave} className="space-y-3.5">
+            {/* Full Name */}
+            <div className="flex flex-col space-y-1">
+              <label
+                htmlFor="setup-name"
+                className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+              >
+                <UserIcon size={14} className="text-black" />
+                <span>Full Name</span>
+              </label>
+              <input
+                id="setup-name"
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="e.g. Amadou"
+                className="w-full bg-white border-[3px] border-black rounded-xl p-2.5 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              />
+            </div>
 
-        {/* Primary Action Button */}
-        <button
-          onClick={handleCtaClick}
-          className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black"
-        >
-          {ctaText}
-        </button>
+            {/* School Name */}
+            <div className="flex flex-col space-y-1">
+              <label
+                htmlFor="setup-school"
+                className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+              >
+                <SchoolIcon size={14} className="text-black" />
+                <span>School Name</span>
+              </label>
+              <input
+                id="setup-school"
+                type="text"
+                required
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder="e.g. GBHS Molyko"
+                className="w-full bg-white border-[3px] border-black rounded-xl p-2.5 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              />
+            </div>
+
+            {/* Region */}
+            <div className="flex flex-col space-y-1">
+              <label
+                htmlFor="setup-region"
+                className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+              >
+                <Location01Icon size={14} className="text-black" />
+                <span>Study Region</span>
+              </label>
+              <div className="relative rounded-xl border-[3px] border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <select
+                  id="setup-region"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="w-full bg-transparent p-2.5 pr-10 text-sm font-medium outline-none text-black appearance-none"
+                >
+                  <option value="littoral">Littoral Region</option>
+                  <option value="centre">Centre Region</option>
+                  <option value="southwest">Southwest Region</option>
+                  <option value="northwest">Northwest Region</option>
+                  <option value="west">West Region</option>
+                  <option value="other">Other Region</option>
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700 text-xs">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Education Target */}
+            <div className="flex flex-col space-y-1">
+              <label
+                htmlFor="setup-level"
+                className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+              >
+                <Award01Icon size={14} className="text-black" />
+                <span>Education Target</span>
+              </label>
+              <div className="relative rounded-xl border-[3px] border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <select
+                  id="setup-level"
+                  value={educationLevel}
+                  onChange={(e) => setEducationLevel(e.target.value)}
+                  className="w-full bg-transparent p-2.5 pr-10 text-sm font-medium outline-none text-black appearance-none"
+                >
+                  <option value="ol">GCE Ordinary Level (O/L)</option>
+                  <option value="al">GCE Advanced Level (A/L)</option>
+                  <option value="university">University Prep</option>
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700 text-xs">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Preferred Language */}
+            <div className="flex flex-col space-y-1">
+              <label
+                htmlFor="setup-lang"
+                className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+              >
+                <Globe02Icon size={14} className="text-black" />
+                <span>Interface Language (i18n)</span>
+              </label>
+              <div className="relative rounded-xl border-[3px] border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <select
+                  id="setup-lang"
+                  value={preferredLanguage}
+                  onChange={(e) => setPreferredLanguage(e.target.value)}
+                  className="w-full bg-transparent p-2.5 pr-10 text-sm font-medium outline-none text-black appearance-none"
+                >
+                  <option value="en">English (🇬🇧)</option>
+                  <option value="fr">Français (🇫🇷)</option>
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700 text-xs">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              onClick={() => hapticTap()}
+              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black mt-2 disabled:opacity-50"
+            >
+              {isSubmitting ? "Saving..." : "Save Profile & Generate Strategy"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

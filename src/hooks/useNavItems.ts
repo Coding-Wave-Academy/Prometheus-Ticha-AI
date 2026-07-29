@@ -3,13 +3,12 @@
 import { useRouter, usePathname } from "next/navigation";
 import { NavItem } from "@/types";
 
-/** The five global PWA navigation destinations. */
 const NAV_DEFINITIONS: Omit<NavItem, "active">[] = [
-  { id: "home",    labelKey: "home",    icon: "⊞",   href: "/dashboard" },
-  { id: "explore", labelKey: "explore", icon: "🧑‍🎓", href: "/explore" },
-  { id: "chat",    labelKey: "chat",    icon: "✉️",   href: "/chat" },
-  { id: "video",   labelKey: "video",   icon: "▶",   href: "/video" },
-  { id: "profile", labelKey: "profile", icon: "👤",   href: "/dashboard/profile" },
+  { id: "home", labelKey: "HOME", icon: "home", href: "/dashboard" },
+  { id: "explore", labelKey: "EXPLORE", icon: "explore", href: "/explore" },
+  { id: "chat", labelKey: "CHAT", icon: "chat", href: "/dashboard/tutor" },
+  { id: "video", labelKey: "VIDEO", icon: "video", href: "/dashboard/videos" },
+  { id: "profile", labelKey: "PROFILE", icon: "profile", href: "/dashboard/profile" },
 ];
 
 export interface NavItemWithHandlers extends NavItem {
@@ -17,18 +16,34 @@ export interface NavItemWithHandlers extends NavItem {
   onClick: () => void;
 }
 
-/**
- * useNavItems — returns nav item definitions enriched with an `active` flag
- * (based on the current pathname) and an `onClick` handler that navigates via
- * Next.js router. Import into any page that renders <BottomNav />.
- */
 export function useNavItems(): NavItemWithHandlers[] {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
 
-  return NAV_DEFINITIONS.map((item) => ({
-    ...item,
-    active: pathname === item.href || pathname.startsWith(item.href + "/"),
-    onClick: () => router.push(item.href),
-  }));
+  const isProfilePage = pathname.startsWith("/dashboard/profile");
+
+  return NAV_DEFINITIONS.map((item) => {
+    let isActive = false;
+
+    if (item.id === "profile") {
+      isActive = isProfilePage;
+    } else if (item.id === "home") {
+      isActive = (pathname === "/dashboard" || pathname === "/") && !isProfilePage;
+    } else if (item.id === "explore") {
+      isActive =
+        !isProfilePage &&
+        (pathname.startsWith("/explore") ||
+          pathname.startsWith("/leaderboard") ||
+          pathname.startsWith("/courses") ||
+          pathname.includes("/quiz"));
+    } else {
+      isActive = !isProfilePage && pathname === item.href;
+    }
+
+    return {
+      ...item,
+      active: isActive,
+      onClick: () => router.push(item.href),
+    };
+  });
 }

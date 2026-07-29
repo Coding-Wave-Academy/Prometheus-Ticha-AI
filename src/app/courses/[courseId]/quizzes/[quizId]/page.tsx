@@ -1,6 +1,6 @@
-export default async function QuizPage(
-  props: PageProps<"/courses/[courseId]/quizzes/[quizId]">
-) {
+export default async function QuizPage(props: {
+  params: Promise<{ courseId: string; quizId: string }>;
+}) {
   const { courseId, quizId } = await props.params;
 
   return (
