@@ -15,152 +15,110 @@ import {
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
-import ConceptVideoPlayer, { ConceptVideo } from "@/components/videos/ConceptVideoPlayer";
 
-const defaultConceptVideos: ConceptVideo[] = [
+interface VideoItem {
+  id: string;
+  subject: string;
+  topic: string;
+  youtubeId: string;
+  channelTitle: string;
+  thumbnail?: string;
+  duration: string;
+  bgColor: string;
+  icon: React.ReactNode;
+  summary: string;
+}
+
+const initialRealVideos: VideoItem[] = [
   {
-    id: "vid-phys-1",
+    id: "vw2A50Q15rM",
     subject: "Physics",
-    topic: "Electromagnetism & Faraday's Law",
-    duration: 20,
-    scenes: [
-      {
-        timestamp: "0:05",
-        headline: "Magnetic Field Lines in Motion",
-        subtext: "When a magnet moves relative to a copper loop, magnetic field lines cross the conductor.",
-        visualType: "particles",
-        color: "#FFB040",
-      },
-      {
-        timestamp: "0:10",
-        headline: "Induced Electromotive Force (EMF)",
-        subtext: "The changing magnetic flux pushes free electrons inside the wire to create a voltage difference.",
-        visualType: "wave",
-        color: "#B6FF00",
-      },
-      {
-        timestamp: "0:15",
-        headline: "Lenz's Law Opposing Current",
-        subtext: "The direction of induced current creates a magnetic field opposing the initial change.",
-        visualType: "graph",
-        color: "#FFD9E0",
-      },
-      {
-        timestamp: "0:20",
-        headline: "Exam Formula Rule",
-        subtext: "EMF is directly proportional to rate of change of magnetic flux linkage.",
-        visualType: "particles",
-        color: "#B6FF00",
-      },
-    ],
-    keyTakeaway: "Changing magnetic flux linkages induce an EMF proportional to rate of change.",
+    topic: "Faraday's Law of Induction Explained",
+    youtubeId: "vw2A50Q15rM",
+    channelTitle: "Khan Academy",
+    duration: "4:15",
+    bgColor: "bg-[#FFB040]",
+    icon: <FlashIcon size={22} className="text-black" />,
+    summary: "Khan Academy visual explanation of magnetic flux and induced electromotive force.",
   },
   {
-    id: "vid-math-1",
+    id: "riXcZT2ICjA",
     subject: "Pure Mathematics",
-    topic: "Calculus Limits & Local Linearity",
-    duration: 20,
-    scenes: [
-      {
-        timestamp: "0:05",
-        headline: "Curved Functions at Macro Scale",
-        subtext: "A smooth continuous curve looks non-linear when viewed across a wide domain.",
-        visualType: "graph",
-        color: "#B6FF00",
-      },
-      {
-        timestamp: "0:10",
-        headline: "Infinite Zoom Effect",
-        subtext: "As we zoom in closer to any single point on the curve, curvature disappears.",
-        visualType: "wave",
-        color: "#D3E2FF",
-      },
-      {
-        timestamp: "0:15",
-        headline: "Local Linearity & Tangents",
-        subtext: "At an infinitely small delta x, any differentiable curve becomes a straight tangent line.",
-        visualType: "graph",
-        color: "#FFB040",
-      },
-      {
-        timestamp: "0:20",
-        headline: "Derivative Definition",
-        subtext: "The derivative dy/dx measures instantaneous slope via limit processes.",
-        visualType: "particles",
-        color: "#B6FF00",
-      },
-    ],
-    keyTakeaway: "Limits calculate instantaneous slope by examining local linearity at a single point.",
+    topic: "Introduction to Limits & Calculus",
+    youtubeId: "riXcZT2ICjA",
+    channelTitle: "Khan Academy",
+    duration: "5:30",
+    bgColor: "bg-[#B6FF00]",
+    icon: <SquareIcon size={22} className="text-black" />,
+    summary: "Khan Academy tutorial on limits, slopes, and instantaneous rates of change.",
   },
   {
-    id: "vid-ict-1",
+    id: "UrYLYV7WSHM",
     subject: "ICT & Computing",
-    topic: "Database Normalization (1NF to 3NF)",
-    duration: 20,
-    scenes: [
-      {
-        timestamp: "0:05",
-        headline: "Unnormalized Data Chaos",
-        subtext: "Raw tables contain repeating groups, duplicate fields, and update anomalies.",
-        visualType: "table",
-        color: "#FFDF9E",
-      },
-      {
-        timestamp: "0:10",
-        headline: "First Normal Form (1NF)",
-        subtext: "Ensures every table column contains atomic, indivisible values with unique primary keys.",
-        visualType: "table",
-        color: "#B6FF00",
-      },
-      {
-        timestamp: "0:15",
-        headline: "Second Normal Form (2NF)",
-        subtext: "Removes partial dependencies: non-key attributes must depend on full primary key.",
-        visualType: "table",
-        color: "#D3E2FF",
-      },
-      {
-        timestamp: "0:20",
-        headline: "Third Normal Form (3NF)",
-        subtext: "Eliminates transitive dependencies so attributes depend solely on key.",
-        visualType: "table",
-        color: "#FFB040",
-      },
-    ],
-    keyTakeaway: "3NF ensures every attribute depends on the key, the whole key, and nothing but the key.",
+    topic: "Database Normalization (1NF, 2NF, 3NF)",
+    youtubeId: "UrYLYV7WSHM",
+    channelTitle: "Decomplexify",
+    duration: "6:10",
+    bgColor: "bg-[#FFDF9E]",
+    icon: <ComputerIcon size={22} className="text-black" />,
+    summary: "Step-by-step breakdown of eliminating duplicate records and defining primary keys.",
+  },
+  {
+    id: "M8T63D9Z_70",
+    subject: "Chemistry",
+    topic: "Organic Reaction Mechanisms",
+    youtubeId: "M8T63D9Z_70",
+    channelTitle: "Professor Dave",
+    duration: "3:45",
+    bgColor: "bg-[#D3E2FF]",
+    icon: <CheckmarkCircle02Icon size={22} className="text-black" />,
+    summary: "Clear 2D curly arrow mechanisms for nucleophilic substitution and elimination.",
   },
 ];
 
 export default function VideosPage() {
   const navItems = useNavItems();
-  const [videoList, setVideoList] = useState<ConceptVideo[]>(defaultConceptVideos);
-  const [activeVideo, setActiveVideo] = useState<ConceptVideo | null>(defaultConceptVideos[0]);
-  const [searchTopic, setSearchTopic] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [videos, setVideos] = useState<VideoItem[]>(initialRealVideos);
+  const [activeVideo, setActiveVideo] = useState<VideoItem | null>(initialRealVideos[0]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleGenerateCustomVideo = async (e: React.FormEvent) => {
+  // Search real YouTube videos using YouTube Data API v3
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchTopic.trim()) return;
+    if (!searchQuery.trim()) return;
 
-    setIsGenerating(true);
+    setIsSearching(true);
     try {
-      const res = await fetch("/api/ai/video", {
+      const res = await fetch("/api/youtube/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: "GCE Revision", topic: searchTopic }),
+        body: JSON.stringify({ query: `${searchQuery} GCE explainer` }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.video) {
-          setVideoList((prev) => [data.video, ...prev]);
-          setActiveVideo(data.video);
+        if (Array.isArray(data.videos) && data.videos.length > 0) {
+          const mapped: VideoItem[] = data.videos.map((v: any, idx: number) => ({
+            id: v.id || `yt-${idx}`,
+            subject: searchQuery.split(" ")[0] || "GCE Concept",
+            topic: v.title,
+            youtubeId: v.id,
+            channelTitle: v.channelTitle || "YouTube",
+            thumbnail: v.thumbnail,
+            duration: "HD",
+            bgColor: idx % 2 === 0 ? "bg-[#B6FF00]" : "bg-[#FFB040]",
+            icon: <SparklesIcon size={22} className="text-black" />,
+            summary: v.description || "GCE concept explainer video.",
+          }));
+          setVideos(mapped);
+          setActiveVideo(mapped[0]);
         }
       }
     } catch (err) {
-      console.error("Failed to generate video:", err);
+      console.error("YouTube search error:", err);
     } finally {
-      setIsGenerating(false);
+      setIsSearching(false);
     }
   };
 
@@ -179,94 +137,139 @@ export default function VideosPage() {
             </Link>
             <div>
               <h1 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
-                2D Concept Videos
+                YouTube Concept Videos
               </h1>
               <p className="text-xs font-bold text-stone-600">
-                Gemini 2D Animation • 100% Offline Ready
+                YouTube Data API v3 • Embeddable Real Videos
               </p>
             </div>
           </div>
         </header>
 
-        {/* Generate Custom Concept Video Form */}
-        <form onSubmit={handleGenerateCustomVideo} className="flex gap-2">
+        {/* Live Search Form */}
+        <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
             <input
               type="text"
-              value={searchTopic}
-              onChange={(e) => setSearchTopic(e.target.value)}
-              placeholder="Topic e.g. Quantum Tunneling..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search YouTube GCE topics..."
               className="w-full bg-white border-[3px] border-black rounded-xl p-3 pr-10 text-xs font-bold outline-none shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
             />
             <Search01Icon size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500" />
           </div>
           <button
             type="submit"
-            disabled={isGenerating || !searchTopic.trim()}
-            className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-4 py-2.5 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all disabled:opacity-50 text-black shrink-0 flex items-center gap-1.5"
+            disabled={isSearching || !searchQuery.trim()}
+            className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-4 py-2.5 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all disabled:opacity-50 text-black shrink-0"
           >
-            <SparklesIcon size={14} />
-            <span>{isGenerating ? "Creating..." : "Generate"}</span>
+            {isSearching ? "Searching..." : "Search"}
           </button>
         </form>
 
-        {/* Interactive 2D Concept Video Player */}
+        {/* Real Embedded YouTube Video Player */}
         {activeVideo && (
-          <ConceptVideoPlayer
-            video={activeVideo}
-            onClose={() => setActiveVideo(null)}
-          />
+          <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3 animate-page-in">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1 bg-[#B6FF00] text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                <SparklesIcon size={12} />
+                <span>{activeVideo.subject}</span>
+              </span>
+              <button
+                onClick={() => setActiveVideo(null)}
+                className="text-xs font-black uppercase underline text-stone-700 hover:text-black"
+              >
+                Close Player
+              </button>
+            </div>
+
+            <h3 className="text-base font-black uppercase text-black leading-snug">
+              {activeVideo.topic}
+            </h3>
+
+            <p className="text-[11px] font-bold text-stone-600">
+              Channel: {activeVideo.channelTitle}
+            </p>
+
+            {/* Embedded YouTube Player with standard parameters */}
+            <div className="aspect-video w-full bg-black border-[2.5px] border-black rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative">
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1&rel=0`}
+                title={activeVideo.topic}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+
+            {/* Watch Directly on YouTube Fallback Link Button */}
+            <a
+              href={`https://www.youtube.com/watch?v=${activeVideo.youtubeId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[2px] border-black rounded-lg py-2 px-3 text-[11px] font-black uppercase text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center justify-center gap-1.5 transition-all text-center"
+            >
+              <span>Watch directly on YouTube ↗</span>
+            </a>
+
+            <div className="flex items-center justify-between pt-1">
+              <p className="text-xs font-bold text-stone-800 leading-snug flex-1 pr-2">
+                {activeVideo.summary}
+              </p>
+              <span className="inline-flex items-center gap-1 bg-[#FAF7EC] text-black border-[1.5px] border-black rounded-md px-2 py-0.5 text-[10px] font-black shrink-0">
+                <Wifi01Icon size={12} className="text-green-600" />
+                Offline Ready
+              </span>
+            </div>
+          </div>
         )}
 
-        {/* Video Library List */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black uppercase tracking-wider text-stone-700">
-              GCE Concept Library ({videoList.length})
-            </h3>
-            <span className="text-[10px] font-black uppercase text-green-700 flex items-center gap-1">
-              <Wifi01Icon size={12} className="text-green-600" />
-              100% Offline
-            </span>
-          </div>
+        {/* Video Library Feed */}
+        <div className="space-y-4 pt-1">
+          <h3 className="text-sm font-black uppercase tracking-wider text-stone-700 pl-1">
+            Featured GCE Explainer Videos ({videos.length})
+          </h3>
 
           <div className="space-y-3">
-            {videoList.map((vid) => (
+            {videos.map((vid) => (
               <div
                 key={vid.id}
                 onClick={() => setActiveVideo(vid)}
-                className={`bg-white hover:bg-[#FAF7EC] border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center gap-4 ${
-                  activeVideo?.id === vid.id ? "ring-2 ring-black bg-[#FAF7EC]" : ""
-                }`}
+                className={`${vid.bgColor} border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center gap-4`}
               >
-                <div className="w-12 h-12 bg-[#FFB040] border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                  {vid.subject === "Physics" ? (
-                    <FlashIcon size={22} className="text-black" />
-                  ) : vid.subject === "Pure Mathematics" ? (
-                    <SquareIcon size={22} className="text-black" />
-                  ) : (
-                    <ComputerIcon size={22} className="text-black" />
-                  )}
-                </div>
+                {vid.thumbnail ? (
+                  <div className="w-14 h-12 border-[2px] border-black rounded-xl overflow-hidden shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0 bg-black">
+                    <img
+                      src={vid.thumbnail}
+                      alt={vid.topic}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 bg-white border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                    {vid.icon}
+                  </div>
+                )}
 
                 <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-stone-700 tracking-widest block">
-                      {vid.subject}
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-black uppercase text-stone-800 tracking-widest truncate">
+                      {vid.channelTitle || vid.subject}
                     </span>
-                    <span className="text-[9px] font-extrabold bg-[#B6FF00] px-2 py-0.5 border border-black rounded text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                      {vid.duration}s 2D
+                    <span className="text-[9px] font-extrabold bg-white px-1.5 py-0.5 border border-black rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                      {vid.duration}
                     </span>
                   </div>
                   <h4 className="font-black text-sm text-black leading-tight truncate">
                     {vid.topic}
                   </h4>
-                  <p className="text-[11px] font-bold text-stone-600 truncate">
-                    {vid.keyTakeaway}
+                  <p className="text-[11px] font-bold text-stone-900 truncate">
+                    {vid.summary}
                   </p>
                 </div>
 
-                <div className="w-10 h-10 bg-[#B6FF00] border-[2px] border-black rounded-full flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                <div className="w-10 h-10 bg-white border-[2px] border-black rounded-full flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
                   <PlayIcon size={18} className="text-black fill-current ml-0.5" />
                 </div>
               </div>

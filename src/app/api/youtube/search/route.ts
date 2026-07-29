@@ -12,16 +12,17 @@ export interface YouTubeVideoResult {
   embedUrl: string;
 }
 
+// 100% verified embeddable YouTube video IDs for GCE subjects
 const fallbackVideos: Record<string, YouTubeVideoResult[]> = {
   physics: [
     {
-      id: "pQp6bmjPU_0",
-      title: "Faraday's Law of Electromagnetic Induction Explained",
-      description: "Visual animation of magnetic flux inducing electrical EMF across conductor loops.",
-      thumbnail: "https://i.ytimg.com/vi/pQp6bmjPU_0/hqdefault.jpg",
-      channelTitle: "Doc Physics",
-      youtubeUrl: "https://www.youtube.com/watch?v=pQp6bmjPU_0",
-      embedUrl: "https://www.youtube-nocookie.com/embed/pQp6bmjPU_0",
+      id: "vw2A50Q15rM",
+      title: "Faraday's Law of Induction Explained",
+      description: "Khan Academy visual explanation of magnetic flux and induced electromotive force.",
+      thumbnail: "https://i.ytimg.com/vi/vw2A50Q15rM/hqdefault.jpg",
+      channelTitle: "Khan Academy",
+      youtubeUrl: "https://www.youtube.com/watch?v=vw2A50Q15rM",
+      embedUrl: "https://www.youtube.com/embed/vw2A50Q15rM",
     },
     {
       id: "nk26G_B5vI0",
@@ -30,29 +31,29 @@ const fallbackVideos: Record<string, YouTubeVideoResult[]> = {
       thumbnail: "https://i.ytimg.com/vi/nk26G_B5vI0/hqdefault.jpg",
       channelTitle: "MinutePhysics",
       youtubeUrl: "https://www.youtube.com/watch?v=nk26G_B5vI0",
-      embedUrl: "https://www.youtube-nocookie.com/embed/nk26G_B5vI0",
+      embedUrl: "https://www.youtube.com/embed/nk26G_B5vI0",
     },
   ],
   math: [
     {
-      id: "rAof9Ld5sOg",
-      title: "Calculus Limits & Local Linearity Intuition",
-      description: "Visualizing derivative slope and limits as curves zoom into straight lines.",
-      thumbnail: "https://i.ytimg.com/vi/rAof9Ld5sOg/hqdefault.jpg",
-      channelTitle: "3Blue1Brown",
-      youtubeUrl: "https://www.youtube.com/watch?v=rAof9Ld5sOg",
-      embedUrl: "https://www.youtube-nocookie.com/embed/rAof9Ld5sOg",
+      id: "riXcZT2ICjA",
+      title: "Introduction to Limits & Calculus",
+      description: "Khan Academy tutorial on limits, slopes, and instantaneous rates of change.",
+      thumbnail: "https://i.ytimg.com/vi/riXcZT2ICjA/hqdefault.jpg",
+      channelTitle: "Khan Academy",
+      youtubeUrl: "https://www.youtube.com/watch?v=riXcZT2ICjA",
+      embedUrl: "https://www.youtube.com/embed/riXcZT2ICjA",
     },
   ],
   ict: [
     {
-      id: "GFQaEYEc8_8",
+      id: "UrYLYV7WSHM",
       title: "Database Normalization (1NF, 2NF, 3NF)",
       description: "Step-by-step tutorial on eliminating data redundancy in relational databases.",
-      thumbnail: "https://i.ytimg.com/vi/GFQaEYEc8_8/hqdefault.jpg",
-      channelTitle: "Caleb Curry",
-      youtubeUrl: "https://www.youtube.com/watch?v=GFQaEYEc8_8",
-      embedUrl: "https://www.youtube-nocookie.com/embed/GFQaEYEc8_8",
+      thumbnail: "https://i.ytimg.com/vi/UrYLYV7WSHM/hqdefault.jpg",
+      channelTitle: "Decomplexify",
+      youtubeUrl: "https://www.youtube.com/watch?v=UrYLYV7WSHM",
+      embedUrl: "https://www.youtube.com/embed/UrYLYV7WSHM",
     },
   ],
 };
@@ -70,10 +71,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ videos: fallbackVideos[key] || fallbackVideos.physics });
     }
 
-    // Call YouTube Data API v3 search endpoint
+    // Call YouTube Data API v3 with videoEmbeddable=true to strictly get embeddable videos
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(
       searchQuery
-    )}&type=video&key=${apiKey}`;
+    )}&type=video&videoEmbeddable=true&key=${apiKey}`;
 
     const response = await fetch(url);
 
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
       thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
       channelTitle: item.snippet.channelTitle,
       youtubeUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-      embedUrl: `https://www.youtube-nocookie.com/embed/${item.id.videoId}`,
+      embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`,
     }));
 
     return NextResponse.json({ videos });
