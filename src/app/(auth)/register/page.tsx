@@ -128,11 +128,14 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        addToast(error.message, "error", "Google Sign In Failed");
+        if (error.message.includes("oauth_client_not_found") || error.message.includes("invalid client_id") || error.message.includes("400")) {
+          addToast("Google OAuth client ID is not configured in your Supabase Dashboard. Please register with Email & Password below.", "warning", "OAuth Setup Required");
+        } else {
+          addToast(error.message, "error", "Google Sign In Failed");
+        }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Google auth service error";
-      addToast(msg, "error");
+      addToast("Google OAuth is not configured in your Supabase project. Please register with Email & Password below.", "warning", "OAuth Setup Required");
     }
   };
 
