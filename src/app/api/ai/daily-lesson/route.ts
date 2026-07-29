@@ -3,15 +3,16 @@ import { formatAIText } from "@/lib/formatAIText";
 
 export const dynamic = "force-dynamic";
 
-interface DailyLesson {
+export interface DailyLesson {
   id: string;
   subject: string;
   topic: string;
-  explanation: string;
+  bits: string[];
   keyTakeaway: string;
   checkQuestion: string;
   options: string[];
   correctIdx: number;
+  youtubeId: string;
 }
 
 const fallbackLessons: DailyLesson[] = [
@@ -19,34 +20,46 @@ const fallbackLessons: DailyLesson[] = [
     id: "lesson-1",
     subject: "Physics",
     topic: "Electromagnetism & Faraday's Law",
-    explanation:
-      "Faraday's Law states that a changing magnetic field inside a loop of wire induces an electric current. Think of magnetic fields like wind: when the wind moves across the windmill blades, it generates electrical energy!",
+    bits: [
+      "A changing magnetic field inside a wire loop pushes electrons.",
+      "This pushing force generates an electrical current called EMF.",
+      "If the magnetic field stays static, zero current is generated."
+    ],
     keyTakeaway: "Changing magnetic flux = Induced Electromotive Force (EMF).",
     checkQuestion: "What must happen to a magnetic field to induce an electric current in a closed loop?",
     options: ["It must stay completely static", "It must change over time", "It must be turned off", "It must be shielded"],
     correctIdx: 1,
+    youtubeId: "pQp6bmjPU_0",
   },
   {
     id: "lesson-2",
     subject: "Pure Mathematics",
     topic: "Calculus Limits & Local Linearity",
-    explanation:
-      "Limits allow us to analyze mathematical functions at exact points where division by zero would normally break. When you zoom in infinitely on a smooth curve, it looks straight. That straight line is the tangent!",
-    keyTakeaway: "Limits calculate slope at an exact instant.",
+    bits: [
+      "Limits let us analyze functions at exact points without dividing by zero.",
+      "When you zoom in infinitely on any smooth curve, it becomes a straight line.",
+      "That straight line slope at a single point is called the derivative."
+    ],
+    keyTakeaway: "Limits calculate the slope of a curve at an exact instant.",
     checkQuestion: "What shape does any smooth continuous curve take when zoomed in infinitely?",
     options: ["A circle", "A straight line", "A parabola", "A wave"],
     correctIdx: 1,
+    youtubeId: "rAof9Ld5sOg",
   },
   {
     id: "lesson-3",
     subject: "ICT & Computing",
     topic: "Database Normalization (1NF to 3NF)",
-    explanation:
-      "Database normalization is the process of organizing data to eliminate redundancy. First Normal Form (1NF) ensures every table column contains atomic, non-repeatable values.",
-    keyTakeaway: "Normalization prevents data duplication and keeps databases fast.",
+    bits: [
+      "Normalization organizes database tables to stop data duplication.",
+      "First Normal Form (1NF) mandates that every table cell contains a single atomic value.",
+      "Atomic values prevent multi-item lists inside a single database row."
+    ],
+    keyTakeaway: "1NF removes repeating groups and keeps tables fast.",
     checkQuestion: "What does 1st Normal Form (1NF) require for all values in a table column?",
     options: ["All values must be arrays", "All values must be atomic (indivisible)", "All values must be encrypted", "All values must be integers"],
     correctIdx: 1,
+    youtubeId: "GFQaEYEc8_8",
   },
 ];
 
@@ -62,14 +75,14 @@ export async function POST(req: NextRequest) {
     const targetStruggles = Array.isArray(struggles) && struggles.length > 0 ? struggles : ["Physics", "Pure Mathematics", "ICT"];
 
     const prompt = `
-      You are Madame Ticha, a top Cameroonian GCE curriculum specialist.
-      Generate 3 short, high-yield 1% Daily Lessons for a student at level: "${education || "ol"}"
+      You are Madame Ticha, a Cameroonian GCE curriculum specialist.
+      Generate 3 bite-sized 1% Daily Lessons for a student at level: "${education || "ol"}"
       targeting their weak subjects: ${targetStruggles.join(", ")}.
 
-      INSTRUCTIONS:
-      1. Produce exactly 3 bite-sized lessons.
-      2. Keep explanations simple, engaging, and clear (max 3 short sentences per lesson).
-      3. CRITICAL: Do NOT use markdown symbols (no ###, no ***, no **). Return clean plain text inside strings!
+      CRITICAL INSTRUCTIONS FOR BITE-SIZED KNOWLEDGE:
+      1. Produce exactly 3 lessons.
+      2. For each lesson, provide an array "bits" containing EXACTLY 3 short, 1-sentence micro-bits (max 12-15 words per bit).
+      3. CRITICAL: Do NOT use markdown symbols (no ###, no ***, no **, no LaTeX like \\mathbb{N} or \\mathb{N}). Use plain text!
       4. Include a simple 1-question check for each lesson with 4 options and the correct 0-based option index.
 
       Return ONLY raw JSON matching this array structure:
@@ -78,11 +91,16 @@ export async function POST(req: NextRequest) {
           "id": "lesson-1",
           "subject": "Subject Name",
           "topic": "Topic Title",
-          "explanation": "Simple clear explanation without markdown.",
+          "bits": [
+            "Bite-sized sentence 1.",
+            "Bite-sized sentence 2.",
+            "Bite-sized sentence 3."
+          ],
           "keyTakeaway": "1-sentence key takeaway.",
           "checkQuestion": "Clear multiple choice question text?",
           "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correctIdx": 1
+          "correctIdx": 1,
+          "youtubeId": "pQp6bmjPU_0"
         }
       ]
     `;
@@ -114,9 +132,10 @@ export async function POST(req: NextRequest) {
     const cleanedLessons = parsed.map((l, i) => ({
       ...l,
       id: `lesson-${Date.now()}-${i}`,
-      explanation: formatAIText(l.explanation),
+      bits: Array.isArray(l.bits) ? l.bits.map((b) => formatAIText(b)) : [formatAIText(l.topic)],
       keyTakeaway: formatAIText(l.keyTakeaway),
       checkQuestion: formatAIText(l.checkQuestion),
+      youtubeId: l.youtubeId || "pQp6bmjPU_0",
     }));
 
     return NextResponse.json({ lessons: cleanedLessons });

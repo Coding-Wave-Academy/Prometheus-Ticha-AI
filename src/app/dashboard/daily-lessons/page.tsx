@@ -7,12 +7,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft01Icon,
   PlayIcon,
-  PauseIcon,
   CheckmarkCircle02Icon,
   SparklesIcon,
   Book01Icon,
   FireIcon,
   Award01Icon,
+  Wifi01Icon,
+  ArrowRight01Icon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -25,11 +26,12 @@ interface DailyLesson {
   id: string;
   subject: string;
   topic: string;
-  explanation: string;
+  bits: string[];
   keyTakeaway: string;
   checkQuestion: string;
   options: string[];
   correctIdx: number;
+  youtubeId: string;
 }
 
 export default function DailyLessonsPage() {
@@ -39,12 +41,13 @@ export default function DailyLessonsPage() {
 
   const [lessons, setLessons] = useState<DailyLesson[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [activeBitIdx, setActiveBitIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
     fetchLessons();
@@ -53,6 +56,7 @@ export default function DailyLessonsPage() {
   const fetchLessons = async () => {
     setIsLoading(true);
     setCurrentIdx(0);
+    setActiveBitIdx(0);
     setCompletedCount(0);
     setIsFinished(false);
     setSelectedOpt(null);
@@ -122,7 +126,8 @@ export default function DailyLessonsPage() {
   const handleNextLesson = () => {
     setSelectedOpt(null);
     setIsAnswered(false);
-    setIsPlayingVideo(false);
+    setActiveBitIdx(0);
+    setShowVideo(false);
 
     if (currentIdx + 1 < lessons.length) {
       setCurrentIdx((i) => i + 1);
@@ -152,7 +157,7 @@ export default function DailyLessonsPage() {
                 1% Daily Habit
               </h1>
               <p className="text-xs font-bold text-stone-600">
-                Turn Weaknesses into Strengths
+                Bite-Sized Incremental Knowledge
               </p>
             </div>
           </div>
@@ -168,10 +173,10 @@ export default function DailyLessonsPage() {
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
-              Generating Your 1% Daily Lessons...
+              Generating Bite-Sized Lessons...
             </h3>
             <p className="text-xs font-bold text-stone-600">
-              Madame Ticha is preparing micro-concepts targeting your weak subjects.
+              Madame Ticha is crafting 1-sentence knowledge bits targeting your weak subjects.
             </p>
           </div>
         ) : isFinished ? (
@@ -182,10 +187,10 @@ export default function DailyLessonsPage() {
 
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-widest text-stone-800">
-                1% Better Today!
+                1% Better Every Day!
               </span>
               <h2 className="text-3xl font-black uppercase tracking-tight text-black">
-                Daily Lessons Complete!
+                Daily Habit Completed!
               </h2>
               <p className="text-xs font-extrabold text-stone-900 max-w-xs mx-auto pt-1">
                 You completed {completedCount} micro-lesson{completedCount > 1 ? "s" : ""} today. Your streak has climbed to {streakCount}!
@@ -198,7 +203,7 @@ export default function DailyLessonsPage() {
                 className="w-full bg-white hover:bg-stone-50 border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
               >
                 <PlayIcon size={16} className="text-black fill-current" />
-                <span>Watch Explainer Videos</span>
+                <span>Rewatch Concept Videos (Offline)</span>
               </button>
 
               <button
@@ -211,7 +216,7 @@ export default function DailyLessonsPage() {
           </div>
         ) : (
           <div className="space-y-5">
-            {/* Progress Bar */}
+            {/* Progress Header */}
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-black uppercase tracking-wider text-stone-700">
                 Lesson {currentIdx + 1} of {lessons.length}
@@ -225,14 +230,14 @@ export default function DailyLessonsPage() {
             </div>
 
             {/* Lesson Subject & Topic Card */}
-            <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-3">
+            <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 bg-[#FFB040] text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                   <Book01Icon size={12} />
                   <span>{currentLesson.subject}</span>
                 </span>
                 <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">
-                  1% DAILY MICRO-LESSON
+                  1% BITE-SIZED KNOWLEDGE
                 </span>
               </div>
 
@@ -240,44 +245,90 @@ export default function DailyLessonsPage() {
                 {currentLesson.topic}
               </h2>
 
-              {/* Clean Plain-Text Explanation */}
-              <p className="text-xs md:text-sm font-bold text-stone-800 leading-relaxed pt-1">
-                {formatAIText(currentLesson.explanation)}
-              </p>
+              {/* Incremental Step-by-Step Bite Cards */}
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-stone-600">
+                  <span>Knowledge Bit {activeBitIdx + 1} of {currentLesson.bits.length}</span>
+                  <div className="flex gap-1">
+                    {currentLesson.bits.map((_, bIdx) => (
+                      <span
+                        key={bIdx}
+                        onClick={() => setActiveBitIdx(bIdx)}
+                        className={`w-2.5 h-2.5 rounded-full cursor-pointer border border-black ${
+                          bIdx === activeBitIdx ? "bg-[#B6FF00]" : "bg-stone-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
 
-              {/* 2D Explainer Video Player Box */}
-              <div className="mt-3 bg-[#FAF7EC] border-[2.5px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeBitIdx}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="bg-[#FAF7EC] border-[2.5px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] space-y-2 min-h-[80px] flex flex-col justify-center"
+                  >
+                    <p className="text-xs md:text-sm font-black text-black leading-relaxed">
+                      {formatAIText(currentLesson.bits[activeBitIdx] || currentLesson.bits[0])}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    onClick={() => setActiveBitIdx((prev) => Math.max(0, prev - 1))}
+                    disabled={activeBitIdx === 0}
+                    className="text-xs font-black uppercase underline text-stone-600 disabled:opacity-30"
+                  >
+                    ← Previous Bit
+                  </button>
+                  <button
+                    onClick={() =>
+                      setActiveBitIdx((prev) => Math.min(currentLesson.bits.length - 1, prev + 1))
+                    }
+                    disabled={activeBitIdx === currentLesson.bits.length - 1}
+                    className="text-xs font-black uppercase underline text-black disabled:opacity-30 flex items-center gap-1"
+                  >
+                    <span>Next Bit</span>
+                    <ArrowRight01Icon size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* YouTube Concept Video Box */}
+              <div className="mt-2 bg-[#FAF7EC] border-[2.5px] border-black rounded-xl p-3.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-stone-700 flex items-center gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-stone-800 flex items-center gap-1">
                     <SparklesIcon size={14} className="text-amber-600" />
-                    Gemini 2D Animated Concept Video
+                    Concept Explainer Video
                   </span>
-                  <span className="text-[9px] font-bold bg-white px-2 py-0.5 border border-black rounded">
-                    0:15 HD
+                  <span className="text-[9px] font-black bg-white px-2 py-0.5 border border-black rounded flex items-center gap-1">
+                    <Wifi01Icon size={10} className="text-green-600" />
+                    Offline Ready
                   </span>
                 </div>
 
-                <div className="relative aspect-video w-full bg-stone-900 border-[2px] border-black rounded-lg flex flex-col items-center justify-center text-white p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group">
-                  {isPlayingVideo ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center space-y-2 animate-pulse">
-                      <div className="w-10 h-10 border-[3px] border-[#B6FF00] border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs font-black uppercase tracking-wider text-[#B6FF00]">
-                        Playing 2D Explainer...
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-14 h-14 bg-[#B6FF00] border-[2.5px] border-black rounded-full flex items-center justify-center text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform cursor-pointer"
-                        onClick={() => setIsPlayingVideo(true)}
-                      >
-                        <PlayIcon size={28} className="fill-current ml-1" />
-                      </div>
-                      <span className="text-[11px] font-black uppercase tracking-wider text-stone-200 mt-2">
-                        Tap to Watch 2D Visualizer
-                      </span>
-                    </>
-                  )}
-                </div>
+                {!showVideo ? (
+                  <button
+                    onClick={() => setShowVideo(true)}
+                    className="w-full py-3 bg-white hover:bg-stone-50 border-[2px] border-black rounded-lg font-black text-xs uppercase text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2"
+                  >
+                    <PlayIcon size={16} className="text-black fill-current" />
+                    <span>Watch 2D YouTube Explainer</span>
+                  </button>
+                ) : (
+                  <div className="aspect-video w-full bg-black border-[2px] border-black rounded-lg overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <iframe
+                      className="w-full h-full"
+                      src={`https://www.youtube-nocookie.com/embed/${currentLesson.youtubeId}?autoplay=1&rel=0`}
+                      title={currentLesson.topic}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Key Takeaway Box */}
@@ -297,7 +348,7 @@ export default function DailyLessonsPage() {
                 ⚡ Quick Concept Check
               </span>
               <p className="text-sm font-black text-black leading-snug">
-                {currentLesson.checkQuestion}
+                {formatAIText(currentLesson.checkQuestion)}
               </p>
 
               <div className="space-y-2.5 pt-1">
@@ -324,7 +375,7 @@ export default function DailyLessonsPage() {
                       disabled={isAnswered}
                       className={`w-full p-3.5 rounded-xl border-[2.5px] text-left font-bold text-xs flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all ${style}`}
                     >
-                      <span>{opt}</span>
+                      <span>{formatAIText(opt)}</span>
                       {isAnswered && isCorrect && (
                         <CheckmarkCircle02Icon size={18} className="text-black shrink-0" />
                       )}

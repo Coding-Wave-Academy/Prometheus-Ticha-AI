@@ -5,11 +5,11 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic01Icon,
-  StopIcon,
   SparklesIcon,
   VolumeHighIcon,
   Wifi01Icon,
   WifiDisconnected01Icon,
+  CheckmarkCircle02Icon,
 } from "hugeicons-react";
 import { useProfile } from "@/hooks/useProfile";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
@@ -35,9 +35,9 @@ export default function ConversationalChat() {
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState<number[]>(Array(5).fill(0.3));
-  const [error, setError] = useState<string | null>(null);
 
   const conversationRef = useRef<any>(null);
+  const recognitionRef = useRef<any>(null);
   const volumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
@@ -53,8 +53,11 @@ export default function ConversationalChat() {
         try {
           conversationRef.current.endSession();
         } catch {
-          // already ended
+          // ignore
         }
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
       }
       if (volumeIntervalRef.current) {
         clearInterval(volumeIntervalRef.current);
@@ -62,7 +65,7 @@ export default function ConversationalChat() {
     };
   }, []);
 
-  // Simulate dynamic audio visualizer bars
+  // Audio visualizer bars simulation
   useEffect(() => {
     if (agentMode === "listening" || agentMode === "speaking") {
       volumeIntervalRef.current = setInterval(() => {
@@ -87,77 +90,187 @@ export default function ConversationalChat() {
     };
   }, [agentMode]);
 
+  // Dynamic voice fallback handler (Gemini + Web Speech)
+  const speakText = useCallback((text: string) => {
+    if (isMuted) return;
+    setAgentMode("speaking");
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.onend = () => setAgentMode("idle");
+      utterance.onerror = () => setAgentMode("idle");
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setAgentMode("idle");
+    }
+  }, [isMuted]);
+
+  const processFallbackVoiceInput = useCallback(
+    async (userQuestion: string) => {
+      setAgentMode("thinking");
+      hapticTap();
+
+      setTranscripts((prev) => [
+        ...prev,
+        {
+          role: "user",
+          text: userQuestion,
+          id: `user-${Date.now()}`,
+        },
+      ]);
+
+      try {
+        const res = await fetch("/api/ai/daily-lesson", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            struggles: [userQuestion],
+            education: profile?.education_level || "ol",
+          }),
+        });
+
+        let answer = "Remember: practice a small concept every day to get A grades!";
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lessons?.[0]?.bits?.[0]) {
+            answer = data.lessons[0].bits.join(" ");
+          } else if (data.lessons?.[0]?.keyTakeaway) {
+            answer = data.lessons[0].keyTakeaway;
+          }
+        }
+
+        const cleanAnswer = formatAIText(answer);
+
+        setTranscripts((prev) => [
+          ...prev,
+          {
+            role: "agent",
+            text: cleanAnswer,
+            id: `agent-${Date.now()}`,
+          },
+        ]);
+
+        hapticSuccess();
+        claimDailyStreak();
+        speakText(cleanAnswer);
+      } catch (err) {
+        console.error("Voice response failed:", err);
+        setAgentMode("idle");
+      }
+    },
+    [claimDailyStreak, profile?.education_level, speakText]
+  );
+
+  const startListeningFallback = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser mode. Tap starter prompts below!");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = profile?.preferred_language === "fr" ? "fr-FR" : "en-US";
+
+      setAgentMode("listening");
+
+      recognition.onresult = (event: any) => {
+        const text = event.results[0][0].transcript;
+        if (text?.trim()) {
+          processFallbackVoiceInput(text);
+        }
+      };
+
+      recognition.onend = () => {
+        if (agentMode === "listening") setAgentMode("idle");
+      };
+
+      recognition.onerror = () => {
+        setAgentMode("idle");
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch {
+      setAgentMode("idle");
+    }
+  }, [agentMode, processFallbackVoiceInput, profile?.preferred_language]);
+
   const startConversation = useCallback(async () => {
-    setError(null);
     setStatus("connecting");
     hapticTap();
 
     try {
-      // Dynamically import the SDK to avoid SSR issues
-      const { Conversation } = await import("@elevenlabs/client");
-
-      // Get signed URL from our backend
+      // 1. Check signed URL backend API
       const res = await fetch("/api/elevenlabs/signed-url", {
         method: "POST",
       });
 
-      if (!res.ok) {
+      if (res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to get signed URL");
+        if (data.hasAgent && data.signed_url) {
+          // Dynamic import ElevenLabs SDK
+          const { Conversation } = await import("@elevenlabs/client");
+
+          const conversation = await Conversation.startSession({
+            signedUrl: data.signed_url,
+            onConnect: ({ conversationId }) => {
+              console.log("ElevenLabs connected:", conversationId);
+              setStatus("connected");
+              setAgentMode("idle");
+              hapticSuccess();
+            },
+            onDisconnect: () => {
+              setStatus("disconnected");
+              setAgentMode("idle");
+              claimDailyStreak();
+            },
+            onError: (msg: string) => {
+              console.warn("ElevenLabs error, using voice fallback:", msg);
+              setStatus("connected"); // seamless fallback
+              setAgentMode("idle");
+            },
+            onModeChange: ({ mode }) => {
+              setAgentMode(mode === "listening" ? "listening" : mode === "speaking" ? "speaking" : "idle");
+            },
+            onMessage: ({ source, message: text }) => {
+              const role = source === "user" ? "user" : "agent";
+              const formattedText = role === "agent" ? formatAIText(text) : text;
+              if (text?.trim()) {
+                setTranscripts((prev) => [
+                  ...prev,
+                  {
+                    role,
+                    text: formattedText,
+                    id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  },
+                ]);
+              }
+            },
+          });
+
+          conversationRef.current = conversation;
+          return;
+        }
       }
 
-      const { signed_url } = await res.json();
-
-      // Start ElevenLabs Conversational AI session
-      const conversation = await Conversation.startSession({
-        signedUrl: signed_url,
-        onConnect: ({ conversationId }) => {
-          console.log("ElevenLabs connected:", conversationId);
-          setStatus("connected");
-          setAgentMode("idle");
-          hapticSuccess();
-        },
-        onDisconnect: () => {
-          setStatus("disconnected");
-          setAgentMode("idle");
-          // Auto-claim daily streak after a completed conversation
-          claimDailyStreak();
-        },
-        onError: (message: string) => {
-          console.error("ElevenLabs Conversation error:", message);
-          setError(message || "Connection error");
-        },
-        onModeChange: ({ mode }) => {
-          // mode is "listening" | "speaking"
-          if (mode === "listening") {
-            setAgentMode("listening");
-          } else if (mode === "speaking") {
-            setAgentMode("speaking");
-          } else {
-            setAgentMode("idle");
-          }
-        },
-        onMessage: ({ source, message: text }) => {
-          const role = source === "user" ? "user" : "agent";
-          const formattedText = role === "agent" ? formatAIText(text) : text;
-          if (text?.trim()) {
-            setTranscripts((prev) => [
-              ...prev,
-              {
-                role,
-                text: formattedText,
-                id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              },
-            ]);
-          }
-        },
-      });
-
-      conversationRef.current = conversation;
-    } catch (err: any) {
-      console.error("Failed to start conversation:", err);
-      setError(err.message || "Failed to connect to AI voice agent");
-      setStatus("disconnected");
+      // 2. Seamless Fallback to Gemini Voice Mode
+      setStatus("connected");
+      setAgentMode("idle");
+      hapticSuccess();
+    } catch {
+      // Direct Fallback without displaying errors
+      setStatus("connected");
+      setAgentMode("idle");
     }
   }, [claimDailyStreak]);
 
@@ -167,36 +280,50 @@ export default function ConversationalChat() {
       try {
         await conversationRef.current.endSession();
       } catch {
-        // already ended
+        // ignore
       }
       conversationRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
     setStatus("disconnected");
     setAgentMode("idle");
   }, []);
 
   const toggleMute = useCallback(() => {
-    if (conversationRef.current) {
-      const newMuted = !isMuted;
-      setIsMuted(newMuted);
-      // The SDK mute API
-      if (conversationRef.current.setVolume) {
-        conversationRef.current.setVolume({ volume: newMuted ? 0 : 1 });
-      }
+    setIsMuted((prev) => !prev);
+    if (conversationRef.current?.setVolume) {
+      conversationRef.current.setVolume({ volume: isMuted ? 1 : 0 });
     }
   }, [isMuted]);
 
+  const handleMicTap = () => {
+    if (status !== "connected") {
+      startConversation();
+    } else {
+      if (conversationRef.current) {
+        // Connected to ElevenLabs SDK
+      } else {
+        // Fallback Voice Mode
+        startListeningFallback();
+      }
+    }
+  };
+
   const statusLabel =
     status === "idle"
-      ? "Tap below to talk with Joe"
+      ? "Tap microphone to talk to Madame Ticha & Joe"
       : status === "connecting"
-      ? "Connecting to Joe..."
+      ? "Connecting voice AI..."
       : status === "connected"
       ? agentMode === "listening"
-        ? "🎙️ Joe is listening..."
+        ? "🎙️ Listening to your question..."
         : agentMode === "speaking"
-        ? "🔊 Joe is speaking..."
-        : "✨ Joe is ready — speak!"
+        ? "🔊 Speaking bite-sized answer..."
+        : agentMode === "thinking"
+        ? "🧠 Thinking bite-sized response..."
+        : "✨ Ready — tap microphone & ask!"
       : "Disconnected — tap to reconnect";
 
   return (
@@ -207,7 +334,7 @@ export default function ConversationalChat() {
           <div className="w-12 h-12 rounded-full border-[2.5px] border-black overflow-hidden bg-[#FFB040] shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <Image
               src="/images/madame-ticha.png"
-              alt="Joe — AI Voice Tutor"
+              alt="Madame Ticha & Joe — AI Voice Tutor"
               width={48}
               height={48}
               className="object-cover"
@@ -215,7 +342,7 @@ export default function ConversationalChat() {
           </div>
           <div>
             <h3 className="font-black text-sm uppercase text-black">
-              Joe — Voice AI Tutor
+              Madame Ticha & Joe Voice AI
             </h3>
             <p className="text-[11px] font-bold text-stone-600">
               {statusLabel}
@@ -242,25 +369,11 @@ export default function ConversationalChat() {
         </div>
       </div>
 
-      {/* Error Banner */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-[#FF9494] border-[2.5px] border-black rounded-xl p-3 font-bold text-sm text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-          >
-            ⚠️ {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Live Transcript Feed */}
-      <div className="flex-1 space-y-3 min-h-[200px] max-h-[50vh] overflow-y-auto scrollbar-hidden">
+      <div className="flex-1 space-y-3 min-h-[220px] max-h-[50vh] overflow-y-auto scrollbar-hidden">
         <div className="flex items-center justify-between px-1">
           <span className="text-[11px] font-black uppercase tracking-wider text-stone-700">
-            Live Conversation Transcript
+            Live Voice Transcript
           </span>
           {status === "connected" && (
             <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase text-green-700">
@@ -270,18 +383,16 @@ export default function ConversationalChat() {
           )}
         </div>
 
-        {transcripts.length === 0 && status !== "connected" ? (
+        {transcripts.length === 0 ? (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-center space-y-3">
-            <div className="w-16 h-16 mx-auto bg-[#FFB040] border-[3px] border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rotate-[4deg]">
-              <SparklesIcon size={32} className="text-black" />
+            <div className="w-14 h-14 mx-auto bg-[#FFB040] border-[3px] border-black rounded-2xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rotate-[4deg]">
+              <SparklesIcon size={28} className="text-black" />
             </div>
             <h4 className="font-black text-base uppercase text-black">
-              Meet Joe, Your AI Tutor
+              Interactive Voice AI Tutor
             </h4>
             <p className="text-xs font-bold text-stone-600 leading-relaxed max-w-[260px] mx-auto">
-              Joe speaks with an African accent and explains GCE subjects in
-              simple, child-friendly language. Tap the microphone below to start
-              a live voice conversation!
+              Ask any GCE study question out loud! Madame Ticha and Joe explain concepts in simple, 1-sentence bite-sized bits.
             </p>
           </div>
         ) : (
@@ -298,19 +409,19 @@ export default function ConversationalChat() {
                 }`}
               >
                 <div
-                  className={`max-w-[85%] p-3.5 border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+                  className={`max-w-[85%] p-3.5 border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left ${
                     entry.role === "user"
                       ? "bg-[#B6FF00] rounded-br-sm"
                       : "bg-white rounded-bl-sm"
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-black uppercase tracking-widest text-stone-700">
-                      {entry.role === "user" ? `${firstName}` : "Joe 🎙️"}
+                      {entry.role === "user" ? `${firstName}` : "Madame Ticha & Joe 🎙️"}
                     </span>
                   </div>
                   <p className="text-xs md:text-sm font-bold text-black leading-relaxed">
-                    {entry.text}
+                    {formatAIText(entry.text)}
                   </p>
                 </div>
               </motion.div>
@@ -318,26 +429,50 @@ export default function ConversationalChat() {
           </AnimatePresence>
         )}
 
-        {/* Thinking indicator */}
-        {agentMode === "speaking" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-start"
-          >
+        {/* Thinking Indicator */}
+        {agentMode === "thinking" && (
+          <div className="flex justify-start">
             <div className="bg-white border-[3px] border-black rounded-2xl rounded-bl-sm p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-              <VolumeHighIcon size={16} className="text-amber-600 animate-pulse" />
-              <span className="text-[11px] font-black uppercase text-stone-600">
-                Joe is speaking...
+              <div className="w-2 h-2 bg-black rounded-full animate-bounce" />
+              <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-75" />
+              <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-150" />
+              <span className="text-xs font-black uppercase text-stone-700">
+                Crafting bite-sized explanation...
               </span>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <div ref={transcriptEndRef} />
       </div>
 
-      {/* Controls: Mute + Connection Status */}
+      {/* Starter Prompts */}
+      <div className="space-y-2 text-left">
+        <p className="text-[10px] font-black uppercase tracking-wider text-stone-600">
+          Tap a Quick Voice Question:
+        </p>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
+          {[
+            "Explain Faraday's Law simply!",
+            "Give me a calculus limits trick!",
+            "How do I normalize a database?",
+            "Tips for GCE Physics Paper 2?",
+          ].map((p, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                if (status !== "connected") setStatus("connected");
+                processFallbackVoiceInput(p);
+              }}
+              className="bg-white border-[2.5px] border-black rounded-full py-1.5 px-3 font-bold text-[11px] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none whitespace-nowrap shrink-0 hover:bg-[#FAF7EC] transition-all"
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Controls */}
       {status === "connected" && (
         <div className="flex items-center justify-center gap-3">
           <button
@@ -348,7 +483,7 @@ export default function ConversationalChat() {
                 : "bg-white text-black hover:bg-stone-50"
             }`}
           >
-            {isMuted ? "🔇 Unmute Joe" : "🔊 Mute Joe"}
+            {isMuted ? "🔇 Unmute Voice" : "🔊 Mute Voice"}
           </button>
 
           <button
@@ -360,83 +495,47 @@ export default function ConversationalChat() {
         </div>
       )}
 
-      {/* BIG Neobrutalist Tap-to-Speak / Stop Button */}
-      <div className="flex flex-col items-center justify-center pt-2">
-        {status === "connected" ? (
-          <motion.div
-            animate={{
-              scale:
-                agentMode === "listening"
-                  ? [1, 1.06, 1]
-                  : agentMode === "speaking"
-                  ? [1, 1.03, 1]
-                  : 1,
-            }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-            className={`w-24 h-24 rounded-full border-[4px] border-black flex flex-col items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all ${
-              agentMode === "listening"
-                ? "bg-red-500 text-white shadow-none translate-x-[2px] translate-y-[2px]"
-                : agentMode === "speaking"
-                ? "bg-[#FFB040] text-black"
-                : "bg-[#B6FF00] text-black"
-            }`}
-          >
-            {agentMode === "listening" ? (
-              <Mic01Icon size={36} className="animate-pulse text-white" />
-            ) : agentMode === "speaking" ? (
-              <VolumeHighIcon size={36} className="text-black" />
-            ) : (
-              <Mic01Icon size={36} className="text-black" />
-            )}
-            <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
-              {agentMode === "listening"
-                ? "Listening"
-                : agentMode === "speaking"
-                ? "Speaking"
-                : "Ready"}
-            </span>
-          </motion.div>
-        ) : (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={status === "connecting" ? undefined : startConversation}
-            disabled={status === "connecting"}
-            className={`w-24 h-24 rounded-full border-[4px] border-black flex flex-col items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all ${
-              status === "connecting"
-                ? "bg-stone-300 text-stone-600 cursor-wait"
-                : "bg-[#B6FF00] text-black hover:bg-[#a3e600]"
-            }`}
-            aria-label="Start conversation with Joe"
-          >
-            {status === "connecting" ? (
-              <>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  <Wifi01Icon size={32} className="text-stone-600" />
-                </motion.div>
-                <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
-                  Connecting
-                </span>
-              </>
-            ) : status === "disconnected" ? (
-              <>
-                <WifiDisconnected01Icon size={32} className="text-black" />
-                <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
-                  Reconnect
-                </span>
-              </>
-            ) : (
-              <>
-                <Mic01Icon size={36} className="text-black" />
-                <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
-                  Talk to Joe
-                </span>
-              </>
-            )}
-          </motion.button>
-        )}
+      {/* BIG Neobrutalist Tap-to-Speak Button */}
+      <div className="flex flex-col items-center justify-center pt-1">
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          animate={
+            agentMode === "listening"
+              ? { scale: [1, 1.08, 1] }
+              : agentMode === "speaking"
+              ? { scale: [1, 1.04, 1] }
+              : {}
+          }
+          transition={{ duration: 1, repeat: Infinity }}
+          onClick={handleMicTap}
+          disabled={status === "connecting"}
+          className={`w-24 h-24 rounded-full border-[4px] border-black flex flex-col items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all ${
+            status === "connecting"
+              ? "bg-stone-300 text-stone-600"
+              : agentMode === "listening"
+              ? "bg-red-500 text-white shadow-none translate-x-[2px] translate-y-[2px]"
+              : agentMode === "speaking"
+              ? "bg-[#FFB040] text-black"
+              : "bg-[#B6FF00] text-black hover:bg-[#a3e600]"
+          }`}
+          aria-label="Tap to speak with Voice AI"
+        >
+          <Mic01Icon
+            size={36}
+            className={agentMode === "listening" ? "animate-pulse text-white" : "text-black"}
+          />
+          <span className="text-[9px] font-black uppercase tracking-wider mt-0.5">
+            {status === "connecting"
+              ? "Connecting"
+              : agentMode === "listening"
+              ? "Listening"
+              : agentMode === "speaking"
+              ? "Speaking"
+              : status === "connected"
+              ? "Tap to Speak"
+              : "Start Voice"}
+          </span>
+        </motion.button>
       </div>
     </div>
   );
