@@ -7,17 +7,24 @@ import {
   Location01Icon,
   SchoolIcon,
   UserIcon,
+  Globe02Icon,
 } from "hugeicons-react";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { fullName: string; schoolName: string; region: string }) => void;
+  onSave: (data: {
+    fullName: string;
+    schoolName: string;
+    region: string;
+    preferredLanguage: string;
+  }) => void;
   initialData: {
     fullName: string;
     schoolName: string;
     region: string;
     educationLevel: string;
+    preferredLanguage?: string;
   };
 }
 
@@ -30,18 +37,22 @@ export default function EditProfileModal({
   const [fullName, setFullName] = useState(initialData.fullName);
   const [schoolName, setSchoolName] = useState(initialData.schoolName);
   const [region, setRegion] = useState(initialData.region);
+  const [preferredLanguage, setPreferredLanguage] = useState(
+    initialData.preferredLanguage || "en"
+  );
 
   useEffect(() => {
     setFullName(initialData.fullName);
     setSchoolName(initialData.schoolName);
     setRegion(initialData.region);
+    setPreferredLanguage(initialData.preferredLanguage || "en");
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ fullName, schoolName, region });
+    onSave({ fullName, schoolName, region, preferredLanguage });
     onClose();
   };
 
@@ -59,13 +70,13 @@ export default function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-24 bg-black/60 backdrop-blur-sm animate-page-in">
-      <div 
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 md:pt-20 bg-black/60 backdrop-blur-sm animate-page-in">
+      <div
         id="edit-profile-modal"
-        className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col text-left space-y-5"
+        className="w-full max-w-sm bg-[#FAF7EC] border-[4px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col text-left space-y-4 max-h-[85vh] overflow-y-auto"
       >
         {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 w-9 h-9 bg-white border-[3px] border-black rounded-full flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none hover:bg-stone-50"
           aria-label="Close modal"
@@ -83,15 +94,18 @@ export default function EditProfileModal({
               Edit Profile
             </h2>
             <p className="text-xs font-bold text-stone-600">
-              Update your personal study preferences
+              Update your study preferences
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Full Name */}
           <div className="flex flex-col space-y-1">
-            <label htmlFor="edit-name" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
+            <label
+              htmlFor="edit-name"
+              className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+            >
               <UserIcon size={14} className="text-black" />
               <span>Full Name</span>
             </label>
@@ -101,7 +115,7 @@ export default function EditProfileModal({
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-white border-[3px] border-black rounded-xl p-3 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              className="w-full bg-white border-[3px] border-black rounded-xl p-2.5 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
             />
           </div>
 
@@ -117,17 +131,20 @@ export default function EditProfileModal({
                 <span>Locked</span>
               </span>
             </label>
-            <div className="w-full bg-stone-200 border-[3px] border-black rounded-xl p-3 text-sm font-bold text-stone-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-not-allowed opacity-90">
+            <div className="w-full bg-stone-200 border-[3px] border-black rounded-xl p-2.5 text-xs font-bold text-stone-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-not-allowed opacity-90">
               {getLevelLabel(initialData.educationLevel)}
             </div>
             <p className="text-[10px] font-bold text-stone-500 italic pl-0.5">
-              * Education target cannot be changed once selected during onboarding.
+              * Education level cannot be changed once chosen.
             </p>
           </div>
 
           {/* School Name */}
           <div className="flex flex-col space-y-1">
-            <label htmlFor="edit-school" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
+            <label
+              htmlFor="edit-school"
+              className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+            >
               <SchoolIcon size={14} className="text-black" />
               <span>School / Community</span>
             </label>
@@ -137,13 +154,16 @@ export default function EditProfileModal({
               required
               value={schoolName}
               onChange={(e) => setSchoolName(e.target.value)}
-              className="w-full bg-white border-[3px] border-black rounded-xl p-3 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              className="w-full bg-white border-[3px] border-black rounded-xl p-2.5 text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
             />
           </div>
 
           {/* Study Region */}
           <div className="flex flex-col space-y-1">
-            <label htmlFor="edit-region" className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1">
+            <label
+              htmlFor="edit-region"
+              className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+            >
               <Location01Icon size={14} className="text-black" />
               <span>Study Region</span>
             </label>
@@ -152,7 +172,7 @@ export default function EditProfileModal({
                 id="edit-region"
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
-                className="w-full bg-transparent p-3 pr-10 text-sm font-medium outline-none text-black appearance-none"
+                className="w-full bg-transparent p-2.5 pr-10 text-sm font-medium outline-none text-black appearance-none"
               >
                 <option value="littoral">Littoral Region</option>
                 <option value="centre">Centre Region</option>
@@ -160,6 +180,31 @@ export default function EditProfileModal({
                 <option value="northwest">Northwest Region</option>
                 <option value="west">West Region</option>
                 <option value="other">Other Region</option>
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700 text-xs">
+                ▼
+              </div>
+            </div>
+          </div>
+
+          {/* Interface Language */}
+          <div className="flex flex-col space-y-1">
+            <label
+              htmlFor="edit-lang"
+              className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center gap-1"
+            >
+              <Globe02Icon size={14} className="text-black" />
+              <span>Interface Language (i18n)</span>
+            </label>
+            <div className="relative rounded-xl border-[3px] border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <select
+                id="edit-lang"
+                value={preferredLanguage}
+                onChange={(e) => setPreferredLanguage(e.target.value)}
+                className="w-full bg-transparent p-2.5 pr-10 text-sm font-medium outline-none text-black appearance-none"
+              >
+                <option value="en">English (🇬🇧)</option>
+                <option value="fr">Français (🇫🇷)</option>
               </select>
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700 text-xs">
                 ▼

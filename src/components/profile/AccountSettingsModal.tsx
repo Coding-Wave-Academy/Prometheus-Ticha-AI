@@ -11,6 +11,7 @@ import {
   Mail01Icon,
 } from "hugeicons-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 interface AccountSettingsModalProps {
   isOpen: boolean;
@@ -38,12 +39,15 @@ export default function AccountSettingsModal({
 
   if (!isOpen) return null;
 
-  const handleLanguageChange = (lang: string) => {
+  const { updateProfile } = useProfile();
+
+  const handleLanguageChange = async (lang: string) => {
     setCurrentLang(lang);
     i18n.changeLanguage(lang);
     if (typeof window !== "undefined") {
       localStorage.setItem("ticha_lang", lang);
     }
+    await updateProfile({ preferred_language: lang });
     onShowToast(`Language set to ${lang === "fr" ? "Français" : "English"}`);
   };
 

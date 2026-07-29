@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   region TEXT DEFAULT 'Littoral',
   school_name TEXT,
   profile_completed BOOLEAN NOT NULL DEFAULT false,
+  preferred_language TEXT DEFAULT 'en',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

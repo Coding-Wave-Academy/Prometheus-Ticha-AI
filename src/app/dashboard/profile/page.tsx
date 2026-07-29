@@ -80,11 +80,13 @@ export function ProfilePageContent() {
     fullName: string;
     schoolName: string;
     region: string;
+    preferredLanguage: string;
   }) => {
     const result = await updateProfile({
       full_name: data.fullName,
       school_name: data.schoolName,
       region: data.region,
+      preferred_language: data.preferredLanguage,
     });
 
     if (result.error) {
@@ -361,6 +363,7 @@ export function ProfilePageContent() {
           schoolName,
           region,
           educationLevel,
+          preferredLanguage: profile?.preferred_language || "en",
         }}
       />
 

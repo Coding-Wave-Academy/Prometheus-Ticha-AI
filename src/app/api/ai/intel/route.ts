@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     const { goal, education, struggles } = await req.json();
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       console.log("No GEMINI_API_KEY configured for intel, returning premium fallback mocks.");

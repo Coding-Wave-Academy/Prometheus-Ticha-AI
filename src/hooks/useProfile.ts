@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useAuth, UserProfile } from "@/hooks/useAuth";
+import i18n from "i18next";
 
 export interface ProfileUpdate {
   full_name?: string;
@@ -14,6 +15,7 @@ export interface ProfileUpdate {
   freezes_remaining?: number;
   last_active_date?: string;
   avatar_url?: string;
+  preferred_language?: string;
 }
 
 export function useProfile() {
@@ -22,11 +24,15 @@ export function useProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Sync from useAuth
+  // Sync from useAuth and set language
   useEffect(() => {
     if (authProfile) {
       setProfile(authProfile);
       setIsLoading(false);
+      if (authProfile.preferred_language && typeof window !== "undefined") {
+        i18n.changeLanguage(authProfile.preferred_language);
+        localStorage.setItem("ticha_lang", authProfile.preferred_language);
+      }
     } else if (!authLoading) {
       setIsLoading(false);
     }
@@ -43,6 +49,10 @@ export function useProfile() {
 
     if (!error && data) {
       setProfile(data as UserProfile);
+      if (data.preferred_language) {
+        i18n.changeLanguage(data.preferred_language);
+        localStorage.setItem("ticha_lang", data.preferred_language);
+      }
     }
   }, [user]);
 
@@ -68,6 +78,10 @@ export function useProfile() {
 
       if (data) {
         setProfile(data as UserProfile);
+        if (updates.preferred_language) {
+          i18n.changeLanguage(updates.preferred_language);
+          localStorage.setItem("ticha_lang", updates.preferred_language);
+        }
       }
       return { error: null };
     },

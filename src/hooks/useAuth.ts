@@ -17,6 +17,7 @@ export interface UserProfile {
   region?: string;
   school_name?: string;
   profile_completed: boolean;
+  preferred_language?: string;
 }
 
 export function useAuth() {

@@ -79,10 +79,6 @@ const featuredSubjects: SubjectData[] = [
   },
 ];
 
-const regionalUpdates = [
-  { id: "littoral-mock", title: "Littoral Region Mock dates released!", date: "May 12th, 2024" },
-];
-
 function StudentDashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,6 +86,11 @@ function StudentDashboardPageContent() {
   const { profile, isLoading } = useProfile();
 
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+
+  const regionName = profile?.region ? profile.region.charAt(0).toUpperCase() + profile.region.slice(1) : "Littoral";
+  const regionalUpdates = [
+    { id: "regional-mock", title: `${regionName} Region GCE Mock Schedule & Updates`, date: "Updated Live" },
+  ];
 
   // Show setup modal if profile is not completed
   React.useEffect(() => {
