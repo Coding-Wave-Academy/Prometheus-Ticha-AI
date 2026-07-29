@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import DeviceGate from "@/components/layout/DeviceGate";
+import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,8 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative">
-        <DeviceGate>{children}</DeviceGate>
+      <body className="min-h-full flex flex-col relative selection:bg-[#B6FF00]">
+        <DeviceGate>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </DeviceGate>
       </body>
     </html>
   );

@@ -156,7 +156,12 @@ export function ProfilePageContent() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center">
+      <motion.main
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+        className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center"
+      >
         {/* Header */}
         <header className="flex items-center justify-between w-full mb-6 border-b-[3.5px] border-black pb-3">
           <h1 className="text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
@@ -351,7 +356,7 @@ export function ProfilePageContent() {
             </motion.div>
           )}
         </AnimatePresence>
-      </main>
+      </motion.main>
 
       {/* Modals */}
       <EditProfileModal

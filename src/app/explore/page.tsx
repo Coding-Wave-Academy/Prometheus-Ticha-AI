@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { useNavItems } from "@/hooks/useNavItems";
 import ExploreSearch from "@/components/explore/ExploreSearch";
 import LearningCard from "@/components/explore/LearningCard";
@@ -11,8 +12,6 @@ import LeaderboardCard from "@/components/explore/LeaderboardCard";
 import BottomNav from "@/components/layout/BottomNav";
 import { HubCard } from "@/types";
 import "@/lib/i18n";
-
-// ─── Static hub card data ───────────────────────────────────────────────────
 
 const coreCards: HubCard[] = [
   {
@@ -99,6 +98,24 @@ const studyToolCards: HubCard[] = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.07 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 260, damping: 20 },
+  },
+};
+
 export default function ExploreHubPage() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -127,10 +144,14 @@ export default function ExploreHubPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-start">
-
+      <motion.main
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-start"
+      >
         {/* Header */}
-        <header className="flex items-center justify-between w-full mb-8">
+        <motion.header variants={itemVariants} className="flex items-center justify-between w-full mb-8">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
               <Image
@@ -146,7 +167,6 @@ export default function ExploreHubPage() {
             </h1>
           </div>
 
-          {/* Notification bell */}
           <button
             id="explore-notifications"
             onClick={() => router.push("/coming-soon")}
@@ -160,18 +180,18 @@ export default function ExploreHubPage() {
               3
             </span>
           </button>
-        </header>
+        </motion.header>
 
         {/* Explore Hub title + Search */}
-        <section className="w-full mb-8">
+        <motion.section variants={itemVariants} className="w-full mb-8">
           <h2 className="text-2xl font-black uppercase tracking-tight text-[#1A1A1A] mb-5">
             {t("explore.hubTitle")}
           </h2>
           <ExploreSearch value={search} onChange={setSearch} onSearch={handleSearch} />
-        </section>
+        </motion.section>
 
         {/* Core Learning Hub */}
-        <section className="w-full mb-8 space-y-4">
+        <motion.section variants={itemVariants} className="w-full mb-8 space-y-4">
           <h3 className="text-xl font-black text-[#1A1A1A] tracking-tight pl-1">
             {t("explore.coreLearning")}
           </h3>
@@ -181,10 +201,10 @@ export default function ExploreHubPage() {
             ))}
           </div>
           <LearningCard card={dailyQuizCard} onClick={handleCardClick} />
-        </section>
+        </motion.section>
 
         {/* Study Tools & Flashcards */}
-        <section className="w-full mb-8">
+        <motion.section variants={itemVariants} className="w-full mb-8">
           <h3 className="text-xl font-black text-[#1A1A1A] tracking-tight mb-4 pl-1">
             Flashcards & Study Tools
           </h3>
@@ -193,17 +213,17 @@ export default function ExploreHubPage() {
               <LearningCard key={card.id} card={card} onClick={handleCardClick} />
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* Social & Competition */}
-        <section className="w-full mb-4 space-y-4">
+        <motion.section variants={itemVariants} className="w-full mb-4 space-y-4">
           <h3 className="text-xl font-black text-[#1A1A1A] tracking-tight pl-1">
             {t("explore.socialCompetition")}
           </h3>
           <LeaderboardCard onClick={() => router.push("/leaderboard")} />
-        </section>
+        </motion.section>
 
-      </main>
+      </motion.main>
 
       <BottomNav items={navItems} />
     </div>

@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Award01Icon,
   File01Icon,
@@ -79,6 +80,30 @@ const featuredSubjects: SubjectData[] = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+};
+
 function StudentDashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -117,44 +142,59 @@ function StudentDashboardPageContent() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center animate-page-in">
-        <DashboardHeader
-          userName={userName}
-          avatarUrl={avatarUrl}
-          streakCount={streakCount}
-          notificationCount={notificationCount}
-          onNotificationClick={() => router.push("/coming-soon")}
-        />
+      <motion.main
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center"
+      >
+        <motion.div variants={itemVariants} className="w-full">
+          <DashboardHeader
+            userName={userName}
+            avatarUrl={avatarUrl}
+            streakCount={streakCount}
+            notificationCount={notificationCount}
+            onNotificationClick={() => router.push("/coming-soon")}
+          />
+        </motion.div>
 
-        <StreakCalendar />
+        <motion.div variants={itemVariants} className="w-full">
+          <StreakCalendar />
+        </motion.div>
 
-        <QuickActions
-          actions={quickActions}
-          onAction={(name) => {
-            if (name === "Daily Quiz") {
-              router.push("/dashboard/quiz-generator");
-            } else if (name === "Summaries") {
-              router.push("/summaries");
-            } else if (name === "Past Papers") {
-              router.push("/past-papers");
-            } else {
-              router.push("/practice");
-            }
-          }}
-        />
+        <motion.div variants={itemVariants} className="w-full">
+          <QuickActions
+            actions={quickActions}
+            onAction={(name) => {
+              if (name === "Daily Quiz") {
+                router.push("/dashboard/quiz-generator");
+              } else if (name === "Summaries") {
+                router.push("/summaries");
+              } else if (name === "Past Papers") {
+                router.push("/past-papers");
+              } else {
+                router.push("/practice");
+              }
+            }}
+          />
+        </motion.div>
 
-        <FeaturedSubjects
-          subjects={featuredSubjects}
-          currentLevel={currentLevel}
-          onSubjectClick={(id) => router.push(`/courses/${id}`)}
-          onSeeMore={() => router.push("/courses")}
-        />
+        <motion.div variants={itemVariants} className="w-full">
+          <FeaturedSubjects
+            subjects={featuredSubjects}
+            currentLevel={currentLevel}
+            onSubjectClick={(id) => router.push(`/courses/${id}`)}
+            onSeeMore={() => router.push("/courses")}
+          />
+        </motion.div>
 
-        <RegionalUpdates
-          updates={regionalUpdates}
-          onUpdateClick={() => router.push("/coming-soon")}
-        />
-      </main>
+        <motion.div variants={itemVariants} className="w-full">
+          <RegionalUpdates
+            updates={regionalUpdates}
+            onUpdateClick={() => router.push("/coming-soon")}
+          />
+        </motion.div>
+      </motion.main>
 
       <FinishSetupModal
         isOpen={isSetupModalOpen}
