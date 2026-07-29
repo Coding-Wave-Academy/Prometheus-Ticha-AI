@@ -319,14 +319,24 @@ export default function DailyLessonsPage() {
                     <span>Watch 2D YouTube Explainer</span>
                   </button>
                 ) : (
-                  <div className="aspect-video w-full bg-black border-[2px] border-black rounded-lg overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <iframe
-                      className="w-full h-full"
-                      src={`https://www.youtube-nocookie.com/embed/${currentLesson.youtubeId}?autoplay=1&rel=0`}
-                      title={currentLesson.topic}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                  <div className="space-y-2">
+                    <div className="aspect-video w-full bg-black border-[2px] border-black rounded-lg overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      <iframe
+                        className="w-full h-full"
+                        src={`https://www.youtube.com/embed/${currentLesson.youtubeId}?autoplay=1&rel=0`}
+                        title={currentLesson.topic}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    <a
+                      href={`https://www.youtube.com/watch?v=${currentLesson.youtubeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[2px] border-black rounded-lg py-1.5 px-3 text-[10px] font-black uppercase text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center justify-center gap-1 transition-all"
+                    >
+                      <span>Watch directly on YouTube ↗</span>
+                    </a>
                   </div>
                 )}
               </div>

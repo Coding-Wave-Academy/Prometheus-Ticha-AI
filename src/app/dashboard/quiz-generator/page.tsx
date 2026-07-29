@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
+import { formatAIText } from "@/lib/formatAIText";
 
 interface QuizQuestion {
   questionText: string;
@@ -22,6 +23,7 @@ export default function QuizGeneratorPage() {
   const navItems = useNavItems();
 
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
+  const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -36,6 +38,7 @@ export default function QuizGeneratorPage() {
     setSelectedOpt(null);
     setIsAnswered(false);
     setScore(0);
+    setUserAnswers([]);
 
     try {
       const vectorStr = localStorage.getItem("ticha_user_profile_vector");
@@ -53,7 +56,17 @@ export default function QuizGeneratorPage() {
 
       if (!res.ok) throw new Error("Quiz generation failed");
       const data = await res.json();
-      setQuiz(data.quiz || []);
+      const rawQuiz: QuizQuestion[] = data.quiz || [];
+
+      // Clean all quiz text with formatAIText
+      const cleaned = rawQuiz.map((q) => ({
+        ...q,
+        questionText: formatAIText(q.questionText),
+        options: q.options.map((opt) => formatAIText(opt)),
+        explanation: formatAIText(q.explanation),
+      }));
+
+      setQuiz(cleaned);
     } catch (err) {
       console.error("Failed to fetch generated quiz", err);
       // Hard fallback
@@ -98,6 +111,7 @@ export default function QuizGeneratorPage() {
   const handleSubmitAnswer = () => {
     if (selectedOpt === null || isAnswered) return;
     setIsAnswered(true);
+    setUserAnswers((prev) => [...prev, selectedOpt]);
     if (selectedOpt === quiz[currentIdx].answerIdx) {
       setScore((s) => s + 1);
     }
@@ -113,10 +127,8 @@ export default function QuizGeneratorPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] pb-24 antialiased font-sans selection:bg-[#B6FF00]">
-      {/* Outer Wrapper Container */}
-      <main className="w-full max-w-md mx-auto p-4 flex flex-col min-h-[90vh] justify-between animate-page-in">
-        
-        {/* Top Header */}
+      <main className="w-full max-w-md mx-auto p-4 flex flex-col min-h-[90vh] justify-between animate-page-in text-left">
+        {/* Header */}
         <header className="flex items-center justify-between w-full mb-6 py-2">
           <Link
             href="/dashboard"
@@ -141,9 +153,8 @@ export default function QuizGeneratorPage() {
         {/* Content Box */}
         <div className="flex-1 flex flex-col justify-center w-full">
           {isLoading ? (
-            /* Neobrutalist Loading Box */
             <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-              <div className="w-12 h-12 border-[5px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto"></div>
+              <div className="w-12 h-12 border-[5px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
               <div className="space-y-1">
                 <h3 className="font-black text-lg uppercase tracking-tight text-black">
                   Querying Profile Vector
@@ -154,15 +165,15 @@ export default function QuizGeneratorPage() {
               </div>
             </div>
           ) : isQuizFinished ? (
-            /* Quiz Results Card */
-            <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-6">
+            /* Quiz Results Card with Full Question Explanations */
+            <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
               <div className="w-16 h-16 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
                 <svg className="w-8 h-8 text-black fill-current" viewBox="0 0 24 24">
                   <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.16-.4 3.84-2.11 4.39-4.36C19.85 11.23 21 9.25 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
                 </svg>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 text-center">
                 <span className="text-xs font-extrabold uppercase tracking-widest text-stone-800">
                   Quiz Completed
                 </span>
@@ -172,11 +183,49 @@ export default function QuizGeneratorPage() {
                 <p className="text-sm font-bold text-stone-700 max-w-xs mx-auto">
                   {score === quiz.length 
                     ? "Absolute genius! You mastered every custom AI question."
-                    : "Great effort! Review the explanations to lock in the concepts."}
+                    : "Great effort! Review the detailed explanations below."}
                 </p>
               </div>
 
-              {/* Action Buttons Stack */}
+              {/* Detailed Breakdown of Every Question & Explanation */}
+              <div className="space-y-4 text-left pt-2">
+                <h3 className="text-xs font-black uppercase tracking-wider text-black border-b-[2px] border-black pb-1">
+                  Full Quiz Review & Detailed Explanations
+                </h3>
+                {quiz.map((q, qIdx) => {
+                  const userChoice = userAnswers[qIdx];
+                  const isCorrect = userChoice === q.answerIdx;
+                  return (
+                    <div
+                      key={qIdx}
+                      className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-stone-600">
+                          Q{qIdx + 1}: {isCorrect ? "✅ Correct" : "❌ Incorrect"}
+                        </span>
+                        <span className="text-[10px] font-extrabold bg-[#FAF7EC] px-2 py-0.5 border border-black rounded">
+                          Answer: {q.options[q.answerIdx]}
+                        </span>
+                      </div>
+                      <p className="text-xs font-black text-black leading-snug">
+                        {q.questionText}
+                      </p>
+
+                      {/* Detailed Explanation Box */}
+                      <div className="bg-[#FFE5C4] border border-black rounded-lg p-2.5 mt-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#965A18] block mb-0.5">
+                          💡 Why this answer is correct:
+                        </span>
+                        <p className="text-[11px] font-bold text-[#1A1A1A] leading-relaxed">
+                          {q.explanation}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               <div className="space-y-3 pt-2">
                 <button
                   onClick={loadQuiz}
@@ -201,7 +250,6 @@ export default function QuizGeneratorPage() {
           ) : (
             /* Active Question Form */
             <div className="space-y-5">
-              {/* Progress Ring / Tracker Header */}
               <div className="flex justify-between items-center px-1">
                 <span className="text-xs font-black uppercase tracking-wider text-stone-700">
                   Question {currentIdx + 1} of {quiz.length}
@@ -214,14 +262,12 @@ export default function QuizGeneratorPage() {
                 </div>
               </div>
 
-              {/* Question Text Box */}
               <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] text-left">
                 <p className="text-base font-black text-black leading-snug">
                   {quiz[currentIdx].questionText}
                 </p>
               </div>
 
-              {/* Options Stack */}
               <div className="space-y-3">
                 {quiz[currentIdx].options.map((opt, oIdx) => {
                   const isSelected = selectedOpt === oIdx;
@@ -250,7 +296,6 @@ export default function QuizGeneratorPage() {
                     >
                       <span className="leading-snug pr-4">{opt}</span>
                       
-                      {/* Checkmark Status indicator */}
                       {isAnswered && isCorrect && (
                         <svg className="w-5 h-5 fill-current text-black shrink-0" viewBox="0 0 24 24">
                           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
@@ -273,15 +318,14 @@ export default function QuizGeneratorPage() {
                     <svg className="w-3.5 h-3.5 fill-current text-[#965A18]" viewBox="0 0 24 24">
                       <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
                     </svg>
-                    <span>Study Explanation</span>
+                    <span>Detailed Study Explanation</span>
                   </div>
-                  <p className="text-xs font-bold text-[#1A1A1A] leading-snug">
-                    {quiz[currentIdx].explanation}
+                  <p className="text-xs font-bold text-[#1A1A1A] leading-relaxed">
+                    {formatAIText(quiz[currentIdx].explanation)}
                   </p>
                 </div>
               )}
 
-              {/* Action Button Footer */}
               <div className="pt-2">
                 {!isAnswered ? (
                   <button
@@ -300,17 +344,15 @@ export default function QuizGeneratorPage() {
                     onClick={handleNext}
                     className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[3.5px] border-black rounded-xl py-4 font-black uppercase text-base tracking-wider transition-all shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none text-black"
                   >
-                    {currentIdx + 1 < quiz.length ? "Next Question" : "View Results"}
+                    {currentIdx + 1 < quiz.length ? "Next Question" : "View Results & Review"}
                   </button>
                 )}
               </div>
             </div>
           )}
         </div>
-
       </main>
 
-      {/* Bottom Nav Bar */}
       <BottomNav items={navItems} />
     </div>
   );
