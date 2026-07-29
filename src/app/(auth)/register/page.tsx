@@ -123,7 +123,7 @@ export default function RegisterPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/dashboard?showSetup=true`,
+          redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
         },
       });
 

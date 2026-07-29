@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FireIcon, Shield01Icon } from "hugeicons-react";
+import { FireIcon, PauseIcon } from "hugeicons-react";
 import { useTranslation } from "react-i18next";
 import { useStreak } from "@/hooks/useStreak";
 import StreakModal from "@/components/dashboard/StreakModal";
@@ -48,7 +48,7 @@ export default function StreakCalendar() {
           >
             <FireIcon size={36} className="text-orange-600" />
             <span className="absolute -top-1.5 -right-1.5 bg-[#B6FF00] border-[1.5px] border-black rounded-full p-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-              <Shield01Icon size={12} className="text-black" />
+              <PauseIcon size={12} className="text-black" />
             </span>
           </motion.div>
 
@@ -57,9 +57,7 @@ export default function StreakCalendar() {
               <h2 className="text-xl font-black uppercase tracking-tight text-black leading-tight">
                 {streakCount} {t("dashboard.streakDays")}
               </h2>
-              <span className="text-[10px] font-black uppercase tracking-wider bg-black text-[#B6FF00] border border-black rounded-full px-2 py-0.5">
-                Chess.com Safe
-              </span>
+              
             </div>
             <p className="text-xs font-extrabold text-stone-900 opacity-90 leading-snug">
               {t("dashboard.streakMotivation")}
@@ -77,12 +75,12 @@ export default function StreakCalendar() {
                   ? "bg-[#B6FF00] text-black"
                   : item.status === "frozen"
                   ? "bg-white text-black"
-                  : "bg-stone-900 text-white"
+                  : "bg-black text-white"
               }`}
             >
               <span>{item.day}</span>
               {item.status === "frozen" && (
-                <Shield01Icon size={10} className="text-black" />
+                <PauseIcon size={10} className="text-black" />
               )}
             </div>
           ))}

@@ -11,9 +11,13 @@ export interface UserProfile {
   education_level?: string;
   goal?: string;
   streak_count: number;
+  freezes_remaining: number;
+  last_active_date?: string;
   points: number;
   region?: string;
   school_name?: string;
+  profile_completed: boolean;
+  preferred_language?: string;
 }
 
 export function useAuth() {
@@ -29,9 +33,9 @@ export function useAuth() {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Error fetching user profile:", error);
       }
 
@@ -87,7 +91,7 @@ export function useAuth() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/dashboard?showSetup=true`,
+        redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
       },
     });
     if (error) {

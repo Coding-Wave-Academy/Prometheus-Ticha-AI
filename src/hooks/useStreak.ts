@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fireSideCannons } from "@/lib/confetti";
 import { hapticSuccess } from "@/lib/haptics";
+import { useProfile } from "@/hooks/useProfile";
 
 export interface StreakDayItem {
   day: string;
@@ -10,51 +11,124 @@ export interface StreakDayItem {
   label: string;
 }
 
-export function useStreak() {
-  const [streakCount, setStreakCount] = useState(12);
-  const [freezesRemaining, setFreezesRemaining] = useState(1);
-  const [isTodayClaimed, setIsTodayClaimed] = useState(false);
-  const [isFrozen, setIsFrozen] = useState(true); // Demonstrating Chess.com paused streak feature
+const baseDays = [
+  { day: "S", label: "Sunday" },
+  { day: "M", label: "Monday" },
+  { day: "T", label: "Tuesday" },
+  { day: "W", label: "Wednesday" },
+  { day: "TH", label: "Thursday" },
+  { day: "F", label: "Friday" },
+  { day: "S", label: "Saturday" },
+];
 
-  const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>([
-    { day: "S", status: "active", label: "Sunday" },
-    { day: "M", status: "active", label: "Monday" },
-    { day: "T", status: "frozen", label: "Tuesday (Paused)" },
-    { day: "W", status: "active", label: "Wednesday" },
-    { day: "TH", status: "active", label: "Thursday" },
-    { day: "F", status: "upcoming", label: "Friday" },
-    { day: "S", status: "upcoming", label: "Saturday" },
-  ]);
+export function useStreak() {
+  const { profile, updateProfile } = useProfile();
+  const [streakCount, setStreakCount] = useState(0);
+  const [freezesRemaining, setFreezesRemaining] = useState(2);
+  const [isTodayClaimed, setIsTodayClaimed] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
+
+  // Initialize weekly days grid: all days start as "upcoming" (black)
+  const [weeklyDays, setWeeklyDays] = useState<StreakDayItem[]>(() => {
+    return baseDays.map((d) => ({ ...d, status: "upcoming" }));
+  });
 
   useEffect(() => {
-    const savedStreak = localStorage.getItem("ticha_streak_count");
-    const savedClaimed = localStorage.getItem("ticha_streak_claimed_today") === "true";
-    const savedFreezes = localStorage.getItem("ticha_streak_freezes");
+    if (profile) {
+      const userStreak = profile.streak_count ?? 0;
+      setStreakCount(userStreak);
+      setFreezesRemaining(profile.freezes_remaining ?? 2);
 
-    if (savedStreak) setStreakCount(parseInt(savedStreak, 10));
-    if (savedClaimed) setIsTodayClaimed(savedClaimed);
-    if (savedFreezes) setFreezesRemaining(parseInt(savedFreezes, 10));
-  }, []);
+      const todayStr = new Date().toISOString().split("T")[0];
+      const todayIndex = new Date().getDay();
+      const isClaimedToday = profile.last_active_date === todayStr;
+      setIsTodayClaimed(isClaimedToday);
 
-  const claimDailyStreak = () => {
-    if (isTodayClaimed) return;
+      // Read claimed streak dates from localStorage or profile vector
+      let claimedDates: string[] = [];
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("ticha_streak_dates");
+        if (stored) {
+          try {
+            claimedDates = JSON.parse(stored);
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      // Calculate current week's dates to map correctly to calendar days
+      const now = new Date();
+      const sundayDate = new Date(now);
+      sundayDate.setDate(now.getDate() - todayIndex);
+
+      setWeeklyDays(
+        baseDays.map((d, idx) => {
+          const thisDay = new Date(sundayDate);
+          thisDay.setDate(sundayDate.getDate() + idx);
+          const dateStr = thisDay.toISOString().split("T")[0];
+
+          let status: "active" | "frozen" | "upcoming" = "upcoming";
+
+          if (dateStr === todayStr && isClaimedToday) {
+            status = "active";
+          } else if (claimedDates.includes(dateStr)) {
+            status = "active";
+          } else if (idx < todayIndex && userStreak > 0 && idx === 2) {
+            // Example freeze logic for past missed days if streak active
+            status = "frozen";
+          }
+
+          return { ...d, status };
+        })
+      );
+    }
+  }, [profile]);
+
+  const claimDailyStreak = useCallback(async () => {
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // Enforce ONE streak claim per day rule
+    if (isTodayClaimed || profile?.last_active_date === todayStr) {
+      return { success: false, message: "Daily streak already claimed for today!" };
+    }
 
     hapticSuccess();
     fireSideCannons();
 
-    const newStreak = streakCount + 1;
+    const currentCount = profile?.streak_count ?? streakCount ?? 0;
+    const newStreak = currentCount + 1; // 0 -> 1 on first claim!
+    const todayIndex = new Date().getDay();
+
     setStreakCount(newStreak);
     setIsTodayClaimed(true);
     setIsFrozen(false);
 
-    // Update today in weekly array
+    // Save date to streak dates storage
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("ticha_streak_dates");
+        const existing: string[] = stored ? JSON.parse(stored) : [];
+        if (!existing.includes(todayStr)) {
+          existing.push(todayStr);
+          localStorage.setItem("ticha_streak_dates", JSON.stringify(existing));
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     setWeeklyDays((prev) =>
-      prev.map((item, idx) => (idx === 4 ? { ...item, status: "active" } : item))
+      prev.map((item, idx) => (idx === todayIndex ? { ...item, status: "active" } : item))
     );
 
-    localStorage.setItem("ticha_streak_count", newStreak.toString());
-    localStorage.setItem("ticha_streak_claimed_today", "true");
-  };
+    await updateProfile({
+      streak_count: newStreak,
+      last_active_date: todayStr,
+    });
+
+    return { success: true, newStreak };
+  }, [isTodayClaimed, profile, streakCount, updateProfile]);
 
   return {
     streakCount,
