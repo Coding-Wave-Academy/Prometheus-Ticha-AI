@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
 
     if (!process.env.ELEVENLABS_API_KEY) {
       return NextResponse.json(
-        { error: "ElevenLabs API key not configured, fallback to client speech synthesis" },
+        { error: "ElevenLabs API key not configured" },
         { status: 404 }
       );
     }
@@ -15,8 +15,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
-    // Default voice: Rachel
-    const voiceId = "21m00Tcm4TlvDq8ikWAM"; 
+    // Joe — African accent male voice (from ElevenLabs Voice Library)
+    // Replace with your actual Joe voice_id from ElevenLabs dashboard
+    const voiceId = process.env.ELEVENLABS_JOE_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
       method: "POST",
