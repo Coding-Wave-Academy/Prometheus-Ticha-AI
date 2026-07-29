@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fireSideCannons } from "@/lib/confetti";
 import { hapticSuccess } from "@/lib/haptics";
 import { useProfile } from "@/hooks/useProfile";
@@ -33,7 +33,7 @@ export function useStreak() {
     return baseDays.map((d, idx) => {
       let status: "active" | "frozen" | "upcoming" = "upcoming";
       if (idx < todayIndex) {
-        status = idx === 2 ? "frozen" : "active"; // Tuesday example frozen
+        status = idx === 2 ? "frozen" : "active";
       } else if (idx === todayIndex) {
         status = "active";
       } else {
@@ -51,18 +51,24 @@ export function useStreak() {
       const todayStr = new Date().toISOString().split("T")[0];
       if (profile.last_active_date === todayStr) {
         setIsTodayClaimed(true);
+      } else {
+        setIsTodayClaimed(false);
       }
     }
   }, [profile]);
 
-  const claimDailyStreak = async () => {
-    if (isTodayClaimed) return;
+  const claimDailyStreak = useCallback(async () => {
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // Enforce ONE streak claim per day rule
+    if (isTodayClaimed || profile?.last_active_date === todayStr) {
+      return { success: false, message: "Daily streak already claimed for today!" };
+    }
 
     hapticSuccess();
     fireSideCannons();
 
-    const newStreak = streakCount + 1;
-    const todayStr = new Date().toISOString().split("T")[0];
+    const newStreak = (profile?.streak_count || streakCount || 1) + 1;
     const todayIndex = new Date().getDay();
 
     setStreakCount(newStreak);
@@ -77,7 +83,9 @@ export function useStreak() {
       streak_count: newStreak,
       last_active_date: todayStr,
     });
-  };
+
+    return { success: true, newStreak };
+  }, [isTodayClaimed, profile, streakCount, updateProfile]);
 
   return {
     streakCount,

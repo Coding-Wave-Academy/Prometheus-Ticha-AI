@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { useStreak } from '@/hooks/useStreak';
 
 export type ContentType = 'text' | 'micro_lesson' | 'exercise' | 'feedback';
 
@@ -11,6 +12,7 @@ export interface TutorMessage {
 }
 
 export function useTutor() {
+  const { claimDailyStreak } = useStreak();
   const [messages, setMessages] = useState<TutorMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [performanceScore, setPerformanceScore] = useState(0.5);
@@ -158,8 +160,9 @@ export function useTutor() {
         return m;
       }));
 
-      // Update total_messages count in Supabase
+      // Update total_messages count in Supabase and auto-claim daily streak once
       await supabase.rpc('increment_tutor_messages', { session_id_param: activeSessionId });
+      await claimDailyStreak();
 
     } catch (err) {
       console.error("Chat error:", err);
