@@ -8,6 +8,13 @@
   --border-color: #000000;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  height: 100%;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -16,6 +23,9 @@ body {
   -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
   min-height: 100dvh;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom Neobrutalist Spring Keyframes & Animations */
@@ -36,16 +46,36 @@ body {
 
 @keyframes spring-slide-up {
   0% {
-    transform: translateY(20px);
+    transform: translateY(24px) scale(0.98);
     opacity: 0;
   }
   70% {
-    transform: translateY(-3px);
+    transform: translateY(-4px) scale(1.01);
     opacity: 1;
   }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes pulse-fire {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(255, 112, 0, 0.4));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 8px rgba(255, 112, 0, 0.8));
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
   }
 }
 
@@ -63,7 +93,15 @@ body {
 }
 
 .animate-spring-slide-up {
-  animation: spring-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: spring-slide-up 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-pulse-fire {
+  animation: pulse-fire 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float-gentle 3s ease-in-out infinite;
 }
 
 .animate-skeleton {
@@ -81,7 +119,7 @@ body {
 @keyframes slideUpAndFade {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -93,6 +131,7 @@ body {
   animation: slideUpAndFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Hide scrollbar while preserving scrolling */
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
@@ -101,3 +140,11 @@ body {
   scrollbar-width: none;
 }
 
+/* iOS Spring Press Feedback Utilities */
+.active-press {
+  transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease;
+}
+.active-press:active {
+  transform: translate(2px, 2px) scale(0.97) !important;
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1) !important;
+}

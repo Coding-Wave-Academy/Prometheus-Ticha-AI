@@ -6,8 +6,8 @@ import { NavItem } from "@/types";
 const NAV_DEFINITIONS: Omit<NavItem, "active">[] = [
   { id: "home", labelKey: "HOME", icon: "home", href: "/dashboard" },
   { id: "explore", labelKey: "EXPLORE", icon: "explore", href: "/explore" },
-  { id: "chat", labelKey: "CHAT", icon: "chat", href: "/coming-soon" },
-  { id: "video", labelKey: "VIDEO", icon: "video", href: "/coming-soon" },
+  { id: "chat", labelKey: "CHAT", icon: "chat", href: "/dashboard/tutor" },
+  { id: "video", labelKey: "VIDEO", icon: "video", href: "/dashboard/videos" },
   { id: "profile", labelKey: "PROFILE", icon: "profile", href: "/dashboard/profile" },
 ];
 
