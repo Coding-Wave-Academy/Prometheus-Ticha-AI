@@ -135,10 +135,10 @@ export default function ConversationalChat() {
 
         if (res.ok) {
           const data = await res.json();
-          if (data.lessons?.[0]?.bits?.[0]) {
-            answer = data.lessons[0].bits.join(" ");
-          } else if (data.lessons?.[0]?.keyTakeaway) {
-            answer = data.lessons[0].keyTakeaway;
+          if (data.lesson?.tips?.length) {
+            answer = data.lesson.tips.join(" ");
+          } else if (data.lesson?.keyTakeaway) {
+            answer = data.lesson.keyTakeaway;
           }
         }
 

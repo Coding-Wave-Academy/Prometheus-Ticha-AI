@@ -203,16 +203,6 @@ export default function VideosPage() {
               />
             </div>
 
-            {/* Watch Directly on YouTube Fallback Link Button */}
-            <a
-              href={`https://www.youtube.com/watch?v=${activeVideo.youtubeId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[2px] border-black rounded-lg py-2 px-3 text-[11px] font-black uppercase text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center justify-center gap-1.5 transition-all text-center"
-            >
-              <span>Watch directly on YouTube ↗</span>
-            </a>
-
             <div className="flex items-center justify-between pt-1">
               <p className="text-xs font-bold text-stone-800 leading-snug flex-1 pr-2">
                 {activeVideo.summary}

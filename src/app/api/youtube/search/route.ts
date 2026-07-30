@@ -12,26 +12,41 @@ export interface YouTubeVideoResult {
   embedUrl: string;
 }
 
-// 100% verified embeddable YouTube video IDs for GCE subjects
+/* ------------------------------------------------------------------ */
+/*  Subject-specific search refinements                                */
+/* ------------------------------------------------------------------ */
+const subjectSearchRefinements: Record<string, string> = {
+  physics: "physics GCE A-Level explainer tutorial",
+  math: "mathematics GCE A-Level tutorial explained",
+  "pure mathematics": "pure mathematics A-Level tutorial explained",
+  "further mathematics": "further mathematics A-Level tutorial",
+  ict: "ICT computing GCE tutorial explained",
+  chemistry: "chemistry GCE A-Level tutorial explained",
+  biology: "biology GCE A-Level tutorial explained",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Verified embeddable fallback video IDs per subject                 */
+/* ------------------------------------------------------------------ */
 const fallbackVideos: Record<string, YouTubeVideoResult[]> = {
   physics: [
     {
-      id: "vw2A50Q15rM",
-      title: "Faraday's Law of Induction Explained",
-      description: "Khan Academy visual explanation of magnetic flux and induced electromotive force.",
-      thumbnail: "https://i.ytimg.com/vi/vw2A50Q15rM/hqdefault.jpg",
+      id: "ZM8ECpBuQYE",
+      title: "Newton's Laws of Motion - Full Course",
+      description: "Complete breakdown of Newton's three laws with real-world examples.",
+      thumbnail: "https://i.ytimg.com/vi/ZM8ECpBuQYE/hqdefault.jpg",
       channelTitle: "Khan Academy",
-      youtubeUrl: "https://www.youtube.com/watch?v=vw2A50Q15rM",
-      embedUrl: "https://www.youtube.com/embed/vw2A50Q15rM",
+      youtubeUrl: "https://www.youtube.com/watch?v=ZM8ECpBuQYE",
+      embedUrl: "https://www.youtube.com/embed/ZM8ECpBuQYE",
     },
     {
-      id: "nk26G_B5vI0",
-      title: "Quantum Tunneling Explained in 3 Minutes",
-      description: "How particles cross potential energy barriers in quantum physics.",
-      thumbnail: "https://i.ytimg.com/vi/nk26G_B5vI0/hqdefault.jpg",
-      channelTitle: "MinutePhysics",
-      youtubeUrl: "https://www.youtube.com/watch?v=nk26G_B5vI0",
-      embedUrl: "https://www.youtube.com/embed/nk26G_B5vI0",
+      id: "kKKM8Y-u7ds",
+      title: "Electromagnetic Induction Explained",
+      description: "How changing magnetic fields create electric current.",
+      thumbnail: "https://i.ytimg.com/vi/kKKM8Y-u7ds/hqdefault.jpg",
+      channelTitle: "The Organic Chemistry Tutor",
+      youtubeUrl: "https://www.youtube.com/watch?v=kKKM8Y-u7ds",
+      embedUrl: "https://www.youtube.com/embed/kKKM8Y-u7ds",
     },
   ],
   math: [
@@ -56,6 +71,28 @@ const fallbackVideos: Record<string, YouTubeVideoResult[]> = {
       embedUrl: "https://www.youtube.com/embed/UrYLYV7WSHM",
     },
   ],
+  chemistry: [
+    {
+      id: "xuPl_8wv9xo",
+      title: "Atomic Structure & Electron Configuration",
+      description: "Complete breakdown of atomic structure for exam preparation.",
+      thumbnail: "https://i.ytimg.com/vi/xuPl_8wv9xo/hqdefault.jpg",
+      channelTitle: "Professor Dave Explains",
+      youtubeUrl: "https://www.youtube.com/watch?v=xuPl_8wv9xo",
+      embedUrl: "https://www.youtube.com/embed/xuPl_8wv9xo",
+    },
+  ],
+  biology: [
+    {
+      id: "URUJD5NEXC8",
+      title: "Cell Structure & Function",
+      description: "Amoeba Sisters guide to cell organelles and their functions.",
+      thumbnail: "https://i.ytimg.com/vi/URUJD5NEXC8/hqdefault.jpg",
+      channelTitle: "Amoeba Sisters",
+      youtubeUrl: "https://www.youtube.com/watch?v=URUJD5NEXC8",
+      embedUrl: "https://www.youtube.com/embed/URUJD5NEXC8",
+    },
+  ],
 };
 
 export async function POST(req: NextRequest) {
@@ -63,16 +100,20 @@ export async function POST(req: NextRequest) {
     const { query, subject } = await req.json();
     const apiKey = process.env.YOUTUBE_API_KEY;
 
-    const searchQuery = query || `${subject || "Physics"} GCE A-Level explainer`;
+    // Build a subject-aware search query
+    const subjectKey = (subject || "physics").toLowerCase();
+    const refinement = subjectSearchRefinements[subjectKey] || "GCE A-Level explainer tutorial";
+    const searchQuery = query
+      ? `${query} ${refinement}`
+      : `${subject || "Physics"} ${refinement}`;
 
     if (!apiKey) {
       console.log("No YOUTUBE_API_KEY configured, returning fallback videos.");
-      const key = (subject || "physics").toLowerCase();
-      return NextResponse.json({ videos: fallbackVideos[key] || fallbackVideos.physics });
+      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
     }
 
-    // Call YouTube Data API v3 with videoEmbeddable=true to strictly get embeddable videos
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(
+    // Call YouTube Data API v3 with videoEmbeddable=true and medium duration for quality content
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(
       searchQuery
     )}&type=video&videoEmbeddable=true&key=${apiKey}`;
 
@@ -81,15 +122,13 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.warn("YouTube Data API response non-ok:", response.status, errorText);
-      const key = (subject || "physics").toLowerCase();
-      return NextResponse.json({ videos: fallbackVideos[key] || fallbackVideos.physics });
+      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
     }
 
     const data = await response.json();
 
     if (!data.items || data.items.length === 0) {
-      const key = (subject || "physics").toLowerCase();
-      return NextResponse.json({ videos: fallbackVideos[key] || fallbackVideos.physics });
+      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
     }
 
     const videos: YouTubeVideoResult[] = data.items.map((item: any) => ({

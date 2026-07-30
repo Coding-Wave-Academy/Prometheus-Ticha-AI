@@ -35,7 +35,7 @@ const quickActions: QuickAction[] = [
     name: "Daily Lessons",
     icon: <Award01Icon size={24} className="text-black" />,
     bgColor: "bg-[#FFB040]",
-    badge: 3,
+    badge: 1,
   },
   {
     name: "Summaries",
