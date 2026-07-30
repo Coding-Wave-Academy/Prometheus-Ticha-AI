@@ -122,10 +122,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleAppleLogin = () => {
-    addToast("Connecting to Apple Auth...", "info");
-  };
-
   return (
     <main className="w-full flex flex-col justify-between px-2 text-black space-y-4 md:space-y-6">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
@@ -224,7 +220,6 @@ export default function LoginPage() {
       {/* Social Auth */}
       <SocialAuthButtons
         onGoogle={handleGoogleLogin}
-        onApple={handleAppleLogin}
       />
 
       {/* Footer Navigation */}

@@ -139,10 +139,6 @@ export default function RegisterPage() {
     }
   };
 
-  const handleAppleLogin = () => {
-    addToast("Connecting to Apple Auth...", "info");
-  };
-
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
   const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
@@ -289,7 +285,6 @@ export default function RegisterPage() {
       {/* Social Auth */}
       <SocialAuthButtons
         onGoogle={handleGoogleLogin}
-        onApple={handleAppleLogin}
       />
 
       {/* Footer Navigation */}
