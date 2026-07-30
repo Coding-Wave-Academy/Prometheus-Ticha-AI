@@ -11,10 +11,9 @@ import {
   SparklesIcon,
   Book01Icon,
   Award01Icon,
-  Target02Icon,
   Timer01Icon,
   RotateRight01Icon,
-  FireIcon,
+  ArrowRight01Icon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -32,8 +31,7 @@ interface QuizQuestion {
   examTrap?: string;
 }
 
-const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (GCE Paper 1 Standard: 50 Qs in 90 mins)
-const TOTAL_EXAM_LIMIT = 5400; // 90 minutes in seconds
+const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (15 Qs in 27 mins = 1620s)
 
 export default function DailyQuizPage() {
   const router = useRouter();
@@ -43,15 +41,17 @@ export default function DailyQuizPage() {
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
   const [subjectTopic, setSubjectTopic] = useState({ subject: "Physics", topic: "Electromagnetism & Faraday's Law" });
 
+  // Slide review state for post-quiz review
+  const [reviewIdx, setReviewIdx] = useState(0);
+
   // Timers
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
-  const [totalExamTime, setTotalExamTime] = useState(TOTAL_EXAM_LIMIT);
+  const [totalExamTime, setTotalExamTime] = useState(1620); // 27 minutes (15 * 108s)
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -61,9 +61,9 @@ export default function DailyQuizPage() {
     loadQuiz();
   }, []);
 
-  // Per-question timer interval
+  // Per-question timer interval (strictly during exam)
   useEffect(() => {
-    if (isLoading || isFinished || isAnswered) {
+    if (isLoading || isFinished) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -82,7 +82,7 @@ export default function DailyQuizPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIdx, isLoading, isFinished, isAnswered]);
+  }, [currentIdx, isLoading, isFinished]);
 
   // Overall exam timer interval
   useEffect(() => {
@@ -92,7 +92,14 @@ export default function DailyQuizPage() {
     }
 
     totalTimerRef.current = setInterval(() => {
-      setTotalExamTime((prev) => (prev > 0 ? prev - 1 : 0));
+      setTotalExamTime((prev) => {
+        if (prev <= 1) {
+          if (totalTimerRef.current) clearInterval(totalTimerRef.current);
+          finishExam();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => {
@@ -104,12 +111,10 @@ export default function DailyQuizPage() {
     setIsLoading(true);
     setCurrentIdx(0);
     setSelectedOpt(null);
-    setIsAnswered(false);
     setScore(0);
     setUserAnswers([]);
     setIsFinished(false);
-    setTimeLeft(QUESTION_TIME_LIMIT);
-    setTotalExamTime(TOTAL_EXAM_LIMIT);
+    setReviewIdx(0);
 
     let subject = "Physics";
     let topic = "Electromagnetism & Faraday's Law";
@@ -136,7 +141,13 @@ export default function DailyQuizPage() {
 
       if (!res.ok) throw new Error("Quiz fetch failed");
       const data = await res.json();
-      setQuiz(data.quiz || []);
+      const loadedQuiz: QuizQuestion[] = data.quiz || [];
+      setQuiz(loadedQuiz);
+
+      // Correct total timer based on exact question count (108s per question)
+      const exactExamSeconds = (loadedQuiz.length || 15) * QUESTION_TIME_LIMIT;
+      setTimeLeft(QUESTION_TIME_LIMIT);
+      setTotalExamTime(exactExamSeconds);
     } catch (err) {
       console.error("Failed to load GCE Daily Quiz:", err);
     } finally {
@@ -144,45 +155,46 @@ export default function DailyQuizPage() {
     }
   };
 
+  // Handle per-question timer expiration: records -1 and moves to next question silently
   const handleTimeExpired = () => {
-    if (isAnswered) return;
-    setIsAnswered(true);
-    setSelectedOpt(-1); // -1 indicates time expired
-    setUserAnswers((prev) => [...prev, -1]);
+    hapticTap();
+    recordAnswerAndAdvance(-1);
   };
 
   const handleOptionSelect = (idx: number) => {
-    if (isAnswered) return;
     hapticTap();
     setSelectedOpt(idx);
   };
 
-  const handleSubmitAnswer = () => {
-    if (selectedOpt === null || isAnswered) return;
-    setIsAnswered(true);
+  const handleNextQuestionSubmit = () => {
+    if (selectedOpt === null) return;
+    recordAnswerAndAdvance(selectedOpt);
+  };
 
+  const recordAnswerAndAdvance = (chosenIdx: number) => {
     const currentQ = quiz[currentIdx];
-    const isCorrect = selectedOpt === currentQ.answerIdx;
+    const isCorrect = chosenIdx === currentQ.answerIdx;
 
     if (isCorrect) {
-      hapticSuccess();
       setScore((s) => s + 1);
     }
 
-    setUserAnswers((prev) => [...prev, selectedOpt]);
-  };
+    const updatedAnswers = [...userAnswers, chosenIdx];
+    setUserAnswers(updatedAnswers);
 
-  const handleNextQuestion = () => {
     if (currentIdx + 1 < quiz.length) {
       setCurrentIdx((i) => i + 1);
       setSelectedOpt(null);
-      setIsAnswered(false);
       setTimeLeft(QUESTION_TIME_LIMIT);
     } else {
-      setIsFinished(true);
-      fireSideCannons();
-      hapticSuccess();
+      finishExam();
     }
+  };
+
+  const finishExam = () => {
+    setIsFinished(true);
+    fireSideCannons();
+    hapticSuccess();
   };
 
   // Format seconds to mm:ss
@@ -236,15 +248,16 @@ export default function DailyQuizPage() {
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
-              Generating Daily Quiz Questions...
+              Preparing Exam Questions...
             </h3>
             <p className="text-xs font-bold text-stone-600">
-              Madame Ticha is setting up 15 GCE Paper 1 exam questions for {subjectTopic.topic}.
+              Formulating 15 GCE Paper 1 questions strictly for {subjectTopic.topic}.
             </p>
           </div>
         ) : isFinished ? (
-          /* ============ RESULTS SCREEN ============ */
+          /* ============ POST-EXAM RESULTS & SLIDE REVIEW SCREEN ============ */
           <div className="space-y-5">
+            {/* Grade Result Card */}
             <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
               <div className="w-16 h-16 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
                 <Award01Icon size={36} className="text-black" />
@@ -252,7 +265,7 @@ export default function DailyQuizPage() {
 
               <div className="space-y-1">
                 <span className="text-xs font-black uppercase tracking-widest text-stone-800">
-                  GCE Paper 1 Daily Quiz Result
+                  GCE Paper 1 Exam Result
                 </span>
                 <h2 className="text-3xl font-black uppercase tracking-tight text-black">
                   {gceGrade}
@@ -268,7 +281,7 @@ export default function DailyQuizPage() {
                   className="flex-1 bg-white hover:bg-stone-50 border-[2.5px] border-black rounded-xl py-3 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black flex items-center justify-center gap-1.5"
                 >
                   <RotateRight01Icon size={16} />
-                  <span>Retake Quiz</span>
+                  <span>Retake Exam</span>
                 </button>
                 <button
                   onClick={() => router.push("/explore")}
@@ -279,83 +292,169 @@ export default function DailyQuizPage() {
               </div>
             </div>
 
-            {/* Full Question Review */}
+            {/* Post-Quiz Review Slide Navigation */}
             <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-wider text-stone-800">
-                Full Question Breakdown & Explanations
-              </h3>
+              <div className="flex items-center justify-between border-b-[2.5px] border-black pb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-stone-500 block">
+                    Exam Correction Slide
+                  </span>
+                  <h3 className="text-sm font-black text-black">
+                    Question {reviewIdx + 1} of {quiz.length}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setReviewIdx((i) => Math.max(0, i - 1))}
+                    disabled={reviewIdx === 0}
+                    className={`px-3 py-1 border-[2px] border-black rounded-lg font-black text-xs shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] ${
+                      reviewIdx === 0 ? "bg-stone-100 text-stone-400 border-stone-300 shadow-none" : "bg-[#FFB040] text-black"
+                    }`}
+                  >
+                    ◀ Prev
+                  </button>
+                  <button
+                    onClick={() => setReviewIdx((i) => Math.min(quiz.length - 1, i + 1))}
+                    disabled={reviewIdx === quiz.length - 1}
+                    className={`px-3 py-1 border-[2px] border-black rounded-lg font-black text-xs shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] ${
+                      reviewIdx === quiz.length - 1 ? "bg-stone-100 text-stone-400 border-stone-300 shadow-none" : "bg-[#B6FF00] text-black"
+                    }`}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              </div>
 
-              <div className="space-y-4">
+              {/* Slide Buttons Quick Selector Grid */}
+              <div className="flex flex-wrap gap-1.5">
                 {quiz.map((q, idx) => {
-                  const userAns = userAnswers[idx];
-                  const isCorrect = userAns === q.answerIdx;
-                  const isTimeExpired = userAns === -1;
-                  const wrongExplanation =
-                    userAns >= 0 && q.wrongExplanations && q.wrongExplanations[userAns]
-                      ? q.wrongExplanations[userAns]
-                      : null;
+                  const uAns = userAnswers[idx];
+                  const isRight = uAns === q.answerIdx;
+                  const isCur = idx === reviewIdx;
+
+                  let badgeColor = isRight ? "bg-[#B6FF00] border-black text-black" : "bg-[#FF9494] border-black text-black";
+                  if (uAns === -1) badgeColor = "bg-amber-200 border-black text-black";
 
                   return (
-                    <div
+                    <button
                       key={idx}
-                      className={`border-[2.5px] border-black rounded-xl p-4 space-y-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                        isCorrect ? "bg-[#C8F7C5]" : "bg-[#FFD9E0]"
+                      onClick={() => setReviewIdx(idx)}
+                      className={`w-7 h-7 rounded-lg border-[2px] font-black text-xs flex items-center justify-center transition-all ${badgeColor} ${
+                        isCur ? "ring-2 ring-black scale-110 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" : "opacity-80"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase text-stone-800">
-                          Q{idx + 1} • {isCorrect ? "Correct ✓" : isTimeExpired ? "Time Expired ⏱️" : "Incorrect ✗"}
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Review Slide Content */}
+              {quiz[reviewIdx] && (() => {
+                const reqQ = quiz[reviewIdx];
+                const uAns = userAnswers[reviewIdx];
+                const isRight = uAns === reqQ.answerIdx;
+                const isTimeExpired = uAns === -1;
+                const wrongExplanation =
+                  uAns >= 0 && reqQ.wrongExplanations && reqQ.wrongExplanations[uAns]
+                    ? reqQ.wrongExplanations[uAns]
+                    : null;
+
+                return (
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`review-slide-${reviewIdx}`}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="space-y-3 pt-2"
+                    >
+                      {/* Question Text */}
+                      <div className="bg-[#FAF7EC] border-[2px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-stone-600 block">
+                          Question {reviewIdx + 1}
                         </span>
-                        <span className="text-[10px] font-black bg-white px-2 py-0.5 border border-black rounded">
-                          Correct: {String.fromCharCode(65 + q.answerIdx)}
-                        </span>
+                        <p className="text-xs font-black text-black leading-snug">
+                          {formatAIText(reqQ.questionText)}
+                        </p>
                       </div>
 
-                      <p className="text-xs font-black text-black leading-snug">
-                        {formatAIText(q.questionText)}
-                      </p>
+                      {/* User's Wrong Response vs Correct Response Slide Details */}
+                      {!isRight ? (
+                        <div className="bg-[#FFD9E0] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-red-950 flex items-center gap-1">
+                              <Cancel01Icon size={14} className="text-red-800" />
+                              Wrong Response
+                            </span>
+                            <span className="text-[10px] font-black bg-white px-2 py-0.5 border border-black rounded">
+                              {isTimeExpired ? "Time Expired" : `Selected Option ${String.fromCharCode(65 + uAns)}`}
+                            </span>
+                          </div>
 
-                      {/* Your Choice explanation if wrong */}
-                      {!isCorrect && (
-                        <div className="bg-white/90 border border-black rounded-lg p-2.5 text-[11px] font-bold text-red-950 space-y-1">
-                          <span className="text-[9px] font-black uppercase text-stone-600 block">
-                            Your Selected Answer: {userAns >= 0 ? `${String.fromCharCode(65 + userAns)}: ${formatAIText(q.options[userAns] || "")}` : "Time Expired"}
-                          </span>
+                          <p className="text-xs font-extrabold text-red-950">
+                            {uAns >= 0 ? `${String.fromCharCode(65 + uAns)}: ${formatAIText(reqQ.options[uAns] || "")}` : "No option selected (Timer ran out)"}
+                          </p>
+
                           {wrongExplanation && (
-                            <p className="text-xs font-extrabold text-red-800 leading-relaxed">
+                            <p className="text-xs font-bold text-red-900 border-t border-red-300 pt-1.5 leading-relaxed">
                               ❌ Why your choice was incorrect: {formatAIText(wrongExplanation)}
                             </p>
                           )}
                         </div>
-                      )}
-
-                      {/* Madame Ticha Explanation */}
-                      <div className="bg-white border border-black rounded-lg p-2.5 text-[11px] font-bold text-stone-800 space-y-1">
-                        <span className="text-[9px] font-black uppercase text-stone-500 block">
-                          📖 Madame Ticha Exam Explanation:
-                        </span>
-                        <p className="text-xs font-bold leading-relaxed">{formatAIText(q.explanation)}</p>
-                      </div>
-
-                      {/* Exam Trap Callout Box */}
-                      {q.examTrap && (
-                        <div className="bg-[#FFE5C4] border-[2px] border-black rounded-lg p-2.5 text-[11px] font-bold text-stone-900 space-y-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-[#965A18] block">
-                            ⚠️ Exam Trap to Watch Out For:
+                      ) : (
+                        <div className="bg-[#C8F7C5] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                          <span className="text-[10px] font-black uppercase text-green-950 flex items-center gap-1">
+                            <CheckmarkCircle02Icon size={14} className="text-green-800" />
+                            Correct Response
                           </span>
-                          <p className="text-xs font-black text-black leading-relaxed">
-                            {formatAIText(q.examTrap)}
+                          <p className="text-xs font-extrabold text-green-950">
+                            {String.fromCharCode(65 + reqQ.answerIdx)}: {formatAIText(reqQ.options[reqQ.answerIdx])}
                           </p>
                         </div>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
+
+                      {/* Correct Response Box */}
+                      {!isRight && (
+                        <div className="bg-[#C8F7C5] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                          <span className="text-[10px] font-black uppercase text-green-950 block">
+                            ✓ Official Correct Answer
+                          </span>
+                          <p className="text-xs font-extrabold text-black">
+                            {String.fromCharCode(65 + reqQ.answerIdx)}: {formatAIText(reqQ.options[reqQ.answerIdx])}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Madame Ticha Explanation */}
+                      <div className="bg-white border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
+                          📖 Madame Ticha Explanation
+                        </span>
+                        <p className="text-xs font-bold text-black leading-relaxed">
+                          {formatAIText(reqQ.explanation)}
+                        </p>
+                      </div>
+
+                      {/* Exam Trap & Tips Box */}
+                      {reqQ.examTrap && (
+                        <div className="bg-[#FFE5C4] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
+                            ⚠️ Exam Trap & Tips
+                          </span>
+                          <p className="text-xs font-extrabold text-black leading-relaxed">
+                            {formatAIText(reqQ.examTrap)}
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                );
+              })()}
             </div>
           </div>
         ) : (
-          /* ============ ACTIVE EXAM QUESTION ============ */
+          /* ============ ACTIVE EXAM QUESTION (STRICT ENVIRONMENT) ============ */
           <div className="space-y-5">
             {/* Question Progress & Per-Question Countdown Timer Bar */}
             <div className="bg-white border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-3">
@@ -385,129 +484,64 @@ export default function DailyQuizPage() {
             </div>
 
             {/* Question Card */}
-            <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1 bg-[#FFB040] text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-                  <Book01Icon size={12} />
-                  <span>GCE Paper 1 MCQ</span>
-                </span>
-                <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">
-                  108s TIMER
-                </span>
-              </div>
+            {currentQ && (
+              <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1 bg-[#FFB040] text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                    <Book01Icon size={12} />
+                    <span>GCE Paper 1 MCQ</span>
+                  </span>
+                  <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">
+                    108s PER QUESTION
+                  </span>
+                </div>
 
-              <h2 className="text-base font-black text-black leading-snug">
-                {formatAIText(currentQ.questionText)}
-              </h2>
+                <h2 className="text-base font-black text-black leading-snug">
+                  {formatAIText(currentQ.questionText)}
+                </h2>
 
-              {/* Options A, B, C, D */}
-              <div className="space-y-2.5 pt-1">
-                {currentQ.options.map((opt, oIdx) => {
-                  const letter = String.fromCharCode(65 + oIdx);
-                  const isSelected = selectedOpt === oIdx;
-                  const isCorrect = oIdx === currentQ.answerIdx;
+                {/* Options A, B, C, D (No right/wrong reveal during exam) */}
+                <div className="space-y-2.5 pt-1">
+                  {currentQ.options.map((opt, oIdx) => {
+                    const letter = String.fromCharCode(65 + oIdx);
+                    const isSelected = selectedOpt === oIdx;
 
-                  let style = "bg-white border-black hover:bg-stone-50";
-                  if (isSelected && !isAnswered) style = "bg-[#D3E2FF] border-black";
-                  if (isAnswered) {
-                    if (isCorrect) {
-                      style = "bg-[#B6FF00] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
-                    } else if (isSelected) {
-                      style = "bg-[#FF9494] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
-                    } else {
-                      style = "bg-white border-stone-300 text-stone-400";
-                    }
-                  }
+                    const style = isSelected
+                      ? "bg-[#D3E2FF] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                      : "bg-white border-black hover:bg-stone-50 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]";
 
-                  return (
-                    <button
-                      key={oIdx}
-                      onClick={() => handleOptionSelect(oIdx)}
-                      disabled={isAnswered}
-                      className={`w-full p-3.5 rounded-xl border-[2.5px] text-left font-bold text-xs flex items-center gap-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all ${style}`}
-                    >
-                      <span className="w-6 h-6 bg-black text-white rounded-lg flex items-center justify-center font-black text-xs shrink-0">
-                        {letter}
-                      </span>
-                      <span className="flex-1">{formatAIText(opt)}</span>
-                      {isAnswered && isCorrect && (
-                        <CheckmarkCircle02Icon size={18} className="text-black shrink-0" />
-                      )}
-                      {isAnswered && isSelected && !isCorrect && (
-                        <Cancel01Icon size={18} className="text-red-800 shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={oIdx}
+                        onClick={() => handleOptionSelect(oIdx)}
+                        className={`w-full p-3.5 rounded-xl border-[2.5px] text-left font-bold text-xs flex items-center gap-3 active:translate-x-px active:translate-y-px active:shadow-none transition-all ${style}`}
+                      >
+                        <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${isSelected ? "bg-[#965A18] text-white" : "bg-black text-white"}`}>
+                          {letter}
+                        </span>
+                        <span className="flex-1 text-black">{formatAIText(opt)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {/* Instant Explanation & Trap Box */}
-              {isAnswered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-2.5 pt-1"
-                >
-                  {/* Wrong Choice Explanation */}
-                  {selectedOpt !== null && selectedOpt !== currentQ.answerIdx && currentQ.wrongExplanations?.[selectedOpt] && (
-                    <div className="bg-[#FFD9E0] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-red-900 block">
-                        ❌ Why your selected answer is wrong
-                      </span>
-                      <p className="text-xs font-bold text-black leading-relaxed">
-                        {formatAIText(currentQ.wrongExplanations[selectedOpt])}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* General Madame Ticha Explanation */}
-                  <div className="bg-[#FAF7EC] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
-                      📖 Madame Ticha Exam Explanation
-                    </span>
-                    <p className="text-xs font-bold text-black leading-relaxed">
-                      {formatAIText(currentQ.explanation)}
-                    </p>
-                  </div>
-
-                  {/* Exam Trap Warning Box */}
-                  {currentQ.examTrap && (
-                    <div className="bg-[#FFE5C4] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
-                        ⚠️ Exam Trap to Watch Out For
-                      </span>
-                      <p className="text-xs font-extrabold text-black leading-relaxed">
-                        {formatAIText(currentQ.examTrap)}
-                      </p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
-              {/* Action Button */}
-              <div className="pt-2">
-                {!isAnswered ? (
+                {/* Action Button: Moves immediately to next question */}
+                <div className="pt-2">
                   <button
-                    onClick={handleSubmitAnswer}
+                    onClick={handleNextQuestionSubmit}
                     disabled={selectedOpt === null}
-                    className={`w-full border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+                    className={`w-full border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
                       selectedOpt !== null
                         ? "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-px active:translate-y-px active:shadow-none"
                         : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed shadow-none border-stone-400"
                     }`}
                   >
-                    Submit Answer
+                    <span>{currentIdx + 1 < quiz.length ? "Submit & Next Question" : "Submit Exam 🎉"}</span>
+                    <ArrowRight01Icon size={16} />
                   </button>
-                ) : (
-                  <button
-                    onClick={handleNextQuestion}
-                    className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none text-black"
-                  >
-                    {currentIdx + 1 < quiz.length ? "Next GCE Question ➔" : "Finish Paper 1 Exam 🎉"}
-                  </button>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </main>

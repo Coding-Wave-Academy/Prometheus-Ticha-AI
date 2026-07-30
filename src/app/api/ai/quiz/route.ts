@@ -114,16 +114,20 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
       You are a senior examiner for the Cameroon GCE Board (Ordinary & Advanced Level).
-      Create a 15-question GCE Paper 1 Multiple Choice Exam for subject: "${targetSubject}" and topic: "${targetTopic}".
+      Create a 15-question GCE Paper 1 Multiple Choice Exam.
+
+      CRITICAL TOPIC RELEVANCY MANDATE (VERY IMPORTANT):
+      All 15 questions MUST be 100% strictly relevant to and derived ONLY from the specified daily lesson topic: "${targetTopic}" within subject: "${targetSubject}".
+      Do NOT ask questions about unrelated topics or outside the scope of "${targetTopic}".
       Education level: "${education || "al"}".
 
       CRITICAL GCE PAPER 1 RULES:
-      1. Formulate 15 high-yield multiple choice questions in standard GCE Paper 1 style.
+      1. Formulate 15 high-yield multiple choice questions focused strictly on "${targetTopic}".
       2. Each question MUST have exactly 4 plausible options [A, B, C, D].
       3. Provide the 0-based index of the correct answer (0 for A, 1 for B, 2 for C, 3 for D).
       4. Include a concise, high-yield exam explanation for the correct answer.
       5. Include "wrongExplanations": an array of 4 short sentences explaining why each option (A, B, C, D) is either correct or incorrect/a distractor trap.
-      6. Include "examTrap": a specific GCE Exam Trap to watch out for (e.g. common miscalculation, formula mix-up, or trick option).
+      6. Include "examTrap": a specific GCE Exam Trap to watch out for in this exact topic (e.g. common miscalculation, formula mix-up, or trick option).
       7. CRITICAL: Do NOT use markdown symbols (no ###, no ***, no **, no LaTeX like \\mathbb{N} or \\mathb{N}). Use plain text!
 
       Return ONLY raw JSON matching this structure:
