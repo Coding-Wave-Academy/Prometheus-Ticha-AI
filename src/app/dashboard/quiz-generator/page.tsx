@@ -26,6 +26,8 @@ interface QuizQuestion {
   options: string[];
   answerIdx: number;
   explanation: string;
+  wrongExplanations?: string[];
+  examTrap?: string;
 }
 
 const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (50 questions in 90 mins)
@@ -284,33 +286,65 @@ export default function QuizGeneratorPage() {
                 {quiz.map((q, idx) => {
                   const userAns = userAnswers[idx];
                   const isCorrect = userAns === q.answerIdx;
+                  const isTimeExpired = userAns === -1;
+                  const wrongExplanation =
+                    userAns >= 0 && q.wrongExplanations && q.wrongExplanations[userAns]
+                      ? q.wrongExplanations[userAns]
+                      : null;
 
                   return (
                     <div
                       key={idx}
-                      className={`border-[2.5px] border-black rounded-xl p-4 space-y-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                      className={`border-[2.5px] border-black rounded-xl p-4 space-y-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
                         isCorrect ? "bg-[#C8F7C5]" : "bg-[#FFD9E0]"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase text-stone-800">
-                          Q{idx + 1} • {isCorrect ? "Correct ✓" : "Incorrect ✗"}
+                          Q{idx + 1} • {isCorrect ? "Correct ✓" : isTimeExpired ? "Time Expired ⏱️" : "Incorrect ✗"}
                         </span>
                         <span className="text-[10px] font-black bg-white px-2 py-0.5 border border-black rounded">
-                          Answer: {String.fromCharCode(65 + q.answerIdx)}
+                          Correct: {String.fromCharCode(65 + q.answerIdx)}
                         </span>
                       </div>
 
                       <p className="text-xs font-black text-black leading-snug">
-                        {q.questionText}
+                        {formatAIText(q.questionText)}
                       </p>
 
+                      {/* Your Choice explanation if wrong */}
+                      {!isCorrect && (
+                        <div className="bg-white/90 border border-black rounded-lg p-2.5 text-[11px] font-bold text-red-950 space-y-1">
+                          <span className="text-[9px] font-black uppercase text-stone-600 block">
+                            Your Selected Answer: {userAns >= 0 ? `${String.fromCharCode(65 + userAns)}: ${formatAIText(q.options[userAns] || "")}` : "Time Expired"}
+                          </span>
+                          {wrongExplanation && (
+                            <p className="text-xs font-extrabold text-red-800 leading-relaxed">
+                              ❌ Why your choice was incorrect: {formatAIText(wrongExplanation)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Madame Ticha Explanation */}
                       <div className="bg-white border border-black rounded-lg p-2.5 text-[11px] font-bold text-stone-800 space-y-1">
                         <span className="text-[9px] font-black uppercase text-stone-500 block">
-                          Madame Ticha Exam Explanation:
+                          📖 Madame Ticha Exam Explanation:
                         </span>
-                        <p>{q.explanation}</p>
+                        <p className="text-xs font-bold leading-relaxed">{formatAIText(q.explanation)}</p>
                       </div>
+
+                      {/* Exam Trap Callout Box */}
+                      {q.examTrap && (
+                        <div className="bg-[#FFE5C4] border-[2px] border-black rounded-lg p-2.5 text-[11px] font-bold text-stone-900 space-y-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-[#965A18] block">
+                            ⚠️ Exam Trap to Watch Out For:
+                          </span>
+                          <p className="text-xs font-black text-black leading-relaxed">
+                            {formatAIText(q.examTrap)}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -334,7 +368,7 @@ export default function QuizGeneratorPage() {
                   }`}
                 >
                   <Timer01Icon size={14} />
-                  <span>{timeLeft}s per question</span>
+                  <span>{timeLeft}s timer</span>
                 </div>
               </div>
 
@@ -360,7 +394,7 @@ export default function QuizGeneratorPage() {
               </div>
 
               <h2 className="text-base font-black text-black leading-snug">
-                {currentQ.questionText}
+                {formatAIText(currentQ.questionText)}
               </h2>
 
               {/* Options A, B, C, D */}
@@ -392,7 +426,7 @@ export default function QuizGeneratorPage() {
                       <span className="w-6 h-6 bg-black text-white rounded-lg flex items-center justify-center font-black text-xs shrink-0">
                         {letter}
                       </span>
-                      <span className="flex-1">{opt}</span>
+                      <span className="flex-1">{formatAIText(opt)}</span>
                       {isAnswered && isCorrect && (
                         <CheckmarkCircle02Icon size={18} className="text-black shrink-0" />
                       )}
@@ -404,19 +438,46 @@ export default function QuizGeneratorPage() {
                 })}
               </div>
 
-              {/* Instant Explanation Box */}
+              {/* Instant Explanation & Trap Box */}
               {isAnswered && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#FAF7EC] border-[2px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1"
+                  className="space-y-2.5 pt-1"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
-                    📖 Madame Ticha Exam Explanation
-                  </span>
-                  <p className="text-xs font-bold text-black leading-relaxed">
-                    {currentQ.explanation}
-                  </p>
+                  {/* Wrong Choice Explanation */}
+                  {selectedOpt !== null && selectedOpt !== currentQ.answerIdx && currentQ.wrongExplanations?.[selectedOpt] && (
+                    <div className="bg-[#FFD9E0] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-red-900 block">
+                        ❌ Why your selected answer is wrong
+                      </span>
+                      <p className="text-xs font-bold text-black leading-relaxed">
+                        {formatAIText(currentQ.wrongExplanations[selectedOpt])}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* General Madame Ticha Explanation */}
+                  <div className="bg-[#FAF7EC] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
+                      📖 Madame Ticha Exam Explanation
+                    </span>
+                    <p className="text-xs font-bold text-black leading-relaxed">
+                      {formatAIText(currentQ.explanation)}
+                    </p>
+                  </div>
+
+                  {/* Exam Trap Warning Box */}
+                  {currentQ.examTrap && (
+                    <div className="bg-[#FFE5C4] border-[2.5px] border-black rounded-xl p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#965A18] block">
+                        ⚠️ Exam Trap to Watch Out For
+                      </span>
+                      <p className="text-xs font-extrabold text-black leading-relaxed">
+                        {formatAIText(currentQ.examTrap)}
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
