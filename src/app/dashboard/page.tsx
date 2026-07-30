@@ -269,8 +269,19 @@ function StudentDashboardPageContent() {
           <FeaturedSubjects
             subjects={dynamicFeaturedSubjects}
             currentLevel={currentLevel}
-            onSubjectClick={() => router.push("/dashboard/daily-lessons")}
-            onSeeMore={() => router.push("/courses")}
+            onSubjectClick={(id) => {
+              const slugMap: Record<string, string> = {
+                phys: "physics",
+                math: "math",
+                ict: "ict",
+                chem: "chemistry",
+                bio: "biology",
+                eng: "english",
+                fr: "french",
+              };
+              router.push(`/dashboard/subjects/${slugMap[id] || id}`);
+            }}
+            onSeeMore={() => router.push("/dashboard/subjects")}
           />
         </motion.div>
 

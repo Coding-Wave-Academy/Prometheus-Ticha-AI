@@ -135,6 +135,26 @@ export default function DailyLessonsPage() {
     hapticTap();
     setVideoWatched(true);
     setStep("tips");
+
+    if (typeof window !== "undefined" && lesson) {
+      try {
+        const stored = localStorage.getItem("ticha_watched_videos");
+        const list: any[] = stored ? JSON.parse(stored) : [];
+        const videoEntry = {
+          id: lesson.id,
+          subject: lesson.subject,
+          topic: lesson.topic,
+          youtubeId: lesson.youtubeId,
+          channelTitle: lesson.youtubeChannel || "YouTube GCE",
+          watchedAt: new Date().toISOString(),
+          summary: lesson.keyTakeaway || `Concept video for ${lesson.topic}`,
+        };
+        const updated = [videoEntry, ...list.filter((v: any) => v.youtubeId !== lesson.youtubeId)];
+        localStorage.setItem("ticha_watched_videos", JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleTipsComplete = () => {
