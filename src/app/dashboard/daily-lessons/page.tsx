@@ -123,7 +123,15 @@ export default function DailyLessonsPage() {
 
       if (!res.ok) throw new Error("Lesson fetch failed");
       const data = await res.json();
-      setLesson(data.lesson || null);
+      const loadedLesson = data.lesson || null;
+      setLesson(loadedLesson);
+
+      if (loadedLesson && typeof window !== "undefined") {
+        localStorage.setItem(
+          "ticha_today_lesson_topic",
+          JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
+        );
+      }
     } catch (err) {
       console.error("Failed to load daily lesson:", err);
     } finally {

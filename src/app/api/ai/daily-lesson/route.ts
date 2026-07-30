@@ -219,9 +219,9 @@ Student level: "${education || "al"}".
 
 CRITICAL FORMAT RULES:
 - Do NOT use markdown (no ###, no **, no ***, no backticks).
-- Do NOT use LaTeX (no \\mathbb, no \\frac, no $...$).
+- Do NOT use LaTeX (no \mathbb, no \frac, no $...$).
 - Write in plain text only. Use simple everyday words a young student understands.
-- Keep each tip to 1 short sentence (max 15 words).
+- Keep each tip extremely expressive, engaging, and directly focused on the lesson learnt (max 15-20 words). Act like a passionate teacher.
 
 Return ONLY raw JSON matching this exact structure:
 {
