@@ -6,8 +6,15 @@
 -- 1. Enable required Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Clean up any pre-existing conflicting tables to avoid FK column mismatch errors
+DROP TABLE IF EXISTS public.download_events CASCADE;
+DROP TABLE IF EXISTS public.papers CASCADE;
+DROP TABLE IF EXISTS public.subjects CASCADE;
+DROP TABLE IF EXISTS public.educational_levels CASCADE;
+DROP TABLE IF EXISTS public.api_clients CASCADE;
+
 -- 2. Educational Levels Table
-CREATE TABLE IF NOT EXISTS public.educational_levels (
+CREATE TABLE public.educational_levels (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code TEXT NOT NULL UNIQUE CHECK (code IN ('O/L', 'A/L', 'UNIVERSITY')),
   name TEXT NOT NULL,
@@ -16,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.educational_levels (
 );
 
 -- 3. Subjects Table
-CREATE TABLE IF NOT EXISTS public.subjects (
+CREATE TABLE public.subjects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   level_id UUID NOT NULL REFERENCES public.educational_levels(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -27,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.subjects (
 );
 
 -- 4. Past Papers Table
-CREATE TABLE IF NOT EXISTS public.papers (
+CREATE TABLE public.papers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
   level_id UUID NOT NULL REFERENCES public.educational_levels(id) ON DELETE CASCADE,
@@ -48,7 +55,7 @@ CREATE TABLE IF NOT EXISTS public.papers (
 );
 
 -- 5. API Clients Table (Growth / Multi-app tiering)
-CREATE TABLE IF NOT EXISTS public.api_clients (
+CREATE TABLE public.api_clients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   api_key_hash TEXT NOT NULL UNIQUE,
@@ -58,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public.api_clients (
 );
 
 -- 6. Download Events Table (Analytics)
-CREATE TABLE IF NOT EXISTS public.download_events (
+CREATE TABLE public.download_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   paper_id UUID NOT NULL REFERENCES public.papers(id) ON DELETE CASCADE,
   client_id UUID REFERENCES public.api_clients(id) ON DELETE SET NULL,
@@ -68,13 +75,13 @@ CREATE TABLE IF NOT EXISTS public.download_events (
 );
 
 -- 7. Indexes for Query Performance & Full-Text Search
-CREATE INDEX IF NOT EXISTS idx_papers_subject_year ON public.papers(subject_id, year DESC);
-CREATE INDEX IF NOT EXISTS idx_papers_level ON public.papers(level_id);
-CREATE INDEX IF NOT EXISTS idx_papers_is_active ON public.papers(is_active);
-CREATE INDEX IF NOT EXISTS idx_papers_fts ON public.papers USING GIN(fts);
-CREATE INDEX IF NOT EXISTS idx_subjects_level_active ON public.subjects(level_id, is_active);
-CREATE INDEX IF NOT EXISTS idx_download_events_paper_id ON public.download_events(paper_id);
-CREATE INDEX IF NOT EXISTS idx_api_clients_key_hash ON public.api_clients(api_key_hash);
+CREATE INDEX idx_papers_subject_year ON public.papers(subject_id, year DESC);
+CREATE INDEX idx_papers_level ON public.papers(level_id);
+CREATE INDEX idx_papers_is_active ON public.papers(is_active);
+CREATE INDEX idx_papers_fts ON public.papers USING GIN(fts);
+CREATE INDEX idx_subjects_level_active ON public.subjects(level_id, is_active);
+CREATE INDEX idx_download_events_paper_id ON public.download_events(paper_id);
+CREATE INDEX idx_api_clients_key_hash ON public.api_clients(api_key_hash);
 
 -- 8. Row Level Security (RLS) Policies
 ALTER TABLE public.educational_levels ENABLE ROW LEVEL SECURITY;
@@ -82,16 +89,6 @@ ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.download_events ENABLE ROW LEVEL SECURITY;
-
--- Drop existing policies to allow clean re-execution
-DROP POLICY IF EXISTS "Public levels viewable by all" ON public.educational_levels;
-DROP POLICY IF EXISTS "Public subjects viewable by all" ON public.subjects;
-DROP POLICY IF EXISTS "Active papers viewable by all" ON public.papers;
-DROP POLICY IF EXISTS "Service role full access levels" ON public.educational_levels;
-DROP POLICY IF EXISTS "Service role full access subjects" ON public.subjects;
-DROP POLICY IF EXISTS "Service role full access papers" ON public.papers;
-DROP POLICY IF EXISTS "Service role full access api_clients" ON public.api_clients;
-DROP POLICY IF EXISTS "Service role full access download_events" ON public.download_events;
 
 -- Create Policies
 CREATE POLICY "Public levels viewable by all" ON public.educational_levels FOR SELECT USING (true);
@@ -121,7 +118,7 @@ DECLARE
   chem_al_id UUID;
   cs_uni_id UUID;
 BEGIN
-  -- Seed Educational Levels safely without multi-row RETURNING error
+  -- Seed Educational Levels safely
   INSERT INTO public.educational_levels (code, name, sort_order)
   VALUES 
     ('O/L', 'Ordinary Level (GCE O-Level)', 1),
