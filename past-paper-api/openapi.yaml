@@ -1,0 +1,415 @@
+openapi: 3.0.3
+info:
+  title: Ticha AI — Past Paper API
+  description: Public & Partner REST API for querying educational levels, subjects, past examination papers, metadata, full-text search, and secure signed PDF downloads.
+  version: 1.0.0
+  contact:
+    name: Ticha AI Engineering Team
+    email: api@ticha.ai
+servers:
+  - url: http://localhost:4000
+    description: Local Development Server
+  - url: https://api.ticha.ai
+    description: Production API Gateway
+
+paths:
+  /api/v1/health:
+    get:
+      summary: Liveness and service health check
+      description: Returns current operational status of the Past Paper API service.
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                      service:
+                        type: string
+                        example: ticha-past-paper-api
+                      version:
+                        type: string
+                        example: v1
+                      timestamp:
+                        type: string
+                        format: date-time
+                      uptime:
+                        type: number
+
+  /api/v1/levels:
+    get:
+      summary: List all educational levels
+      description: Retrieves supported educational levels (O/L, A/L, UNIVERSITY) ordered by sort rank.
+      tags:
+        - Educational Levels
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+      responses:
+        '200':
+          description: List of educational levels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EducationalLevel'
+
+  /api/v1/subjects:
+    get:
+      summary: List subjects per level
+      description: Filter subjects by level code (e.g. 'O/L', 'A/L') or UUID.
+      tags:
+        - Subjects
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+        - name: level
+          in: query
+          description: Educational level code (O/L, A/L, UNIVERSITY) or level UUID
+          required: false
+          schema:
+            type: string
+            example: O/L
+      responses:
+        '200':
+          description: List of active subjects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subject'
+
+  /api/v1/papers:
+    get:
+      summary: Searchable and paginated past papers list
+      description: Filter and search past examination papers by level, subject, year, or keyword query.
+      tags:
+        - Past Papers
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+        - name: level
+          in: query
+          description: Filter by level code (O/L, A/L, UNIVERSITY) or level UUID
+          schema:
+            type: string
+            example: O/L
+        - name: subject
+          in: query
+          description: Filter by subject code (e.g. MATH-OL) or subject UUID
+          schema:
+            type: string
+            example: MATH-OL
+        - name: year
+          in: query
+          description: Filter by 4-digit examination year
+          schema:
+            type: integer
+            example: 2023
+        - name: q
+          in: query
+          description: Full-text search term for title and description matching
+          schema:
+            type: string
+            example: Mathematics Paper 1
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated papers response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPapersResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /api/v1/papers/{id}:
+    get:
+      summary: Get metadata and file info for a single paper
+      description: Returns paper details including title, year, exam session, description, file size, download count, and subject/level objects.
+      tags:
+        - Past Papers
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+        - name: id
+          in: path
+          required: true
+          description: UUID of the paper
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Paper details metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Paper'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/papers/{id}/download:
+    get:
+      summary: Download paper PDF via expiring signed URL
+      description: Atomically increments paper download count, records analytics download event, and issues an HTTP 302 redirect to an expiring Supabase Storage signed URL (or returns JSON if redirect=false).
+      tags:
+        - Past Papers
+      parameters:
+        - $ref: '#/components/parameters/XApiKey'
+        - name: id
+          in: path
+          required: true
+          description: UUID of the paper to download
+          schema:
+            type: string
+            format: uuid
+        - name: redirect
+          in: query
+          description: Set to 'false' to return JSON payload instead of HTTP 302 redirect
+          required: false
+          schema:
+            type: string
+            enum: ['true', 'false']
+            default: 'true'
+      responses:
+        '302':
+          description: Redirects to temporary Supabase Storage signed PDF download URL
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        '200':
+          description: Signed URL payload (when redirect=false)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      download_url:
+                        type: string
+                        format: uri
+                      expires_in:
+                        type: integer
+                        example: 60
+                      paper:
+                        $ref: '#/components/schemas/Paper'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    XApiKey:
+      name: x-api-key
+      in: header
+      required: false
+      description: Optional partner API key for tier-based rate limiting
+      schema:
+        type: string
+
+  schemas:
+    EducationalLevel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: O/L
+        name:
+          type: string
+          example: Ordinary Level (GCE O-Level)
+        sort_order:
+          type: integer
+          example: 1
+
+    Subject:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: MATH-OL
+        name:
+          type: string
+          example: Mathematics
+        is_active:
+          type: boolean
+          example: true
+        level:
+          $ref: '#/components/schemas/EducationalLevel'
+
+    Paper:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: GCE O-Level Mathematics Paper 1
+        year:
+          type: integer
+          example: 2023
+        exam_session:
+          type: string
+          nullable: true
+          example: June
+        description:
+          type: string
+          example: Official GCE Ordinary Level Mathematics Paper 1 with detailed solution key.
+        file_path:
+          type: string
+          example: ol/math/2023_june_paper1.pdf
+        file_size:
+          type: integer
+          example: 2450000
+        file_type:
+          type: string
+          example: application/pdf
+        downloads_count:
+          type: integer
+          example: 125
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        subject:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+        level:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+
+    PaginatedPapersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Paper'
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 20
+            total:
+              type: integer
+              example: 42
+            totalPages:
+              type: integer
+              example: 3
+
+    ErrorPayload:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: BAD_REQUEST
+            message:
+              type: string
+              example: Invalid query parameter provided
+            details:
+              type: array
+              items:
+                type: object
+
+  responses:
+    ValidationError:
+      description: Invalid query or path parameter
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorPayload'
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorPayload'
+    RateLimitExceeded:
+      description: API rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorPayload'

@@ -216,3 +216,80 @@ CREATE POLICY "Users can insert messages in their sessions"
       WHERE ts.id = session_id AND ts.user_id = (select auth.uid())
     )
   );
+
+
+-- 6. PAST PAPER API TABLES & INDEXES
+CREATE TABLE IF NOT EXISTS public.educational_levels (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code TEXT NOT NULL UNIQUE CHECK (code IN ('O/L', 'A/L', 'UNIVERSITY')),
+  name TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.subjects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  level_id UUID NOT NULL REFERENCES public.educational_levels(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  code TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_subject_code_per_level UNIQUE (level_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS public.papers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
+  level_id UUID NOT NULL REFERENCES public.educational_levels(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  year INT NOT NULL CHECK (year >= 1990 AND year <= 2100),
+  exam_session TEXT,
+  description TEXT,
+  file_path TEXT NOT NULL,
+  file_size BIGINT NOT NULL DEFAULT 0,
+  file_type TEXT NOT NULL DEFAULT 'application/pdf',
+  downloads_count INT NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  fts TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B')
+  ) STORED,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.api_clients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  api_key_hash TEXT NOT NULL UNIQUE,
+  tier TEXT NOT NULL DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'enterprise')),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.download_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  paper_id UUID NOT NULL REFERENCES public.papers(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES public.api_clients(id) ON DELETE SET NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_papers_subject_year ON public.papers(subject_id, year DESC);
+CREATE INDEX IF NOT EXISTS idx_papers_level ON public.papers(level_id);
+CREATE INDEX IF NOT EXISTS idx_papers_is_active ON public.papers(is_active);
+CREATE INDEX IF NOT EXISTS idx_papers_fts ON public.papers USING GIN(fts);
+CREATE INDEX IF NOT EXISTS idx_subjects_level_active ON public.subjects(level_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_download_events_paper_id ON public.download_events(paper_id);
+CREATE INDEX IF NOT EXISTS idx_api_clients_key_hash ON public.api_clients(api_key_hash);
+
+ALTER TABLE public.educational_levels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.download_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public levels viewable by all" ON public.educational_levels FOR SELECT USING (true);
+CREATE POLICY "Public subjects viewable by all" ON public.subjects FOR SELECT USING (true);
+CREATE POLICY "Active papers viewable by all" ON public.papers FOR SELECT USING (is_active = true);
+
