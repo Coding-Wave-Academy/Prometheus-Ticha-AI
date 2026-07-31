@@ -51,7 +51,8 @@ export default function FeaturedSubjects({
         {subjects.map((subject) => (
           <div
             key={subject.id}
-            className={`${subject.bgColor} border-[3.5px] border-black rounded-xl p-4 flex items-center gap-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative`}
+            onClick={() => onSubjectClick(subject.id)}
+            className={`${subject.bgColor} border-[3.5px] border-black rounded-xl p-4 flex items-center gap-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all`}
           >
             {/* Icon Circle */}
             <div className="w-14 h-14 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
@@ -73,19 +74,16 @@ export default function FeaturedSubjects({
 
             {/* Progress + Navigate */}
             <div className="flex flex-col items-end gap-3 flex-shrink-0">
-              <div className="bg-[#1A1A1A] text-white rounded-full py-1 px-3.5 font-bold text-xs tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+              <div className="bg-[#1A1A1A] text-[#B6FF00] rounded-full py-1 px-3.5 font-bold text-xs tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                 {subject.progress}%
               </div>
-              <button
-                id={`subject-navigate-${subject.id}`}
-                onClick={() => onSubjectClick(subject.id)}
-                aria-label={`Open ${subject.title}`}
-                className="w-8 h-8 bg-white/40 border-[2px] border-black rounded-full flex items-center justify-center active:scale-95 transition-transform"
+              <div
+                className="w-8 h-8 bg-white border-[2px] border-black rounded-full flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
               >
                 <svg className="w-4 h-4 stroke-[3px] text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
-              </button>
+              </div>
             </div>
           </div>
         ))}

@@ -8,6 +8,7 @@ import {
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
   Cancel01Icon,
+  SparklesIcon,
   Book01Icon,
   Award01Icon,
   Timer01Icon,
@@ -32,7 +33,7 @@ interface QuizQuestion {
 
 const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (15 Qs in 27 mins = 1620s)
 
-export default function QuizGeneratorPage() {
+export default function DailyQuizPage() {
   const router = useRouter();
   const navItems = useNavItems();
 
@@ -219,15 +220,15 @@ export default function QuizGeneratorPage() {
         <header className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
             <Link
-              href="/dashboard"
+              href="/explore"
               className="w-10 h-10 bg-white border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform"
-              aria-label="Back to dashboard"
+              aria-label="Back to explore hub"
             >
               <ArrowLeft01Icon className="w-5 h-5 text-black" />
             </Link>
             <div>
               <h1 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
-                GCE Paper 1 Exam
+                Daily Quiz
               </h1>
               <p className="text-xs font-bold text-stone-600">
                 {subjectTopic.subject} • {subjectTopic.topic}
@@ -283,10 +284,10 @@ export default function QuizGeneratorPage() {
                   <span>Retake Exam</span>
                 </button>
                 <button
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => router.push("/explore")}
                   className="flex-1 bg-[#FFB040] hover:bg-[#ffa326] border-[2.5px] border-black rounded-xl py-3 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
                 >
-                  Dashboard
+                  Explore Hub
                 </button>
               </div>
             </div>
