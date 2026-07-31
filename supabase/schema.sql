@@ -1,4 +1,5 @@
 -- ─── Supabase Database Schema & RLS Policies for Ticha AI ──────────────────────
+-- Clean, Idempotent, and Fully Executable Script
 
 -- Enable required Postgres extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -27,7 +28,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS on profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Profiles Policies
+-- Profiles Policies (Drop before create for idempotency)
+DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+
 CREATE POLICY "Public profiles are viewable by authenticated users"
   ON public.profiles FOR SELECT
   TO authenticated
@@ -59,7 +64,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
@@ -106,6 +112,11 @@ ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Courses read-only for public" ON public.courses;
+DROP POLICY IF EXISTS "Modules read-only for public" ON public.modules;
+DROP POLICY IF EXISTS "Lessons read-only for public" ON public.lessons;
+DROP POLICY IF EXISTS "Quizzes read-only for public" ON public.quizzes;
+
 CREATE POLICY "Courses read-only for public" ON public.courses FOR SELECT USING (true);
 CREATE POLICY "Modules read-only for public" ON public.modules FOR SELECT USING (true);
 CREATE POLICY "Lessons read-only for public" ON public.lessons FOR SELECT USING (true);
@@ -124,6 +135,9 @@ CREATE TABLE IF NOT EXISTS public.user_progress (
 );
 
 ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own progress" ON public.user_progress;
+DROP POLICY IF EXISTS "Users can insert/update their own progress" ON public.user_progress;
 
 CREATE POLICY "Users can view their own progress"
   ON public.user_progress FOR SELECT
@@ -148,6 +162,9 @@ CREATE TABLE IF NOT EXISTS public.knowledge_embeddings (
 );
 
 ALTER TABLE public.knowledge_embeddings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Knowledge embeddings viewable by authenticated users" ON public.knowledge_embeddings;
+
 CREATE POLICY "Knowledge embeddings viewable by authenticated users"
   ON public.knowledge_embeddings FOR SELECT
   TO authenticated
@@ -168,6 +185,10 @@ CREATE TABLE IF NOT EXISTS public.tutor_sessions (
 );
 
 ALTER TABLE public.tutor_sessions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own tutor sessions" ON public.tutor_sessions;
+DROP POLICY IF EXISTS "Users can create their own tutor sessions" ON public.tutor_sessions;
+DROP POLICY IF EXISTS "Users can update their own tutor sessions" ON public.tutor_sessions;
 
 CREATE POLICY "Users can view their own tutor sessions"
   ON public.tutor_sessions FOR SELECT
@@ -196,6 +217,9 @@ CREATE TABLE IF NOT EXISTS public.tutor_messages (
 );
 
 ALTER TABLE public.tutor_messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view messages in their sessions" ON public.tutor_messages;
+DROP POLICY IF EXISTS "Users can insert messages in their sessions" ON public.tutor_messages;
 
 CREATE POLICY "Users can view messages in their sessions"
   ON public.tutor_messages FOR SELECT
@@ -289,7 +313,26 @@ ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.download_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public levels viewable by all" ON public.educational_levels;
+DROP POLICY IF EXISTS "Public subjects viewable by all" ON public.subjects;
+DROP POLICY IF EXISTS "Active papers viewable by all" ON public.papers;
+DROP POLICY IF EXISTS "Service role full access levels" ON public.educational_levels;
+DROP POLICY IF EXISTS "Service role full access subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Service role full access papers" ON public.papers;
+DROP POLICY IF EXISTS "Service role full access api_clients" ON public.api_clients;
+DROP POLICY IF EXISTS "Service role full access download_events" ON public.download_events;
+
 CREATE POLICY "Public levels viewable by all" ON public.educational_levels FOR SELECT USING (true);
 CREATE POLICY "Public subjects viewable by all" ON public.subjects FOR SELECT USING (true);
 CREATE POLICY "Active papers viewable by all" ON public.papers FOR SELECT USING (is_active = true);
 
+CREATE POLICY "Service role full access levels" ON public.educational_levels FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access subjects" ON public.subjects FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access papers" ON public.papers FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access api_clients" ON public.api_clients FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access download_events" ON public.download_events FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- 7. STORAGE BUCKET
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('past-papers', 'past-papers', false)
+ON CONFLICT (id) DO NOTHING;

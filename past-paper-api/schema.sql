@@ -1,5 +1,6 @@
 -- ====================================================================
 -- Ticha AI — Past Paper Database Schema (Supabase / Postgres)
+-- Clean, Idempotent, and Fully Executable Script
 -- ====================================================================
 
 -- 1. Enable required Extensions
@@ -82,17 +83,26 @@ ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.download_events ENABLE ROW LEVEL SECURITY;
 
--- Public Read Policies
+-- Drop existing policies to allow clean re-execution
+DROP POLICY IF EXISTS "Public levels viewable by all" ON public.educational_levels;
+DROP POLICY IF EXISTS "Public subjects viewable by all" ON public.subjects;
+DROP POLICY IF EXISTS "Active papers viewable by all" ON public.papers;
+DROP POLICY IF EXISTS "Service role full access levels" ON public.educational_levels;
+DROP POLICY IF EXISTS "Service role full access subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Service role full access papers" ON public.papers;
+DROP POLICY IF EXISTS "Service role full access api_clients" ON public.api_clients;
+DROP POLICY IF EXISTS "Service role full access download_events" ON public.download_events;
+
+-- Create Policies
 CREATE POLICY "Public levels viewable by all" ON public.educational_levels FOR SELECT USING (true);
 CREATE POLICY "Public subjects viewable by all" ON public.subjects FOR SELECT USING (true);
 CREATE POLICY "Active papers viewable by all" ON public.papers FOR SELECT USING (is_active = true);
 
--- Service Role / Admin Write Policies
-CREATE POLICY "Service role full access levels" ON public.educational_levels FOR ALL USING (true);
-CREATE POLICY "Service role full access subjects" ON public.subjects FOR ALL USING (true);
-CREATE POLICY "Service role full access papers" ON public.papers FOR ALL USING (true);
-CREATE POLICY "Service role full access api_clients" ON public.api_clients FOR ALL USING (true);
-CREATE POLICY "Service role full access download_events" ON public.download_events FOR ALL USING (true);
+CREATE POLICY "Service role full access levels" ON public.educational_levels FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access subjects" ON public.subjects FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access papers" ON public.papers FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access api_clients" ON public.api_clients FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access download_events" ON public.download_events FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- 9. Storage Bucket Configuration (Supabase Storage)
 INSERT INTO storage.buckets (id, name, public)
@@ -111,32 +121,47 @@ DECLARE
   chem_al_id UUID;
   cs_uni_id UUID;
 BEGIN
-  -- Seed Educational Levels
+  -- Seed Educational Levels safely without multi-row RETURNING error
   INSERT INTO public.educational_levels (code, name, sort_order)
   VALUES 
     ('O/L', 'Ordinary Level (GCE O-Level)', 1),
     ('A/L', 'Advanced Level (GCE A-Level)', 2),
     ('UNIVERSITY', 'University Undergraduate Studies', 3)
-  ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, sort_order = EXCLUDED.sort_order
-  RETURNING id INTO ol_id;
+  ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, sort_order = EXCLUDED.sort_order;
 
+  -- Query individual level UUIDs
   SELECT id INTO ol_id FROM public.educational_levels WHERE code = 'O/L';
   SELECT id INTO al_id FROM public.educational_levels WHERE code = 'A/L';
   SELECT id INTO uni_id FROM public.educational_levels WHERE code = 'UNIVERSITY';
 
   -- Seed Subjects
-  INSERT INTO public.subjects (level_id, name, code, is_active)
-  VALUES
-    (ol_id, 'Mathematics', 'MATH-OL', true),
-    (ol_id, 'English Language', 'ENG-OL', true),
-    (ol_id, 'Physics', 'PHYS-OL', true),
-    (al_id, 'Physics', 'PHYS-AL', true),
-    (al_id, 'Chemistry', 'CHEM-AL', true),
-    (al_id, 'Pure Mathematics', 'PMATH-AL', true),
-    (uni_id, 'Data Structures & Algorithms', 'CS-201', true),
-    (uni_id, 'Database Management Systems', 'CS-302', true)
-  ON CONFLICT (level_id, code) DO NOTHING;
+  IF ol_id IS NOT NULL THEN
+    INSERT INTO public.subjects (level_id, name, code, is_active)
+    VALUES
+      (ol_id, 'Mathematics', 'MATH-OL', true),
+      (ol_id, 'English Language', 'ENG-OL', true),
+      (ol_id, 'Physics', 'PHYS-OL', true)
+    ON CONFLICT (level_id, code) DO NOTHING;
+  END IF;
 
+  IF al_id IS NOT NULL THEN
+    INSERT INTO public.subjects (level_id, name, code, is_active)
+    VALUES
+      (al_id, 'Physics', 'PHYS-AL', true),
+      (al_id, 'Chemistry', 'CHEM-AL', true),
+      (al_id, 'Pure Mathematics', 'PMATH-AL', true)
+    ON CONFLICT (level_id, code) DO NOTHING;
+  END IF;
+
+  IF uni_id IS NOT NULL THEN
+    INSERT INTO public.subjects (level_id, name, code, is_active)
+    VALUES
+      (uni_id, 'Data Structures & Algorithms', 'CS-201', true),
+      (uni_id, 'Database Management Systems', 'CS-302', true)
+    ON CONFLICT (level_id, code) DO NOTHING;
+  END IF;
+
+  -- Get Subject IDs
   SELECT id INTO math_ol_id FROM public.subjects WHERE code = 'MATH-OL';
   SELECT id INTO eng_ol_id FROM public.subjects WHERE code = 'ENG-OL';
   SELECT id INTO phys_al_id FROM public.subjects WHERE code = 'PHYS-AL';
@@ -144,29 +169,31 @@ BEGIN
   SELECT id INTO cs_uni_id FROM public.subjects WHERE code = 'CS-201';
 
   -- Seed Past Papers
-  IF math_ol_id IS NOT NULL THEN
+  IF math_ol_id IS NOT NULL AND ol_id IS NOT NULL THEN
     INSERT INTO public.papers (subject_id, level_id, title, year, exam_session, description, file_path, file_size, file_type, downloads_count, is_active)
     VALUES
       (math_ol_id, ol_id, 'GCE O-Level Mathematics Paper 1', 2023, 'June', 'Official GCE Ordinary Level Mathematics Paper 1 with detailed solution key.', 'ol/math/2023_june_paper1.pdf', 2450000, 'application/pdf', 124, true),
       (math_ol_id, ol_id, 'GCE O-Level Mathematics Paper 2', 2023, 'June', 'Official GCE Ordinary Level Mathematics Paper 2 comprehensive problem solving.', 'ol/math/2023_june_paper2.pdf', 3120000, 'application/pdf', 98, true),
-      (math_ol_id, ol_id, 'GCE O-Level Mathematics Paper 1', 2022, 'November', 'November session past paper for GCE O-Level Mathematics.', 'ol/math/2022_nov_paper1.pdf', 2180000, 'application/pdf', 210, true);
+      (math_ol_id, ol_id, 'GCE O-Level Mathematics Paper 1', 2022, 'November', 'November session past paper for GCE O-Level Mathematics.', 'ol/math/2022_nov_paper1.pdf', 2180000, 'application/pdf', 210, true)
+    ON CONFLICT DO NOTHING;
   END IF;
 
-  IF phys_al_id IS NOT NULL THEN
+  IF phys_al_id IS NOT NULL AND al_id IS NOT NULL THEN
     INSERT INTO public.papers (subject_id, level_id, title, year, exam_session, description, file_path, file_size, file_type, downloads_count, is_active)
     VALUES
       (phys_al_id, al_id, 'GCE A-Level Physics Paper 1 (MCQ & Structured)', 2023, 'June', 'Advanced Level Physics Paper 1 covering Mechanics and Electromagnetism.', 'al/physics/2023_june_paper1.pdf', 4150000, 'application/pdf', 342, true),
-      (phys_al_id, al_id, 'GCE A-Level Physics Paper 2 (Essay & Practical)', 2023, 'June', 'Advanced Level Physics Paper 2 with experimental analysis.', 'al/physics/2023_june_paper2.pdf', 3890000, 'application/pdf', 280, true);
+      (phys_al_id, al_id, 'GCE A-Level Physics Paper 2 (Essay & Practical)', 2023, 'June', 'Advanced Level Physics Paper 2 with experimental analysis.', 'al/physics/2023_june_paper2.pdf', 3890000, 'application/pdf', 280, true)
+    ON CONFLICT DO NOTHING;
   END IF;
 
-  IF cs_uni_id IS NOT NULL THEN
+  IF cs_uni_id IS NOT NULL AND uni_id IS NOT NULL THEN
     INSERT INTO public.papers (subject_id, level_id, title, year, exam_session, description, file_path, file_size, file_type, downloads_count, is_active)
     VALUES
-      (cs_uni_id, uni_id, 'CS-201 Data Structures Midterm Exam', 2023, 'First Semester', 'University midterm paper covering trees, graphs, sorting, and Big-O analysis.', 'uni/cs/cs201_2023_midterm.pdf', 1850000, 'application/pdf', 65, true);
+      (cs_uni_id, uni_id, 'CS-201 Data Structures Midterm Exam', 2023, 'First Semester', 'University midterm paper covering trees, graphs, sorting, and Big-O analysis.', 'uni/cs/cs201_2023_midterm.pdf', 1850000, 'application/pdf', 65, true)
+    ON CONFLICT DO NOTHING;
   END IF;
 
-  -- Seed Sample API Client (SHA-256 hash for key: 'ticha_demo_key_12345')
-  -- SHA-256 hash of 'ticha_demo_key_12345' is '8f89e4ec3057e937d2fa955f26dbdf33b5c7774e1d6832db4abefcbb19ad3724'
+  -- Seed Sample API Client (SHA-256 hash of 'ticha_demo_key_12345')
   INSERT INTO public.api_clients (name, api_key_hash, tier, is_active)
   VALUES
     ('Demo Partner App', '8f89e4ec3057e937d2fa955f26dbdf33b5c7774e1d6832db4abefcbb19ad3724', 'pro', true)
