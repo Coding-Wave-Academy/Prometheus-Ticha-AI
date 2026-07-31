@@ -16,7 +16,7 @@ const defaultNotifications: NotificationItem[] = [
   {
     id: "notif-1",
     title: "🔥 1% Daily Habit Ready!",
-    body: "Your 3 custom daily micro-lessons targeting your weak subjects are ready to complete.",
+    body: "Your daily concept lesson is ready. Watch the video, review tips, and test your knowledge!",
     type: "habit",
     read: false,
     created_at: new Date().toISOString(),
