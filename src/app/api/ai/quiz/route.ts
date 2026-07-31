@@ -1,79 +1,153 @@
 import { NextRequest, NextResponse } from "next/server";
+import { formatAIText } from "@/lib/formatAIText";
 
 export const dynamic = "force-dynamic";
 
-/**
- * /api/ai/quiz — Generates a customized 3-question quiz using Gemini AI
- * based on the student's saved onboarding profile vector.
- */
+export interface QuizQuestion {
+  questionText: string;
+  options: string[];
+  answerIdx: number;
+  explanation: string;
+  wrongExplanations?: string[];
+  examTrap?: string;
+}
+
+const fallbackPaper1Questions: QuizQuestion[] = [
+  {
+    questionText: "According to Faraday's law of electromagnetic induction, what determines the magnitude of the induced electromotive force (EMF)?",
+    options: [
+      "The static magnetic field strength",
+      "The rate of change of magnetic flux linkage",
+      "The resistance of the copper wire",
+      "The ambient temperature of the room",
+    ],
+    answerIdx: 1,
+    explanation: "Faraday's law states that the magnitude of induced EMF is directly proportional to the rate of change of magnetic flux linkage through the circuit.",
+    wrongExplanations: [
+      "Static magnetic fields do not induce EMF; flux MUST be changing over time.",
+      "Correct! Rate of change of flux linkage (dΦ/dt) determines induced EMF.",
+      "Resistance affects the magnitude of induced current (I = E/R), NOT the induced EMF itself.",
+      "Ambient temperature has no direct role in Faraday's law formula.",
+    ],
+    examTrap: "Common Trap: Confusing induced EMF with induced current. Resistance changes the current, but NOT the induced voltage (EMF)!",
+  },
+  {
+    questionText: "Lenz's law is a direct consequence of which fundamental physical conservation law?",
+    options: [
+      "Conservation of Electric Charge",
+      "Conservation of Linear Momentum",
+      "Conservation of Energy",
+      "Conservation of Angular Momentum",
+    ],
+    answerIdx: 2,
+    explanation: "Lenz's law enforces conservation of energy: the direction of induced current creates a magnetic field that opposes the change, preventing free energy creation.",
+    wrongExplanations: [
+      "Charge conservation relates to Kirchhoff's Current Law, not Lenz's Law.",
+      "Linear momentum involves forces in collision mechanics.",
+      "Correct! If induced current aided the motion instead of opposing it, perpetual energy would be created.",
+      "Angular momentum relates to rotational motion.",
+    ],
+    examTrap: "Common Trap: Thinking Lenz's law opposes the magnetic field itself. It opposes the CHANGE in magnetic flux, not the field!",
+  },
+  {
+    questionText: "In a uniform magnetic field B, a straight conductor of length L moves with constant velocity v perpendicular to the field. What is the induced EMF across the conductor?",
+    options: [
+      "E = B / (L * v)",
+      "E = B * L * v",
+      "E = B * L^2 * v",
+      "E = zero",
+    ],
+    answerIdx: 1,
+    explanation: "The motional EMF across a straight conductor moving perpendicular to a uniform magnetic field is given by E = B * L * v.",
+    wrongExplanations: [
+      "Division by L * v is mathematically incorrect.",
+      "Correct! E = B * L * v derived from dΦ/dt where dΦ = B * L * dx.",
+      "L is not squared in motional EMF.",
+      "EMF is only zero if moving parallel to the magnetic field lines.",
+    ],
+    examTrap: "Common Trap: Forgetting the angle! If the conductor moves parallel to B (sin 0° = 0), EMF is zero. Always check the angle of motion relative to B lines.",
+  },
+  {
+    questionText: "What unit is used to measure magnetic flux in the SI system?",
+    options: ["Tesla (T)", "Weber (Wb)", "Henry (H)", "Farad (F)"],
+    answerIdx: 1,
+    explanation: "Magnetic flux is measured in Webers (Wb), where 1 Weber equals 1 Tesla square meter (T·m²).",
+    wrongExplanations: [
+      "Tesla (T) measures Magnetic Flux Density (B), not total Magnetic Flux (Φ).",
+      "Correct! Weber (Wb) is the SI unit for magnetic flux.",
+      "Henry (H) measures inductance.",
+      "Farad (F) measures capacitance.",
+    ],
+    examTrap: "Common Trap: Confusing Magnetic Flux Density (Tesla, T) with Magnetic Flux (Weber, Wb). Remember: Φ (Wb) = B (T) × Area (m²).",
+  },
+  {
+    questionText: "When a bar magnet is dropped vertically through a long copper pipe, why does it fall more slowly than when dropped in air?",
+    options: [
+      "Due to air buoyancy inside the pipe",
+      "Eddy currents induced in the pipe oppose the magnet's falling motion",
+      "Copper is ferromagnetic and attracts the magnet",
+      "Gravity is weaker inside metallic cylinders",
+    ],
+    answerIdx: 1,
+    explanation: "As the magnet falls, changing magnetic flux induces circular eddy currents in the copper pipe walls. By Lenz's law, these currents create an upward magnetic force that opposes gravity.",
+    wrongExplanations: [
+      "Air buoyancy in a pipe is negligible.",
+      "Correct! Eddy currents produce an opposing upward magnetic force by Lenz's law.",
+      "Copper is diamagnetic, NOT ferromagnetic (unlike iron or nickel).",
+      "Gravity remains constant regardless of metallic surroundings.",
+    ],
+    examTrap: "Common Trap: Thinking copper is magnetic. Copper is NOT attracted to magnets; the slowing down is 100% caused by induced eddy currents!",
+  },
+];
+
 export async function POST(req: NextRequest) {
   try {
-    const { goal, education, struggles } = await req.json();
+    const { subject, topic, education, struggles } = await req.json();
+    const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    // Premium default fallback questions
-    const fallbackQuiz = [
-      {
-        questionText: "Which of the following phenomena is a direct manifestation of quantum tunneling?",
-        options: [
-          "Alpha decay of radioactive nuclei",
-          "Blackbody radiation intensity",
-          "Photoelectric work function threshold",
-          "Bohr radius orbital electron levels",
-        ],
-        answerIdx: 0,
-        explanation: "Alpha decay occurs because alpha particles tunnel through the strong nuclear force potential barrier of the nucleus, even though they classically lack the kinetic energy to escape!",
-      },
-      {
-        questionText: "If the wavefunction of a particle incident on a barrier has an energy E less than the barrier height V, what happens to the wavefunction inside the barrier?",
-        options: [
-          "It becomes a constant zero",
-          "It decays exponentially",
-          "It oscillates with twice the frequency",
-          "It remains a constant amplitude sine wave",
-        ],
-        answerIdx: 1,
-        explanation: "Inside the potential barrier where E < V, the wavefunction undergoes exponential decay. If the barrier is thin enough, the wavefunction value is non-zero at the far boundary, allowing the particle to emerge!",
-      },
-      {
-        questionText: "How does increasing the thickness of a potential barrier affect the transmission probability of a tunneling particle?",
-        options: [
-          "It increases the probability linearly",
-          "It does not change the probability",
-          "It decreases the probability exponentially",
-          "It increases the probability exponentially",
-        ],
-        answerIdx: 2,
-        explanation: "Transmission probability decreases exponentially with the width of the barrier, making thin barriers highly critical for quantum tunneling electronics (like flash memory memory cells)!",
-      },
-    ];
+    const targetSubject = subject || struggles?.[0] || "Physics";
+    const targetTopic = topic || "Electromagnetism & Faraday's Law";
 
     if (!apiKey) {
-      console.log("No GEMINI_API_KEY found for quiz, returning fallback questions.");
-      return NextResponse.json({ quiz: fallbackQuiz });
+      return NextResponse.json({ quiz: fallbackPaper1Questions });
     }
 
     const prompt = `
-      You are an expert curriculum counselor at Ticha AI in Cameroon.
-      Create a personalized 3-question multiple choice quiz for a student at education level: "${education}"
-      with the goal: "${goal}" and who struggles with: "${struggles?.join(", ") || "science"}".
+      You are a senior examiner for the Cameroon GCE Board (Ordinary & Advanced Level).
+      Create a 15-question GCE Paper 1 Multiple Choice Exam.
 
-      Formulate questions specifically testing concepts relevant to those struggles. Make sure questions have a neobrutalist vibe—practical, educational, and high-yield.
+      CRITICAL TOPIC RELEVANCY MANDATE (VERY IMPORTANT):
+      All 15 questions MUST be 100% strictly relevant to and derived ONLY from the specified daily lesson topic: "${targetTopic}" within subject: "${targetSubject}".
+      Do NOT ask questions about unrelated topics or outside the scope of "${targetTopic}".
+      Education level: "${education || "al"}".
 
-      Return the result strictly as a JSON object of this structure:
+      CRITICAL GCE PAPER 1 RULES:
+      1. Formulate 15 high-yield multiple choice questions focused strictly on "${targetTopic}".
+      2. Each question MUST have exactly 4 plausible options [A, B, C, D].
+      3. Provide the 0-based index of the correct answer (0 for A, 1 for B, 2 for C, 3 for D).
+      4. Include a concise, high-yield exam explanation for the correct answer.
+      5. Include "wrongExplanations": an array of 4 short sentences explaining why each option (A, B, C, D) is either correct or incorrect/a distractor trap.
+      6. Include "examTrap": a specific GCE Exam Trap to watch out for in this exact topic (e.g. common miscalculation, formula mix-up, or trick option).
+      7. CRITICAL: Do NOT use markdown symbols (no ###, no ***, no **, no LaTeX like \\mathbb{N} or \\mathb{N}). Use plain text!
+
+      Return ONLY raw JSON matching this structure:
       {
         "quiz": [
           {
-            "questionText": "Question statement here?",
+            "questionText": "GCE Paper 1 question text here?",
             "options": ["Option A", "Option B", "Option C", "Option D"],
-            "answerIdx": 0,
-            "explanation": "High-yield concept explanation card text here."
+            "answerIdx": 1,
+            "explanation": "Clear exam explanation text for correct answer.",
+            "wrongExplanations": [
+              "Why option A is incorrect distractor.",
+              "Why option B is correct.",
+              "Why option C is incorrect.",
+              "Why option D is incorrect."
+            ],
+            "examTrap": "Madame Ticha Exam Trap: Common pitfall to watch out for in this topic."
           }
         ]
       }
-
-      Strictly return valid JSON. Do not wrap in markdown block code tags.
     `;
 
     const response = await fetch(
@@ -89,44 +163,31 @@ export async function POST(req: NextRequest) {
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API returned status ${response.status}`);
+      return NextResponse.json({ quiz: fallbackPaper1Questions });
     }
 
     const json = await response.json();
     const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) throw new Error("Empty response from Gemini");
+    if (!rawText) return NextResponse.json({ quiz: fallbackPaper1Questions });
 
     const parsed = JSON.parse(rawText.trim());
-    return NextResponse.json({ quiz: parsed.quiz || fallbackQuiz });
+    const rawQuiz: QuizQuestion[] = parsed.quiz || fallbackPaper1Questions;
 
-  } catch (error) {
-    console.error("Gemini quiz generation failed, returning fallback quiz:", error);
-    // Bails out safely
-    return NextResponse.json({
-      quiz: [
-        {
-          questionText: "Which of the following phenomena is a direct manifestation of quantum tunneling?",
-          options: [
-            "Alpha decay of radioactive nuclei",
-            "Blackbody radiation intensity",
-            "Photoelectric work function threshold",
-            "Bohr radius orbital electron levels",
-          ],
-          answerIdx: 0,
-          explanation: "Alpha decay occurs because alpha particles tunnel through the strong nuclear force potential barrier of the nucleus, even though they classically lack the kinetic energy to escape!",
-        },
-        {
-          questionText: "If the wavefunction of a particle incident on a barrier has an energy E less than the barrier height V, what happens to the wavefunction inside the barrier?",
-          options: [
-            "It becomes a constant zero",
-            "It decays exponentially",
-            "It oscillates with twice the frequency",
-            "It remains a constant amplitude sine wave",
-          ],
-          answerIdx: 1,
-          explanation: "Inside the potential barrier where E < V, the wavefunction undergoes exponential decay. If the barrier is thin enough, the wavefunction value is non-zero at the far boundary, allowing the particle to emerge!",
-        },
-      ]
-    });
+    // Format all quiz strings using formatAIText
+    const cleanedQuiz = rawQuiz.map((q) => ({
+      questionText: formatAIText(q.questionText),
+      options: q.options.map((opt) => formatAIText(opt)),
+      answerIdx: typeof q.answerIdx === "number" ? q.answerIdx : 0,
+      explanation: formatAIText(q.explanation),
+      wrongExplanations: Array.isArray(q.wrongExplanations)
+        ? q.wrongExplanations.map((w) => formatAIText(w))
+        : undefined,
+      examTrap: q.examTrap ? formatAIText(q.examTrap) : undefined,
+    }));
+
+    return NextResponse.json({ quiz: cleanedQuiz });
+  } catch (err) {
+    console.error("Quiz API exception:", err);
+    return NextResponse.json({ quiz: fallbackPaper1Questions });
   }
 }

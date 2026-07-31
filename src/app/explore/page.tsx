@@ -131,7 +131,7 @@ export default function ExploreHubPage() {
 
   const handleCardClick = (id: string) => {
     if (id === "daily-quiz") {
-      router.push("/dashboard/daily-lessons");
+      router.push("/dashboard/daily-quiz");
       return;
     }
     const routes: Record<string, string> = {

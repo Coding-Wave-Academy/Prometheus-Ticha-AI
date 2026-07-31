@@ -140,18 +140,19 @@ export default function TutorPage() {
 
             {/* Floating Input bar for Subject Study */}
             <div className="fixed bottom-16 left-0 right-0 w-full max-w-md mx-auto bg-white border-t-[3.5px] border-black p-3 z-30 shadow-[0_-4px_0px_0px_rgba(0,0,0,1)]">
-              <form onSubmit={handleSend} className="flex items-center gap-2">
-                <div className="flex-1 relative">
+              <form onSubmit={handleSend} className="flex items-center gap-2.5 w-full">
+                <div className="flex-1 relative flex items-center">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={`Ask about ${currentSubject || "subject"}...`}
-                    className="w-full bg-[#FAF7EC] border-[3px] border-black rounded-xl p-3 pr-10 text-xs md:text-sm font-medium outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+                    className="w-full min-h-[44px] bg-[#FAF7EC] border-[3px] border-black rounded-xl px-3.5 py-2.5 pr-11 text-xs md:text-sm font-bold text-black outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-black"
+                    aria-label="Voice prompt"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-stone-500 hover:text-black w-10 h-10 flex items-center justify-center rounded-lg active:scale-95"
                   >
                     <Mic01Icon size={18} />
                   </button>
@@ -159,7 +160,8 @@ export default function TutorPage() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isStreaming}
-                  className="w-11 h-11 bg-[#B6FF00] border-[3px] border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform disabled:opacity-50 shrink-0"
+                  aria-label="Send message"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] bg-[#B6FF00] border-[3px] border-black rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform disabled:opacity-50 shrink-0"
                 >
                   <ArrowRight01Icon size={20} className="text-black" />
                 </button>

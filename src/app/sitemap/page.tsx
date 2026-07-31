@@ -137,6 +137,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Daily Quiz (Paper 1 Exam)",
+          path: "/dashboard/daily-quiz",
+          description: "GCE Paper 1 Exam environment connected to daily lesson topics.",
+          badge: "Exam",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "AI Quiz Generator",
           path: "/dashboard/quiz-generator",
           description: "Interactive dynamically generated MCQ quizzes using student profile vector data.",
