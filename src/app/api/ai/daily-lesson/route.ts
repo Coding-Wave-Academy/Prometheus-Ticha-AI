@@ -4,6 +4,32 @@ import { formatAIText } from "@/lib/formatAIText";
 export const dynamic = "force-dynamic";
 
 /* ------------------------------------------------------------------ */
+/*  Canonical Subject Names & Struggle Key Normalizer                */
+/* ------------------------------------------------------------------ */
+const canonicalSubjectMap: Record<string, string> = {
+  physics: "Physics",
+  phys: "Physics",
+  math: "Pure Mathematics",
+  "pure math": "Pure Mathematics",
+  "pure mathematics": "Pure Mathematics",
+  "further math": "Further Mathematics",
+  "further mathematics": "Further Mathematics",
+  ict: "ICT",
+  computing: "ICT",
+  chemistry: "Chemistry",
+  chem: "Chemistry",
+  biology: "Biology",
+  bio: "Biology",
+  english: "English Language",
+  french: "French Language",
+};
+
+function normalizeSubject(input: string): string {
+  const key = input.trim().toLowerCase();
+  return canonicalSubjectMap[key] || input.trim();
+}
+
+/* ------------------------------------------------------------------ */
 /*  Subject-specific topic pools for YouTube searches                  */
 /* ------------------------------------------------------------------ */
 const subjectTopicPools: Record<string, string[]> = {
@@ -75,8 +101,8 @@ const subjectTopicPools: Record<string, string[]> = {
 /*  Subject complement map for daily rotation                          */
 /* ------------------------------------------------------------------ */
 const subjectComplements: Record<string, string[]> = {
-  Physics: ["Pure Mathematics", "Chemistry"],
-  "Pure Mathematics": ["Physics", "Further Mathematics"],
+  Physics: ["Pure Mathematics", "Chemistry", "ICT"],
+  "Pure Mathematics": ["Physics", "Further Mathematics", "Chemistry"],
   "Further Mathematics": ["Pure Mathematics", "Physics"],
   ICT: ["Pure Mathematics", "Physics"],
   Chemistry: ["Biology", "Physics", "Pure Mathematics"],
@@ -86,71 +112,99 @@ const subjectComplements: Record<string, string[]> = {
 /* ------------------------------------------------------------------ */
 /*  Determine today's subject using day-of-year rotation               */
 /* ------------------------------------------------------------------ */
-function getTodaySubject(struggles: string[]): { todaySubject: string; yesterdaySubject: string | null } {
-  if (struggles.length === 0) struggles = ["Physics", "Pure Mathematics", "ICT"];
+function getTodaySubject(normalizedStruggles: string[]): { todaySubject: string; yesterdaySubject: string | null } {
+  const subjects = normalizedStruggles.length > 0
+    ? normalizedStruggles
+    : ["Physics", "Pure Mathematics", "ICT"];
 
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Yesterday's subject
-  const yesterdayIdx = (dayOfYear - 1) % struggles.length;
-  const yesterdaySubject = struggles[Math.abs(yesterdayIdx) % struggles.length] || null;
+  // Yesterday's index
+  const yesterdayIdx = Math.abs((dayOfYear - 1) % subjects.length);
+  const yesterdaySubject = subjects[yesterdayIdx] || null;
 
-  // Today: pick a complementary subject to yesterday
+  // If yesterday's subject has complements in the student's struggles, pick one
   if (yesterdaySubject && subjectComplements[yesterdaySubject]) {
     const complements = subjectComplements[yesterdaySubject];
-    // Find a complement that exists in the student's struggle list
-    const match = complements.find((c) => struggles.includes(c));
-    if (match) return { todaySubject: match, yesterdaySubject };
+    const match = complements.find((c) => subjects.includes(c));
+    if (match && match !== yesterdaySubject) {
+      return { todaySubject: match, yesterdaySubject };
+    }
   }
 
-  // Fallback: simple round-robin
-  const todayIdx = dayOfYear % struggles.length;
-  return { todaySubject: struggles[todayIdx], yesterdaySubject };
+  // Fallback: simple day-of-year rotation through the student's struggles
+  const todayIdx = Math.abs(dayOfYear % subjects.length);
+  return { todaySubject: subjects[todayIdx], yesterdaySubject };
 }
 
 /* ------------------------------------------------------------------ */
-/*  Pick a random topic for a subject                                  */
+/*  Pick a topic for a subject based on day of year                   */
 /* ------------------------------------------------------------------ */
 function pickTodayTopic(subject: string): string {
   const pool = subjectTopicPools[subject] || subjectTopicPools.Physics;
   const now = new Date();
   const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-  return pool[dayOfYear % pool.length];
+  return pool[Math.abs(dayOfYear % pool.length)];
 }
 
 /* ------------------------------------------------------------------ */
-/*  Search YouTube for a real embeddable video                         */
+/*  Search & Verify Embeddable YouTube Video                          */
 /* ------------------------------------------------------------------ */
 async function searchYouTubeVideo(subject: string, topic: string): Promise<{ id: string; title: string; channelTitle: string } | null> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return null;
 
   const query = `${topic} ${subject} GCE A-Level explainer tutorial`;
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&videoDuration=medium&key=${apiKey}`;
+  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&key=${apiKey}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(searchUrl);
     if (!res.ok) return null;
 
     const data = await res.json();
     if (!data.items || data.items.length === 0) return null;
 
-    // Return first embeddable result
+    // Extract video IDs and verify embeddability via Videos API
+    const videoIds = data.items.map((item: any) => item.id.videoId).filter(Boolean);
+    if (videoIds.length === 0) return null;
+
+    const verifyUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,snippet&id=${videoIds.join(",")}&key=${apiKey}`;
+    const verifyRes = await fetch(verifyUrl);
+
+    if (verifyRes.ok) {
+      const verifyData = await verifyRes.json();
+      if (verifyData.items && verifyData.items.length > 0) {
+        // Find first item where status.embeddable is true and status.uploadStatus is processed
+        const validItem = verifyData.items.find(
+          (v: any) => v.status?.embeddable === true && (v.status?.uploadStatus === "processed" || !v.status?.uploadStatus)
+        );
+        if (validItem) {
+          return {
+            id: validItem.id,
+            title: validItem.snippet.title,
+            channelTitle: validItem.snippet.channelTitle,
+          };
+        }
+      }
+    }
+
+    // Fallback to first search result if verify endpoint didn't filter
     const item = data.items[0];
     return {
       id: item.id.videoId,
       title: item.snippet.title,
       channelTitle: item.snippet.channelTitle,
     };
-  } catch {
+  } catch (err) {
+    console.error("YouTube search & verify error:", err);
     return null;
   }
 }
 
 /* ------------------------------------------------------------------ */
-/*  Lesson shape returned to the client                                */
+/*  Lesson shape returned to client                                    */
 /* ------------------------------------------------------------------ */
 export interface DailyLessonV2 {
   id: string;
@@ -190,15 +244,20 @@ export async function POST(req: NextRequest) {
     const { struggles, education } = await req.json();
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    const studentStruggles = Array.isArray(struggles) && struggles.length > 0
+    const rawStruggles = Array.isArray(struggles) && struggles.length > 0
       ? struggles
-      : ["Physics", "Pure Mathematics", "ICT"];
+      : ["physics", "math", "ict"];
 
-    // 1. Determine today's single subject
-    const { todaySubject } = getTodaySubject(studentStruggles);
+    // Normalize input struggle keys (e.g. "math" -> "Pure Mathematics")
+    const normalizedStruggles = Array.from(
+      new Set(rawStruggles.map((s: string) => normalizeSubject(s)))
+    );
+
+    // 1. Determine today's single subject using complementary rotation
+    const { todaySubject } = getTodaySubject(normalizedStruggles);
     const todayTopic = pickTodayTopic(todaySubject);
 
-    // 2. Search YouTube for a real video
+    // 2. Search & verify YouTube for a real embeddable video
     const ytResult = await searchYouTubeVideo(todaySubject, todayTopic);
     const fallback = fallbackYouTube[todaySubject] || fallbackYouTube.Physics;
     const youtubeId = ytResult?.id || fallback.id;
@@ -219,7 +278,7 @@ Student level: "${education || "al"}".
 
 CRITICAL FORMAT RULES:
 - Do NOT use markdown (no ###, no **, no ***, no backticks).
-- Do NOT use LaTeX (no \mathbb, no \frac, no $...$).
+- Do NOT use LaTeX (no \\mathbb, no \\frac, no $...$).
 - Write in plain text only. Use simple everyday words a young student understands.
 - Keep each tip extremely expressive, engaging, and directly focused on the lesson learnt (max 15-20 words). Act like a passionate teacher.
 

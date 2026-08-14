@@ -20,30 +20,48 @@ export function useNavItems(): NavItemWithHandlers[] {
   const router = useRouter();
   const pathname = usePathname() || "";
 
-  const isProfilePage = pathname.startsWith("/dashboard/profile");
+  // Route domain classification helper
+  const getActiveTab = (path: string): string => {
+    if (path.startsWith("/dashboard/profile")) return "profile";
+    if (path.startsWith("/dashboard/tutor")) return "chat";
+    if (path.startsWith("/dashboard/videos")) return "video";
 
-  return NAV_DEFINITIONS.map((item) => {
-    let isActive = false;
-
-    if (item.id === "profile") {
-      isActive = isProfilePage;
-    } else if (item.id === "home") {
-      isActive = (pathname === "/dashboard" || pathname === "/") && !isProfilePage;
-    } else if (item.id === "explore") {
-      isActive =
-        !isProfilePage &&
-        (pathname.startsWith("/explore") ||
-          pathname.startsWith("/leaderboard") ||
-          pathname.startsWith("/courses") ||
-          pathname.includes("/quiz"));
-    } else {
-      isActive = !isProfilePage && pathname === item.href;
+    // Explore hub domain items (daily quiz, flashcards, past papers, summaries, practice, leaderboard, courses)
+    if (
+      path.startsWith("/explore") ||
+      path.startsWith("/dashboard/daily-quiz") ||
+      path.startsWith("/daily-quiz") ||
+      path.startsWith("/dashboard/flashcards") ||
+      path.startsWith("/summaries") ||
+      path.startsWith("/past-papers") ||
+      path.startsWith("/practice") ||
+      path.startsWith("/leaderboard") ||
+      path.startsWith("/courses") ||
+      path.startsWith("/dashboard/quiz-generator")
+    ) {
+      return "explore";
     }
 
-    return {
-      ...item,
-      active: isActive,
-      onClick: () => router.push(item.href),
-    };
-  });
+    // Home domain items (dashboard, daily lessons, subjects, notifications, progress, root)
+    if (
+      path === "/dashboard" ||
+      path === "/" ||
+      path.startsWith("/dashboard/daily-lessons") ||
+      path.startsWith("/dashboard/subjects") ||
+      path.startsWith("/dashboard/notifications") ||
+      path.startsWith("/dashboard/progress")
+    ) {
+      return "home";
+    }
+
+    return "home";
+  };
+
+  const activeTabId = getActiveTab(pathname);
+
+  return NAV_DEFINITIONS.map((item) => ({
+    ...item,
+    active: item.id === activeTabId,
+    onClick: () => router.push(item.href),
+  }));
 }

@@ -113,6 +113,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Revision Flashcards",
+          path: "/dashboard/flashcards",
+          description: "Interactive AI flashcards with tap-to-flip cards and spaced repetition.",
+          badge: "New",
+          badgeBg: "bg-[#B6FF00]",
+        },
+        {
           name: "National & School Leaderboards",
           path: "/leaderboard",
           description: "Podium, daily rankings, level toggle and context filters.",

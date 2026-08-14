@@ -606,6 +606,14 @@ export default function DailyLessonsPage() {
                 {/* Navigation Buttons */}
                 <div className="space-y-3">
                   <button
+                    onClick={() => router.push("/dashboard/flashcards")}
+                    className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
+                  >
+                    <SparklesIcon size={18} className="text-black" />
+                    <span>Practice Topic Flashcards 🎴</span>
+                  </button>
+
+                  <button
                     onClick={() => router.push("/dashboard/videos")}
                     className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >

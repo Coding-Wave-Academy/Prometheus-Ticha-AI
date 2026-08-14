@@ -14,13 +14,13 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     icons: [
       {
-        src: "/images/madame-ticha.png",
+        src: "/images/ticha-logo.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/images/madame-ticha.png",
+        src: "/images/ticha-logo.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
