@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft01Icon,
@@ -16,6 +16,7 @@ import {
   Cancel01Icon,
   Target02Icon,
   File01Icon,
+  RotateRight01Icon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -23,6 +24,7 @@ import { useStreak } from "@/hooks/useStreak";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
+import { normalizeSubjectName } from "@/lib/videoCatalog";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -73,12 +75,39 @@ const subjectColors: Record<string, string> = {
   ICT: "#FFDF9E",
   Chemistry: "#FFD9E0",
   Biology: "#C8F7C5",
+  "English Language": "#E2D3FF",
+  "French Language": "#A8FFD3",
 };
 
 export default function DailyLessonsPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
+          <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <DailyLessonsContent />
+    </React.Suspense>
+  );
+}
+
+function DailyLessonsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const navItems = useNavItems();
   const { streakCount, claimDailyStreak } = useStreak();
+
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([
+    "Physics",
+    "Pure Mathematics",
+    "ICT",
+    "Chemistry",
+    "Biology",
+  ]);
+  const [activeSubject, setActiveSubject] = useState<string>("");
+  const [activeTopic, setActiveTopic] = useState<string>("");
 
   const [lesson, setLesson] = useState<DailyLessonV2 | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,12 +126,33 @@ export default function DailyLessonsPage() {
   const [showAffirmation, setShowAffirmation] = useState(false);
   const [affirmation, setAffirmation] = useState(affirmations[0]);
 
+  // Load available subjects on mount
   useEffect(() => {
-    fetchLesson();
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("ticha_onboarding_struggles");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const mapped = Array.from(new Set(parsed.map((s: string) => normalizeSubjectName(s))));
+            setAvailableSubjects(mapped);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
-  const fetchLesson = async () => {
+  const fetchLesson = useCallback(async (targetSub?: string, targetTop?: string) => {
     setIsLoading(true);
+    setStep("video");
+    setVideoWatched(false);
+    setQuizIdx(0);
+    setSelectedOpt(null);
+    setIsAnswered(false);
+    setCorrectCount(0);
+
     try {
       let struggles = ["Physics", "Pure Mathematics", "ICT"];
       if (typeof window !== "undefined") {
@@ -115,28 +165,58 @@ export default function DailyLessonsPage() {
         }
       }
 
+      const payload: any = { struggles, education: "al" };
+      if (targetSub) payload.subject = targetSub;
+      if (targetTop) payload.topic = targetTop;
+
       const res = await fetch("/api/ai/daily-lesson", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ struggles, education: "al" }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Lesson fetch failed");
       const data = await res.json();
-      const loadedLesson = data.lesson || null;
+      const loadedLesson: DailyLessonV2 = data.lesson || null;
       setLesson(loadedLesson);
 
-      if (loadedLesson && typeof window !== "undefined") {
-        localStorage.setItem(
-          "ticha_today_lesson_topic",
-          JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
-        );
+      if (loadedLesson) {
+        setActiveSubject(loadedLesson.subject);
+        setActiveTopic(loadedLesson.topic);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            "ticha_today_lesson_topic",
+            JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to load daily lesson:", err);
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  // Handle initial load or search param changes
+  useEffect(() => {
+    const urlSubject = searchParams.get("subject");
+    const urlTopic = searchParams.get("topic");
+
+    if (urlSubject) {
+      const norm = normalizeSubjectName(urlSubject);
+      setActiveSubject(norm);
+      if (urlTopic) setActiveTopic(urlTopic);
+      fetchLesson(norm, urlTopic || undefined);
+    } else {
+      fetchLesson();
+    }
+  }, [searchParams, fetchLesson]);
+
+  const handleSelectSubject = (sub: string) => {
+    hapticTap();
+    setActiveSubject(sub);
+    setActiveTopic("");
+    fetchLesson(sub);
   };
 
   const handleVideoWatched = () => {
@@ -221,22 +301,6 @@ export default function DailyLessonsPage() {
     setStep("complete");
   };
 
-  if (!lesson && !isLoading) {
-    return (
-      <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black font-sans">
-        <main className="w-full max-w-md mx-auto p-4 pt-6">
-          <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-            <h3 className="font-black text-base uppercase">No Lesson Available</h3>
-            <button onClick={fetchLesson} className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-6 py-3 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all">
-              Retry
-            </button>
-          </div>
-        </main>
-        <BottomNav items={navItems} />
-      </div>
-    );
-  }
-
   const accentColor = lesson ? (subjectColors[lesson.subject] || "#FFB040") : "#FFB040";
 
   return (
@@ -257,7 +321,7 @@ export default function DailyLessonsPage() {
                 1% Daily Lesson
               </h1>
               <p className="text-xs font-bold text-stone-600">
-                {lesson ? `Today: ${lesson.subject}` : "Loading..."}
+                {lesson ? `${lesson.subject}` : "Loading..."}
               </p>
             </div>
           </div>
@@ -268,16 +332,60 @@ export default function DailyLessonsPage() {
           </div>
         </header>
 
+        {/* Subject Switcher Bar */}
+        <section aria-label="Subject Selector" className="w-full">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {availableSubjects.map((sub) => {
+              const isSelected = activeSubject.toLowerCase() === sub.toLowerCase();
+              const subColor = subjectColors[sub] || "#FAF7EC";
+
+              return (
+                <button
+                  key={sub}
+                  onClick={() => handleSelectSubject(sub)}
+                  disabled={isLoading}
+                  className={`px-3 py-1.5 rounded-full border-[2.5px] border-black text-xs font-black uppercase tracking-wider shrink-0 transition-all active:translate-x-px active:translate-y-px active:shadow-none ${
+                    isSelected
+                      ? "bg-black text-[#B6FF00] shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]"
+                      : "bg-white text-black hover:bg-stone-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full border border-black inline-block"
+                      style={{ backgroundColor: subColor }}
+                    />
+                    <span>{sub}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Loading State */}
         {isLoading && (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
-              Preparing Today&apos;s Lesson...
+              Generating {activeSubject || "Today's"} Lesson...
             </h3>
             <p className="text-xs font-bold text-stone-600">
-              Finding the best concept video and quiz for you.
+              Matching verified topic video, exam tips, and GCE practice questions.
             </p>
+          </div>
+        )}
+
+        {/* Error / Empty State */}
+        {!isLoading && !lesson && (
+          <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
+            <h3 className="font-black text-base uppercase">No Lesson Available</h3>
+            <button
+              onClick={() => fetchLesson(activeSubject || undefined)}
+              className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-6 py-3 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
+            >
+              Retry
+            </button>
           </div>
         )}
 
@@ -304,18 +412,34 @@ export default function DailyLessonsPage() {
               })}
             </div>
 
-            {/* Subject Badge */}
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-flex items-center gap-1.5 text-black border-[2.5px] border-black rounded-full px-3.5 py-1 text-[11px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                style={{ backgroundColor: accentColor }}
+            {/* Subject & Topic Title Card */}
+            <div className="flex items-center justify-between gap-2 bg-white border-[3px] border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-flex items-center gap-1.5 text-black border-[2px] border-black rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    <Book01Icon size={12} />
+                    <span>{lesson.subject}</span>
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase text-stone-500">
+                    Syllabus Topic
+                  </span>
+                </div>
+                <h2 className="text-base font-black text-black leading-tight">
+                  {lesson.topic}
+                </h2>
+              </div>
+
+              <button
+                onClick={() => fetchLesson(activeSubject || undefined)}
+                className="w-9 h-9 bg-[#FAF7EC] hover:bg-[#FAF7EC]/80 border-[2px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all shrink-0"
+                title="Shuffle topic"
+                aria-label="Refresh topic"
               >
-                <Book01Icon size={14} />
-                <span>{lesson.subject}</span>
-              </span>
-              <h2 className="text-base font-black text-black leading-tight flex-1">
-                {lesson.topic}
-              </h2>
+                <RotateRight01Icon size={16} className="text-black" />
+              </button>
             </div>
 
             {/* ============ STEP 1: VIDEO ============ */}
@@ -332,10 +456,10 @@ export default function DailyLessonsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-widest text-stone-700 flex items-center gap-1">
                         <SparklesIcon size={14} className="text-amber-600" />
-                        Concept Explainer Video
+                        Exact Concept Video
                       </span>
-                      <span className="text-[9px] font-black bg-[#B6FF00] px-2 py-0.5 border border-black rounded text-black">
-                        YouTube
+                      <span className="text-[9px] font-black bg-[#B6FF00] px-2 py-0.5 border border-black rounded text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        Embeddable
                       </span>
                     </div>
 
@@ -606,8 +730,16 @@ export default function DailyLessonsPage() {
                 {/* Navigation Buttons */}
                 <div className="space-y-3">
                   <button
-                    onClick={() => router.push("/dashboard/flashcards")}
+                    onClick={() => router.push(`/dashboard/daily-quiz?subject=${encodeURIComponent(lesson.subject)}&topic=${encodeURIComponent(lesson.topic)}`)}
                     className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
+                  >
+                    <Target02Icon size={18} className="text-black" />
+                    <span>Take 15-Question Exam Quiz 📝</span>
+                  </button>
+
+                  <button
+                    onClick={() => router.push("/dashboard/flashcards")}
+                    className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <SparklesIcon size={18} className="text-black" />
                     <span>Practice Topic Flashcards 🎴</span>
@@ -618,7 +750,7 @@ export default function DailyLessonsPage() {
                     className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <PlayIcon size={16} className="text-black fill-current" />
-                    <span>Watch More Concept Videos</span>
+                    <span>Watch More Concept Videos 🎬</span>
                   </button>
 
                   <button

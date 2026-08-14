@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const { goal, education } = await req.json();
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     // Standard high-quality fallback subject options mapped by education level
     const defaultMocks: Record<string, StruggleSubject[]> = {

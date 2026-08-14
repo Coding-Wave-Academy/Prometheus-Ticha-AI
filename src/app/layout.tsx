@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import DeviceGate from "@/components/layout/DeviceGate";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <DeviceGate>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </DeviceGate>
+        <Analytics/>
       </body>
     </html>
   );

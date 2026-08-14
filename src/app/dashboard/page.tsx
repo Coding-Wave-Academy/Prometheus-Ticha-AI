@@ -122,74 +122,105 @@ function StudentDashboardPageContent() {
       return 0; // 0% initial progress for new users!
     };
 
+    const mathSubject: SubjectData = {
+      id: "math",
+      category: "Mathematics",
+      title: "Pure Maths",
+      subtitle: "Algebra, Calculus & Vectors",
+      progress: getProgress("pure mathematics"),
+      bgColor: "bg-[#B6FF00]",
+      icon: <SquareIcon size={24} className="text-black" />,
+    };
+
+    const physicsSubject: SubjectData = {
+      id: "phys",
+      category: "Sciences",
+      title: "Physics",
+      subtitle: "Mechanics, Fields & Waves",
+      progress: getProgress("physics"),
+      bgColor: "bg-[#FFB040]",
+      icon: <FlashIcon size={24} className="text-black" />,
+    };
+
+    const ictSubject: SubjectData = {
+      id: "ict",
+      category: "Technology",
+      title: "ICT & Computing",
+      subtitle: "Databases, Networks & SDLC",
+      progress: getProgress("ict"),
+      bgColor: "bg-[#FFDF9E]",
+      icon: <ComputerIcon size={24} className="text-black" />,
+    };
+
+    const chemSubject: SubjectData = {
+      id: "chem",
+      category: "Sciences",
+      title: "Chemistry",
+      subtitle: "Atomic Structure & Energetics",
+      progress: getProgress("chemistry"),
+      bgColor: "bg-[#D3E2FF]",
+      icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
+    };
+
+    const bioSubject: SubjectData = {
+      id: "bio",
+      category: "Sciences",
+      title: "Biology",
+      subtitle: "Genetics & Cell Structure",
+      progress: getProgress("biology"),
+      bgColor: "bg-[#FFD9E0]",
+      icon: <Award01Icon size={24} className="text-black" />,
+    };
+
+    const engSubject: SubjectData = {
+      id: "eng",
+      category: "Arts",
+      title: "English Language",
+      subtitle: "Essay Structure & Comprehension",
+      progress: getProgress("english"),
+      bgColor: "bg-[#E2D3FF]",
+      icon: <Book01Icon size={24} className="text-black" />,
+    };
+
+    const frSubject: SubjectData = {
+      id: "fr",
+      category: "Arts",
+      title: "French Language",
+      subtitle: "Grammar & Expression Écrite",
+      progress: getProgress("french"),
+      bgColor: "bg-[#A8FFD3]",
+      icon: <Globe02Icon size={24} className="text-black" />,
+    };
+
     const subjectMap: Record<string, SubjectData> = {
-      physics: {
-        id: "phys",
-        category: "Sciences",
-        title: "Physics",
-        subtitle: "Electromagnetism & Quantum Physics",
-        progress: getProgress("physics"),
-        bgColor: "bg-[#FFB040]",
-        icon: <FlashIcon size={24} className="text-black" />,
-      },
-      math: {
-        id: "math",
-        category: "Mathematics",
-        title: "Pure Maths",
-        subtitle: "Complex Numbers & Calculus Limits",
-        progress: getProgress("pure mathematics"),
-        bgColor: "bg-[#B6FF00]",
-        icon: <SquareIcon size={24} className="text-black" />,
-      },
-      ict: {
-        id: "ict",
-        category: "Technology",
-        title: "ICT & Computing",
-        subtitle: "Database Normalization & Networks",
-        progress: getProgress("ict"),
-        bgColor: "bg-[#FFDF9E]",
-        icon: <ComputerIcon size={24} className="text-black" />,
-      },
-      chemistry: {
-        id: "chem",
-        category: "Sciences",
-        title: "Chemistry",
-        subtitle: "Organic Reactions & Energetics",
-        progress: getProgress("chemistry"),
-        bgColor: "bg-[#D3E2FF]",
-        icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
-      },
-      biology: {
-        id: "bio",
-        category: "Sciences",
-        title: "Biology",
-        subtitle: "Genetics & Cell Structure",
-        progress: getProgress("biology"),
-        bgColor: "bg-[#FFD9E0]",
-        icon: <Award01Icon size={24} className="text-black" />,
-      },
-      english: {
-        id: "eng",
-        category: "Arts",
-        title: "English Language",
-        subtitle: "Essay Structure & Comprehension",
-        progress: getProgress("english"),
-        bgColor: "bg-[#E2D3FF]",
-        icon: <Book01Icon size={24} className="text-black" />,
-      },
-      french: {
-        id: "fr",
-        category: "Arts",
-        title: "French Language",
-        subtitle: "Grammar & Expression Écrite",
-        progress: getProgress("french"),
-        bgColor: "bg-[#A8FFD3]",
-        icon: <Globe02Icon size={24} className="text-black" />,
-      },
+      physics: physicsSubject,
+      phys: physicsSubject,
+      "advanced physics": physicsSubject,
+      "o-level physics": physicsSubject,
+      math: mathSubject,
+      "pure math": mathSubject,
+      "pure maths": mathSubject,
+      "pure mathematics": mathSubject,
+      mathematics: mathSubject,
+      "o-level mathematics": mathSubject,
+      "further math": mathSubject,
+      "further mathematics": mathSubject,
+      ict: ictSubject,
+      computing: ictSubject,
+      "computer science": ictSubject,
+      "computer programming": ictSubject,
+      chemistry: chemSubject,
+      chem: chemSubject,
+      "advanced chemistry": chemSubject,
+      "o-level chemistry": chemSubject,
+      biology: bioSubject,
+      bio: bioSubject,
+      english: engSubject,
+      french: frSubject,
     };
 
     const mapped = struggles
-      .map((s) => subjectMap[s.toLowerCase()])
+      .map((s) => subjectMap[s.toLowerCase().trim()])
       .filter(Boolean);
 
     if (mapped.length > 0) {

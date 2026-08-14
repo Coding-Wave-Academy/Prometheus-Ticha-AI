@@ -1,36 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { formatAIText } from "@/lib/formatAIText";
+import { findVideoForTopic, normalizeSubjectName } from "@/lib/videoCatalog";
 
 export const dynamic = "force-dynamic";
 
 /* ------------------------------------------------------------------ */
-/*  Canonical Subject Names & Struggle Key Normalizer                */
-/* ------------------------------------------------------------------ */
-const canonicalSubjectMap: Record<string, string> = {
-  physics: "Physics",
-  phys: "Physics",
-  math: "Pure Mathematics",
-  "pure math": "Pure Mathematics",
-  "pure mathematics": "Pure Mathematics",
-  "further math": "Further Mathematics",
-  "further mathematics": "Further Mathematics",
-  ict: "ICT",
-  computing: "ICT",
-  chemistry: "Chemistry",
-  chem: "Chemistry",
-  biology: "Biology",
-  bio: "Biology",
-  english: "English Language",
-  french: "French Language",
-};
-
-function normalizeSubject(input: string): string {
-  const key = input.trim().toLowerCase();
-  return canonicalSubjectMap[key] || input.trim();
-}
-
-/* ------------------------------------------------------------------ */
-/*  Subject-specific topic pools for YouTube searches                  */
+/*  Subject-specific topic pools for daily rotation                    */
 /* ------------------------------------------------------------------ */
 const subjectTopicPools: Record<string, string[]> = {
   Physics: [
@@ -43,16 +18,15 @@ const subjectTopicPools: Record<string, string[]> = {
     "Simple Harmonic Motion",
     "Gravitational Fields",
     "Nuclear Physics & Radioactivity",
-    "Refraction & Snell's Law",
   ],
   "Pure Mathematics": [
+    "Binomial Theorem",
     "Trigonometric Identities",
     "Differentiation from First Principles",
     "Integration by Substitution",
     "Quadratic Equations & Discriminant",
     "Logarithms & Exponential Functions",
     "Sequences & Series (AP and GP)",
-    "Binomial Theorem",
     "Coordinate Geometry of Circles",
     "Vectors in 2D and 3D",
     "Partial Fractions",
@@ -63,54 +37,27 @@ const subjectTopicPools: Record<string, string[]> = {
     "Proof by Induction",
     "Polar Coordinates",
     "Differential Equations",
-    "Hyperbolic Functions",
   ],
   ICT: [
     "Database Normalization 1NF 2NF 3NF",
     "Network Topologies & Protocols",
     "SQL Queries SELECT INSERT UPDATE",
     "System Development Life Cycle",
-    "Data Types & Validation",
     "Binary & Hexadecimal Number Systems",
-    "Internet Security & Encryption",
-    "Spreadsheet Functions & Formulas",
   ],
   Chemistry: [
     "Atomic Structure & Electron Configuration",
-    "Covalent & Ionic Bonding",
     "Rates of Reaction & Collision Theory",
-    "Organic Chemistry Alkanes & Alkenes",
-    "Redox Reactions & Electrochemistry",
-    "Mole Calculations & Stoichiometry",
-    "Acids Bases & pH Scale",
     "Equilibrium & Le Chatelier's Principle",
   ],
   Biology: [
     "Cell Structure & Organelles",
     "DNA Replication & Protein Synthesis",
-    "Photosynthesis Light Reactions",
-    "Cellular Respiration & ATP",
-    "Genetics & Punnett Squares",
-    "Enzymes & Enzyme Kinetics",
-    "Ecology & Food Chains",
-    "Human Circulatory System",
   ],
 };
 
 /* ------------------------------------------------------------------ */
-/*  Subject complement map for daily rotation                          */
-/* ------------------------------------------------------------------ */
-const subjectComplements: Record<string, string[]> = {
-  Physics: ["Pure Mathematics", "Chemistry", "ICT"],
-  "Pure Mathematics": ["Physics", "Further Mathematics", "Chemistry"],
-  "Further Mathematics": ["Pure Mathematics", "Physics"],
-  ICT: ["Pure Mathematics", "Physics"],
-  Chemistry: ["Biology", "Physics", "Pure Mathematics"],
-  Biology: ["Chemistry", "Physics"],
-};
-
-/* ------------------------------------------------------------------ */
-/*  Determine today's subject using day-of-year rotation               */
+/*  Determine today's subject using fair, balanced daily rotation     */
 /* ------------------------------------------------------------------ */
 function getTodaySubject(normalizedStruggles: string[]): { todaySubject: string; yesterdaySubject: string | null } {
   const subjects = normalizedStruggles.length > 0
@@ -121,29 +68,22 @@ function getTodaySubject(normalizedStruggles: string[]): { todaySubject: string;
   const startOfYear = new Date(now.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Yesterday's index
-  const yesterdayIdx = Math.abs((dayOfYear - 1) % subjects.length);
-  const yesterdaySubject = subjects[yesterdayIdx] || null;
-
-  // If yesterday's subject has complements in the student's struggles, pick one
-  if (yesterdaySubject && subjectComplements[yesterdaySubject]) {
-    const complements = subjectComplements[yesterdaySubject];
-    const match = complements.find((c) => subjects.includes(c));
-    if (match && match !== yesterdaySubject) {
-      return { todaySubject: match, yesterdaySubject };
-    }
-  }
-
-  // Fallback: simple day-of-year rotation through the student's struggles
   const todayIdx = Math.abs(dayOfYear % subjects.length);
-  return { todaySubject: subjects[todayIdx], yesterdaySubject };
+  const yesterdayIdx = Math.abs((dayOfYear - 1 + subjects.length) % subjects.length);
+
+  return {
+    todaySubject: subjects[todayIdx],
+    yesterdaySubject: subjects[yesterdayIdx] || null,
+  };
 }
 
 /* ------------------------------------------------------------------ */
 /*  Pick a topic for a subject based on day of year                   */
 /* ------------------------------------------------------------------ */
 function pickTodayTopic(subject: string): string {
-  const pool = subjectTopicPools[subject] || subjectTopicPools.Physics;
+  const pool = subjectTopicPools[subject] || subjectTopicPools.Physics || [
+    "Introduction to Core Concepts",
+  ];
   const now = new Date();
   const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   return pool[Math.abs(dayOfYear % pool.length)];
@@ -157,48 +97,28 @@ async function searchYouTubeVideo(subject: string, topic: string): Promise<{ id:
   if (!apiKey) return null;
 
   const query = `${topic} ${subject} GCE A-Level explainer tutorial`;
-  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=6&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&key=${apiKey}`;
+  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&key=${apiKey}`;
 
   try {
-    const res = await fetch(searchUrl);
+    const res = await fetch(searchUrl, {
+      headers: {
+        Referer: "https://prometheus-ticha-ai.vercel.app/",
+      },
+    });
     if (!res.ok) return null;
 
     const data = await res.json();
     if (!data.items || data.items.length === 0) return null;
 
-    // Extract video IDs and verify embeddability via Videos API
-    const videoIds = data.items.map((item: any) => item.id.videoId).filter(Boolean);
-    if (videoIds.length === 0) return null;
-
-    const verifyUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,snippet&id=${videoIds.join(",")}&key=${apiKey}`;
-    const verifyRes = await fetch(verifyUrl);
-
-    if (verifyRes.ok) {
-      const verifyData = await verifyRes.json();
-      if (verifyData.items && verifyData.items.length > 0) {
-        // Find first item where status.embeddable is true and status.uploadStatus is processed
-        const validItem = verifyData.items.find(
-          (v: any) => v.status?.embeddable === true && (v.status?.uploadStatus === "processed" || !v.status?.uploadStatus)
-        );
-        if (validItem) {
-          return {
-            id: validItem.id,
-            title: validItem.snippet.title,
-            channelTitle: validItem.snippet.channelTitle,
-          };
-        }
-      }
-    }
-
-    // Fallback to first search result if verify endpoint didn't filter
     const item = data.items[0];
+    if (!item?.id?.videoId) return null;
+
     return {
       id: item.id.videoId,
       title: item.snippet.title,
       channelTitle: item.snippet.channelTitle,
     };
-  } catch (err) {
-    console.error("YouTube search & verify error:", err);
+  } catch {
     return null;
   }
 }
@@ -225,55 +145,54 @@ export interface DailyLessonV2 {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Verified fallback YouTube IDs per subject                          */
-/* ------------------------------------------------------------------ */
-const fallbackYouTube: Record<string, { id: string; title: string; channel: string }> = {
-  Physics: { id: "ZM8ECpBuQYE", title: "Newton's Laws of Motion", channel: "Khan Academy" },
-  "Pure Mathematics": { id: "riXcZT2ICjA", title: "Introduction to Limits", channel: "Khan Academy" },
-  ICT: { id: "UrYLYV7WSHM", title: "Database Normalization", channel: "Decomplexify" },
-  Chemistry: { id: "xuPl_8wv9xo", title: "Atomic Structure", channel: "Professor Dave Explains" },
-  Biology: { id: "URUJD5NEXC8", title: "Cell Structure", channel: "Amoeba Sisters" },
-  "Further Mathematics": { id: "sW9npfMcMEI", title: "Complex Numbers", channel: "3Blue1Brown" },
-};
-
-/* ------------------------------------------------------------------ */
 /*  POST handler                                                       */
 /* ------------------------------------------------------------------ */
 export async function POST(req: NextRequest) {
   try {
-    const { struggles, education } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { struggles, education, subject: explicitSubject, topic: explicitTopic } = body;
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    const rawStruggles = Array.isArray(struggles) && struggles.length > 0
+    let rawStruggles = Array.isArray(struggles) && struggles.length > 0
       ? struggles
       : ["physics", "math", "ict"];
 
     // Normalize input struggle keys (e.g. "math" -> "Pure Mathematics")
     const normalizedStruggles = Array.from(
-      new Set(rawStruggles.map((s: string) => normalizeSubject(s)))
+      new Set(rawStruggles.map((s: string) => normalizeSubjectName(s)))
     );
 
-    // 1. Determine today's single subject using complementary rotation
-    const { todaySubject } = getTodaySubject(normalizedStruggles);
-    const todayTopic = pickTodayTopic(todaySubject);
+    // 1. Determine subject & topic: if explicit target provided, prioritize it
+    let targetSubject = explicitSubject ? normalizeSubjectName(explicitSubject) : null;
+    let targetTopic = explicitTopic ? String(explicitTopic).trim() : null;
 
-    // 2. Search & verify YouTube for a real embeddable video
-    const ytResult = await searchYouTubeVideo(todaySubject, todayTopic);
-    const fallback = fallbackYouTube[todaySubject] || fallbackYouTube.Physics;
-    const youtubeId = ytResult?.id || fallback.id;
-    const youtubeTitle = ytResult?.title || fallback.title;
-    const youtubeChannel = ytResult?.channelTitle || fallback.channel;
+    if (!targetSubject) {
+      const { todaySubject } = getTodaySubject(normalizedStruggles);
+      targetSubject = todaySubject;
+    }
+
+    if (!targetTopic) {
+      targetTopic = pickTodayTopic(targetSubject);
+    }
+
+    // 2. Resolve exact topic video using verified catalog with live API enhancement
+    const catalogVideo = findVideoForTopic(targetSubject, targetTopic);
+    const ytResult = await searchYouTubeVideo(targetSubject, targetTopic);
+
+    const youtubeId = ytResult?.id || catalogVideo.id;
+    const youtubeTitle = ytResult?.title || catalogVideo.title;
+    const youtubeChannel = ytResult?.channelTitle || catalogVideo.channelTitle;
 
     // 3. Generate lesson content with Gemini
     if (!apiKey) {
       return NextResponse.json({
-        lesson: buildFallbackLesson(todaySubject, todayTopic, youtubeId, youtubeTitle, youtubeChannel),
+        lesson: buildFallbackLesson(targetSubject, targetTopic, youtubeId, youtubeTitle, youtubeChannel),
       });
     }
 
     const prompt = `
 You are Madame Ticha, a Cameroonian GCE exam preparation specialist.
-Generate a daily lesson for subject: "${todaySubject}", topic: "${todayTopic}".
+Generate a daily lesson for subject: "${targetSubject}", topic: "${targetTopic}".
 Student level: "${education || "al"}".
 
 CRITICAL FORMAT RULES:
@@ -310,7 +229,7 @@ Return ONLY raw JSON matching this exact structure:
       "explanation": "Short 1-sentence explanation."
     }
   ],
-  "pastPaperHint": "Look for ${todaySubject} past paper questions about ${todayTopic} in your GCE revision pack."
+  "pastPaperHint": "Look for ${targetSubject} past paper questions about ${targetTopic} in your GCE revision pack."
 }`;
 
     const response = await fetch(
@@ -327,7 +246,7 @@ Return ONLY raw JSON matching this exact structure:
 
     if (!response.ok) {
       return NextResponse.json({
-        lesson: buildFallbackLesson(todaySubject, todayTopic, youtubeId, youtubeTitle, youtubeChannel),
+        lesson: buildFallbackLesson(targetSubject, targetTopic, youtubeId, youtubeTitle, youtubeChannel),
       });
     }
 
@@ -335,7 +254,7 @@ Return ONLY raw JSON matching this exact structure:
     const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) {
       return NextResponse.json({
-        lesson: buildFallbackLesson(todaySubject, todayTopic, youtubeId, youtubeTitle, youtubeChannel),
+        lesson: buildFallbackLesson(targetSubject, targetTopic, youtubeId, youtubeTitle, youtubeChannel),
       });
     }
 
@@ -343,8 +262,8 @@ Return ONLY raw JSON matching this exact structure:
 
     const lesson: DailyLessonV2 = {
       id: `lesson-${Date.now()}`,
-      subject: todaySubject,
-      topic: todayTopic,
+      subject: targetSubject,
+      topic: targetTopic,
       youtubeId,
       youtubeTitle: formatAIText(youtubeTitle),
       youtubeChannel,
@@ -358,14 +277,15 @@ Return ONLY raw JSON matching this exact structure:
             explanation: formatAIText(q.explanation || ""),
           }))
         : [],
-      pastPaperHint: formatAIText(parsed.pastPaperHint || `Practice ${todayTopic} questions from your GCE past papers.`),
+      pastPaperHint: formatAIText(parsed.pastPaperHint || `Practice ${targetTopic} questions from your GCE past papers.`),
     };
 
     return NextResponse.json({ lesson });
   } catch (err) {
     console.error("Daily lesson V2 generation error:", err);
+    const cat = findVideoForTopic("Physics", "Newton's Laws of Motion");
     return NextResponse.json({
-      lesson: buildFallbackLesson("Physics", "Newton's Laws of Motion", "ZM8ECpBuQYE", "Newton's Laws of Motion", "Khan Academy"),
+      lesson: buildFallbackLesson("Physics", "Newton's Laws of Motion", cat.id, cat.title, cat.channelTitle),
     });
   }
 }
