@@ -34,14 +34,7 @@ interface QuizQuestion {
 
 const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (15 Qs in 27 mins = 1620s)
 
-const availableSubjects = [
-  "Physics",
-  "Pure Mathematics",
-  "ICT",
-  "Chemistry",
-  "Biology",
-  "Further Mathematics",
-];
+
 
 export default function DailyQuizPage() {
   return (
@@ -305,31 +298,7 @@ function DailyQuizContent() {
           )}
         </header>
 
-        {/* Subject Pills Selector */}
-        {!isFinished && (
-          <section aria-label="Subject Selector" className="w-full">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {availableSubjects.map((sub) => {
-                const isSelected = subjectTopic.subject.toLowerCase() === sub.toLowerCase();
 
-                return (
-                  <button
-                    key={sub}
-                    onClick={() => loadQuiz(sub)}
-                    disabled={isLoading}
-                    className={`px-3 py-1 rounded-full border-[2px] border-black text-[11px] font-black uppercase tracking-wider shrink-0 transition-all active:translate-x-px active:translate-y-px ${
-                      isSelected
-                        ? "bg-black text-[#B6FF00] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                        : "bg-white text-black hover:bg-stone-50 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
-                    }`}
-                  >
-                    <span>{sub}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
 
         {/* Loading State */}
         {isLoading && (
@@ -506,7 +475,7 @@ function DailyQuizContent() {
                 {quiz[reviewIdx].examTrap && (
                   <div className="bg-[#FFD9E0] border-[2px] border-black rounded-xl p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     <span className="text-[10px] font-black uppercase tracking-widest text-red-900 block mb-0.5">
-                      ⚠️ GCE Exam Trap
+                      GCE Exam Trap
                     </span>
                     <p className="text-xs font-bold text-red-950 leading-relaxed">
                       {formatAIText(quiz[reviewIdx].examTrap)}
@@ -544,7 +513,7 @@ function DailyQuizContent() {
                 className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
               >
                 <RotateRight01Icon size={18} className="text-black" />
-                <span>Retry Quiz Drill 🔄</span>
+                <span>Retry Quiz Drill</span>
               </button>
 
               <button

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GCE_VIDEO_CATALOG, normalizeSubjectName, findVideoForTopic } from "@/lib/videoCatalog";
+import {
+  GCE_VIDEO_CATALOG,
+  normalizeSubjectName,
+  verifyYouTubeVideo,
+} from "@/lib/videoCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +39,7 @@ function searchCatalog(query: string, subject?: string): YouTubeVideoResult[] {
   // Score items based on token matches in title, topic, and keywords
   const scored = pool.map((item) => {
     let score = 0;
-    const itemText = `${item.topic} ${item.title} ${item.description} ${item.keywords.join(" ")}`.toLowerCase();
+    const itemText = `${item.topic} ${item.title} ${item.keywords.join(" ")}`.toLowerCase();
 
     for (const token of queryTokens) {
       if (itemText.includes(token)) {
@@ -54,11 +58,11 @@ function searchCatalog(query: string, subject?: string): YouTubeVideoResult[] {
     .map((s) => ({
       id: s.item.id,
       title: s.item.title,
-      description: s.item.description,
-      thumbnail: s.item.thumbnail,
+      description: `Concept tutorial on ${s.item.topic} for GCE revision.`,
+      thumbnail: `https://i.ytimg.com/vi/${s.item.id}/hqdefault.jpg`,
       channelTitle: s.item.channelTitle,
-      youtubeUrl: s.item.youtubeUrl,
-      embedUrl: s.item.embedUrl,
+      youtubeUrl: `https://www.youtube.com/watch?v=${s.item.id}`,
+      embedUrl: `https://www.youtube.com/embed/${s.item.id}`,
     }));
 
   if (matched.length > 0) return matched;
@@ -67,11 +71,11 @@ function searchCatalog(query: string, subject?: string): YouTubeVideoResult[] {
   return pool.slice(0, 6).map((item) => ({
     id: item.id,
     title: item.title,
-    description: item.description,
-    thumbnail: item.thumbnail,
+    description: `Concept tutorial on ${item.topic} for GCE revision.`,
+    thumbnail: `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
     channelTitle: item.channelTitle,
-    youtubeUrl: item.youtubeUrl,
-    embedUrl: item.embedUrl,
+    youtubeUrl: `https://www.youtube.com/watch?v=${item.id}`,
+    embedUrl: `https://www.youtube.com/embed/${item.id}`,
   }));
 }
 
@@ -99,6 +103,7 @@ export async function POST(req: NextRequest) {
       headers: {
         Referer: "https://prometheus-ticha-ai.vercel.app/",
       },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {
@@ -111,22 +116,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ videos: catalogResults });
     }
 
-    const liveVideos: YouTubeVideoResult[] = data.items
-      .filter((item: any) => item.id?.videoId)
-      .map((item: any) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        description: item.snippet.description,
-        thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
-        channelTitle: item.snippet.channelTitle,
-        youtubeUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-        embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`,
-      }));
+    const liveVideos: YouTubeVideoResult[] = [];
+    for (const item of data.items) {
+      const videoId = item.id?.videoId;
+      if (!videoId) continue;
 
-    return NextResponse.json({ videos: liveVideos.length > 0 ? liveVideos : catalogResults });
+      const check = await verifyYouTubeVideo(videoId);
+      if (check?.available) {
+        liveVideos.push({
+          id: videoId,
+          title: check.title || item.snippet.title,
+          description: item.snippet.description,
+          thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          channelTitle: item.snippet.channelTitle,
+          youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        });
+      }
+    }
+
+    return NextResponse.json({
+      videos: liveVideos.length > 0 ? liveVideos : catalogResults,
+    });
   } catch (err) {
     console.error("YouTube search API exception:", err);
     return NextResponse.json({ videos: searchCatalog("Physics", "Physics") });
   }
 }
-

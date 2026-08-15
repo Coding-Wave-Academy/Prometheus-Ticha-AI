@@ -214,7 +214,7 @@ export default function SubjectDetailPage() {
                           className="bg-[#B6FF00] hover:bg-[#a6ec00] border-[2px] border-black rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1.5 text-black"
                         >
                           <PlayIcon size={12} className="fill-current text-black" />
-                          <span>Study Micro-Lesson ⚡</span>
+                          <span>Study This Topic</span>
                         </button>
                       </div>
                     </div>

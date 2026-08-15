@@ -16,7 +16,8 @@ import {
   Cancel01Icon,
   Target02Icon,
   File01Icon,
-  RotateRight01Icon,
+  AlertCircleIcon,
+  StarIcon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -26,9 +27,7 @@ import { fireSideCannons } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
+/* ── Types ────────────────────────────────────────────────────────────── */
 interface QuizQuestion {
   question: string;
   options: string[];
@@ -43,6 +42,7 @@ interface DailyLessonV2 {
   youtubeId: string;
   youtubeTitle: string;
   youtubeChannel: string;
+  youtubeSearchUrl?: string;
   tips: string[];
   keyTakeaway: string;
   quizQuestions: QuizQuestion[];
@@ -51,23 +51,32 @@ interface DailyLessonV2 {
 
 type LessonStep = "video" | "tips" | "quiz" | "complete";
 
-/* ------------------------------------------------------------------ */
-/*  Affirmation messages                                               */
-/* ------------------------------------------------------------------ */
+/* ── Affirmation messages (icons only, no emoji) ──────────────────────── */
 const affirmations = [
-  { emoji: "🌟", title: "You Are Amazing!", message: "Every concept you learn makes you stronger. Champions are built one lesson at a time." },
-  { emoji: "🔥", title: "Unstoppable!", message: "You showed up today when others didn't. That's what separates winners from the rest." },
-  { emoji: "💪", title: "Keep Pushing!", message: "Your brain just grew a little bigger. Knowledge compounds like interest." },
-  { emoji: "🏆", title: "Future Graduate!", message: "Every GCE question you master today is one less to fear on exam day." },
-  { emoji: "🚀", title: "Rising Star!", message: "You're building momentum. Small daily wins create massive results." },
-  { emoji: "🎯", title: "Locked In!", message: "Focus like this is rare. You're on the path to excellence." },
-  { emoji: "💡", title: "Brain Power!", message: "That concept you just learned? It connects to so many exam questions. You're ready." },
-  { emoji: "⭐", title: "Brilliant Work!", message: "Consistency beats talent every single time. And you're being consistent." },
+  { icon: "star", title: "You Are Amazing!", message: "Every concept you learn makes you stronger. Champions are built one lesson at a time." },
+  { icon: "fire", title: "Unstoppable!", message: "You showed up today when others didn't. That's what separates winners from the rest." },
+  { icon: "award", title: "Keep Pushing!", message: "Your brain just grew a little bigger. Knowledge compounds like interest." },
+  { icon: "target", title: "Future Graduate!", message: "Every GCE question you master today is one less to fear on exam day." },
+  { icon: "sparkle", title: "Rising Star!", message: "You're building momentum. Small daily wins create massive results." },
+  { icon: "check", title: "Locked In!", message: "Focus like this is rare. You're on the path to excellence." },
+  { icon: "book", title: "Brain Power!", message: "That concept you just learned? It connects to so many exam questions. You're ready." },
+  { icon: "star", title: "Brilliant Work!", message: "Consistency beats talent every single time. And you're being consistent." },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Subject color map                                                  */
-/* ------------------------------------------------------------------ */
+function AffirmationIcon({ name, size = 40 }: { name: string; size?: number }) {
+  const cls = `text-black`;
+  switch (name) {
+    case "fire": return <FireIcon size={size} className={cls} />;
+    case "award": return <Award01Icon size={size} className={cls} />;
+    case "target": return <Target02Icon size={size} className={cls} />;
+    case "sparkle": return <SparklesIcon size={size} className={cls} />;
+    case "check": return <CheckmarkCircle02Icon size={size} className={cls} />;
+    case "book": return <Book01Icon size={size} className={cls} />;
+    default: return <StarIcon size={size} className={cls} />;
+  }
+}
+
+/* ── Subject color map ────────────────────────────────────────────────── */
 const subjectColors: Record<string, string> = {
   Physics: "#FFB040",
   "Pure Mathematics": "#B6FF00",
@@ -99,22 +108,10 @@ function DailyLessonsContent() {
   const navItems = useNavItems();
   const { streakCount, claimDailyStreak } = useStreak();
 
-  const [availableSubjects, setAvailableSubjects] = useState<string[]>([
-    "Physics",
-    "Pure Mathematics",
-    "ICT",
-    "Chemistry",
-    "Biology",
-  ]);
-  const [activeSubject, setActiveSubject] = useState<string>("");
-  const [activeTopic, setActiveTopic] = useState<string>("");
-
   const [lesson, setLesson] = useState<DailyLessonV2 | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState<LessonStep>("video");
-
-  // Video state
-  const [videoWatched, setVideoWatched] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   // Quiz state
   const [quizIdx, setQuizIdx] = useState(0);
@@ -126,28 +123,10 @@ function DailyLessonsContent() {
   const [showAffirmation, setShowAffirmation] = useState(false);
   const [affirmation, setAffirmation] = useState(affirmations[0]);
 
-  // Load available subjects on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("ticha_onboarding_struggles");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const mapped = Array.from(new Set(parsed.map((s: string) => normalizeSubjectName(s))));
-            setAvailableSubjects(mapped);
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }, []);
-
   const fetchLesson = useCallback(async (targetSub?: string, targetTop?: string) => {
     setIsLoading(true);
     setStep("video");
-    setVideoWatched(false);
+    setVideoError(false);
     setQuizIdx(0);
     setSelectedOpt(null);
     setIsAnswered(false);
@@ -165,7 +144,7 @@ function DailyLessonsContent() {
         }
       }
 
-      const payload: any = { struggles, education: "al" };
+      const payload: Record<string, unknown> = { struggles, education: "al" };
       if (targetSub) payload.subject = targetSub;
       if (targetTop) payload.topic = targetTop;
 
@@ -180,15 +159,11 @@ function DailyLessonsContent() {
       const loadedLesson: DailyLessonV2 = data.lesson || null;
       setLesson(loadedLesson);
 
-      if (loadedLesson) {
-        setActiveSubject(loadedLesson.subject);
-        setActiveTopic(loadedLesson.topic);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "ticha_today_lesson_topic",
-            JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
-          );
-        }
+      if (loadedLesson && typeof window !== "undefined") {
+        localStorage.setItem(
+          "ticha_today_lesson_topic",
+          JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
+        );
       }
     } catch (err) {
       console.error("Failed to load daily lesson:", err);
@@ -204,30 +179,20 @@ function DailyLessonsContent() {
 
     if (urlSubject) {
       const norm = normalizeSubjectName(urlSubject);
-      setActiveSubject(norm);
-      if (urlTopic) setActiveTopic(urlTopic);
       fetchLesson(norm, urlTopic || undefined);
     } else {
       fetchLesson();
     }
   }, [searchParams, fetchLesson]);
 
-  const handleSelectSubject = (sub: string) => {
-    hapticTap();
-    setActiveSubject(sub);
-    setActiveTopic("");
-    fetchLesson(sub);
-  };
-
   const handleVideoWatched = () => {
     hapticTap();
-    setVideoWatched(true);
     setStep("tips");
 
     if (typeof window !== "undefined" && lesson) {
       try {
         const stored = localStorage.getItem("ticha_watched_videos");
-        const list: any[] = stored ? JSON.parse(stored) : [];
+        const list: Record<string, unknown>[] = stored ? JSON.parse(stored) : [];
         const videoEntry = {
           id: lesson.id,
           subject: lesson.subject,
@@ -237,11 +202,9 @@ function DailyLessonsContent() {
           watchedAt: new Date().toISOString(),
           summary: lesson.keyTakeaway || `Concept video for ${lesson.topic}`,
         };
-        const updated = [videoEntry, ...list.filter((v: any) => v.youtubeId !== lesson.youtubeId)];
+        const updated = [videoEntry, ...list.filter((v) => v.youtubeId !== lesson.youtubeId)];
         localStorage.setItem("ticha_watched_videos", JSON.stringify(updated));
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     }
   };
 
@@ -275,10 +238,8 @@ function DailyLessonsContent() {
       setSelectedOpt(null);
       setIsAnswered(false);
     } else {
-      // Quiz complete - claim streak and show affirmation
       await claimDailyStreak();
 
-      // Increment subject progress
       if (typeof window !== "undefined" && lesson.subject) {
         const subjectKey = `ticha_progress_${lesson.subject.toLowerCase()}`;
         const currentProgress = Number(localStorage.getItem(subjectKey) || 0);
@@ -286,7 +247,6 @@ function DailyLessonsContent() {
         localStorage.setItem(subjectKey, String(newProgress));
       }
 
-      // Pick random affirmation
       const randomAff = affirmations[Math.floor(Math.random() * affirmations.length)];
       setAffirmation(randomAff);
       setShowAffirmation(true);
@@ -318,7 +278,7 @@ function DailyLessonsContent() {
             </Link>
             <div>
               <h1 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
-                1% Daily Lesson
+                Today&apos;s Lesson
               </h1>
               <p className="text-xs font-bold text-stone-600">
                 {lesson ? `${lesson.subject}` : "Loading..."}
@@ -332,46 +292,15 @@ function DailyLessonsContent() {
           </div>
         </header>
 
-        {/* Subject Switcher Bar */}
-        <section aria-label="Subject Selector" className="w-full">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {availableSubjects.map((sub) => {
-              const isSelected = activeSubject.toLowerCase() === sub.toLowerCase();
-              const subColor = subjectColors[sub] || "#FAF7EC";
-
-              return (
-                <button
-                  key={sub}
-                  onClick={() => handleSelectSubject(sub)}
-                  disabled={isLoading}
-                  className={`px-3 py-1.5 rounded-full border-[2.5px] border-black text-xs font-black uppercase tracking-wider shrink-0 transition-all active:translate-x-px active:translate-y-px active:shadow-none ${
-                    isSelected
-                      ? "bg-black text-[#B6FF00] shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]"
-                      : "bg-white text-black hover:bg-stone-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-black inline-block"
-                      style={{ backgroundColor: subColor }}
-                    />
-                    <span>{sub}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
         {/* Loading State */}
         {isLoading && (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
-              Generating {activeSubject || "Today's"} Lesson...
+              Preparing Your Lesson...
             </h3>
             <p className="text-xs font-bold text-stone-600">
-              Matching verified topic video, exam tips, and GCE practice questions.
+              Selecting the best video, exam tips, and practice questions.
             </p>
           </div>
         )}
@@ -379,9 +308,10 @@ function DailyLessonsContent() {
         {/* Error / Empty State */}
         {!isLoading && !lesson && (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
+            <AlertCircleIcon size={36} className="text-black mx-auto" />
             <h3 className="font-black text-base uppercase">No Lesson Available</h3>
             <button
-              onClick={() => fetchLesson(activeSubject || undefined)}
+              onClick={() => fetchLesson()}
               className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-6 py-3 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
             >
               Retry
@@ -395,7 +325,7 @@ function DailyLessonsContent() {
             {/* Step Progress Indicator */}
             <div className="flex items-center gap-2 px-1">
               {(["video", "tips", "quiz"] as LessonStep[]).map((s, i) => {
-                const labels = ["Watch Video", "Tips & Takeaways", "Test Knowledge"];
+                const labels = ["Watch Video", "Key Insights", "Test Knowledge"];
                 const stepOrder = ["video", "tips", "quiz"];
                 const currentStepIdx = stepOrder.indexOf(step);
                 const isDone = i < currentStepIdx || step === "complete";
@@ -413,7 +343,7 @@ function DailyLessonsContent() {
             </div>
 
             {/* Subject & Topic Title Card */}
-            <div className="flex items-center justify-between gap-2 bg-white border-[3px] border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-2 bg-white border-[3px] border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2">
                   <span
@@ -431,18 +361,9 @@ function DailyLessonsContent() {
                   {lesson.topic}
                 </h2>
               </div>
-
-              <button
-                onClick={() => fetchLesson(activeSubject || undefined)}
-                className="w-9 h-9 bg-[#FAF7EC] hover:bg-[#FAF7EC]/80 border-[2px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all shrink-0"
-                title="Shuffle topic"
-                aria-label="Refresh topic"
-              >
-                <RotateRight01Icon size={16} className="text-black" />
-              </button>
             </div>
 
-            {/* ============ STEP 1: VIDEO ============ */}
+            {/* ──── STEP 1: VIDEO ──── */}
             {step === "video" && (
               <AnimatePresence mode="wait">
                 <motion.div
@@ -456,10 +377,7 @@ function DailyLessonsContent() {
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-widest text-stone-700 flex items-center gap-1">
                         <SparklesIcon size={14} className="text-amber-600" />
-                        Exact Concept Video
-                      </span>
-                      <span className="text-[9px] font-black bg-[#B6FF00] px-2 py-0.5 border border-black rounded text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                        Embeddable
+                        Concept Video
                       </span>
                     </div>
 
@@ -471,16 +389,37 @@ function DailyLessonsContent() {
                     </p>
 
                     {/* Embedded YouTube Player */}
-                    <div className="aspect-video w-full bg-black border-[2.5px] border-black rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <iframe
-                        className="w-full h-full"
-                        src={`https://www.youtube.com/embed/${lesson.youtubeId}?rel=0`}
-                        title={lesson.youtubeTitle}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                      />
-                    </div>
+                    {!videoError ? (
+                      <div className="aspect-video w-full bg-black border-[2.5px] border-black rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                        <iframe
+                          className="w-full h-full"
+                          src={`https://www.youtube.com/embed/${lesson.youtubeId}?rel=0`}
+                          title={lesson.youtubeTitle}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allowFullScreen
+                          onError={() => setVideoError(true)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full bg-stone-100 border-[2.5px] border-black rounded-xl flex flex-col items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] p-4 space-y-3">
+                        <AlertCircleIcon size={32} className="text-stone-400" />
+                        <p className="text-xs font-bold text-stone-600 text-center">
+                          Video unavailable. Watch it directly on YouTube instead.
+                        </p>
+                        {lesson.youtubeSearchUrl && (
+                          <a
+                            href={lesson.youtubeSearchUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[#FF0000] text-white border-[2.5px] border-black rounded-xl px-4 py-2 text-xs font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-2"
+                          >
+                            <PlayIcon size={14} className="fill-current" />
+                            <span>Search on YouTube</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Mark as Watched CTA */}
@@ -489,13 +428,13 @@ function DailyLessonsContent() {
                     className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <CheckmarkCircle02Icon size={18} />
-                    <span>I&apos;ve Watched This — Show Tips</span>
+                    <span>I&apos;ve Watched This</span>
                   </button>
                 </motion.div>
               </AnimatePresence>
             )}
 
-            {/* ============ STEP 2: TIPS & TAKEAWAYS ============ */}
+            {/* ──── STEP 2: TIPS & TAKEAWAYS ──── */}
             {step === "tips" && (
               <AnimatePresence mode="wait">
                 <motion.div
@@ -505,7 +444,6 @@ function DailyLessonsContent() {
                   exit={{ opacity: 0, y: -12 }}
                   className="space-y-4"
                 >
-                  {/* Tips Cards */}
                   <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
                     <span className="text-[10px] font-black uppercase tracking-widest text-stone-600 flex items-center gap-1">
                       <SparklesIcon size={14} className="text-amber-500" />
@@ -540,8 +478,9 @@ function DailyLessonsContent() {
                     className="border-[3px] border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1"
                     style={{ backgroundColor: accentColor }}
                   >
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-800 block">
-                      💡 Core Exam Takeaway
+                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-800 flex items-center gap-1">
+                      <SparklesIcon size={12} className="text-stone-800" />
+                      Core Exam Takeaway
                     </span>
                     <p className="text-sm font-black text-black leading-snug">
                       {formatAIText(lesson.keyTakeaway)}
@@ -560,7 +499,7 @@ function DailyLessonsContent() {
               </AnimatePresence>
             )}
 
-            {/* ============ STEP 3: QUIZ ============ */}
+            {/* ──── STEP 3: QUIZ ──── */}
             {step === "quiz" && lesson.quizQuestions.length > 0 && (
               <AnimatePresence mode="wait">
                 <motion.div
@@ -571,7 +510,6 @@ function DailyLessonsContent() {
                   className="space-y-4"
                 >
                   <div className="bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
-                    {/* Quiz header */}
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-widest text-stone-600">
                         Question {quizIdx + 1} of {lesson.quizQuestions.length}
@@ -581,7 +519,6 @@ function DailyLessonsContent() {
                       </span>
                     </div>
 
-                    {/* Progress dots */}
                     <div className="flex gap-2">
                       {lesson.quizQuestions.map((_, i) => (
                         <div
@@ -591,12 +528,10 @@ function DailyLessonsContent() {
                       ))}
                     </div>
 
-                    {/* Question */}
                     <p className="text-sm font-black text-black leading-snug">
                       {formatAIText(lesson.quizQuestions[quizIdx].question)}
                     </p>
 
-                    {/* Options */}
                     <div className="space-y-2.5">
                       {lesson.quizQuestions[quizIdx].options.map((opt, oIdx) => {
                         const currentQ = lesson.quizQuestions[quizIdx];
@@ -606,13 +541,9 @@ function DailyLessonsContent() {
                         let style = "bg-white border-black hover:bg-stone-50";
                         if (isSelected && !isAnswered) style = "bg-[#D3E2FF] border-black";
                         if (isAnswered) {
-                          if (isCorrect) {
-                            style = "bg-[#B6FF00] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
-                          } else if (isSelected) {
-                            style = "bg-[#FF9494] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
-                          } else {
-                            style = "bg-white border-stone-300 text-stone-400";
-                          }
+                          if (isCorrect) style = "bg-[#B6FF00] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
+                          else if (isSelected) style = "bg-[#FF9494] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
+                          else style = "bg-white border-stone-300 text-stone-400";
                         }
 
                         return (
@@ -623,26 +554,22 @@ function DailyLessonsContent() {
                             className={`w-full p-3.5 rounded-xl border-[2.5px] text-left font-bold text-xs flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all ${style}`}
                           >
                             <span>{formatAIText(opt)}</span>
-                            {isAnswered && isCorrect && (
-                              <CheckmarkCircle02Icon size={18} className="text-black shrink-0" />
-                            )}
-                            {isAnswered && isSelected && !isCorrect && (
-                              <Cancel01Icon size={18} className="text-red-800 shrink-0" />
-                            )}
+                            {isAnswered && isCorrect && <CheckmarkCircle02Icon size={18} className="text-black shrink-0" />}
+                            {isAnswered && isSelected && !isCorrect && <Cancel01Icon size={18} className="text-red-800 shrink-0" />}
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Explanation (shown after answering) */}
                     {isAnswered && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         className="bg-[#FAF7EC] border-[2px] border-black rounded-xl p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                       >
-                        <span className="text-[10px] font-black uppercase tracking-widest text-stone-700 block mb-1">
-                          📖 Explanation
+                        <span className="text-[10px] font-black uppercase tracking-widest text-stone-700 flex items-center gap-1 mb-1">
+                          <Book01Icon size={12} className="text-stone-700" />
+                          Explanation
                         </span>
                         <p className="text-xs font-bold text-black leading-relaxed">
                           {formatAIText(lesson.quizQuestions[quizIdx].explanation)}
@@ -650,7 +577,6 @@ function DailyLessonsContent() {
                       </motion.div>
                     )}
 
-                    {/* Action Buttons */}
                     <div className="pt-1">
                       {!isAnswered ? (
                         <button
@@ -672,7 +598,7 @@ function DailyLessonsContent() {
                           <span>
                             {quizIdx + 1 < lesson.quizQuestions.length
                               ? `Next Question (${quizIdx + 2}/${lesson.quizQuestions.length})`
-                              : "Complete Lesson 🎉"}
+                              : "Complete Lesson"}
                           </span>
                           <ArrowRight01Icon size={16} />
                         </button>
@@ -683,7 +609,7 @@ function DailyLessonsContent() {
               </AnimatePresence>
             )}
 
-            {/* ============ STEP 4: COMPLETE ============ */}
+            {/* ──── STEP 4: COMPLETE ──── */}
             {step === "complete" && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -700,13 +626,13 @@ function DailyLessonsContent() {
 
                   <div className="space-y-1">
                     <span className="text-xs font-black uppercase tracking-widest text-stone-800">
-                      1% Better Every Day!
+                      1% Better Every Day
                     </span>
                     <h2 className="text-2xl font-black uppercase tracking-tight text-black">
-                      Lesson Complete!
+                      Lesson Complete
                     </h2>
                     <p className="text-xs font-extrabold text-stone-900 max-w-xs mx-auto pt-1">
-                      You scored {correctCount}/{lesson.quizQuestions.length} on {lesson.topic}. Your streak is now {streakCount}!
+                      You scored {correctCount}/{lesson.quizQuestions.length} on {lesson.topic}. Your streak is now {streakCount}.
                     </p>
                   </div>
                 </div>
@@ -723,7 +649,7 @@ function DailyLessonsContent() {
                     {formatAIText(lesson.pastPaperHint)}
                   </p>
                   <p className="text-[11px] font-bold text-stone-600 leading-relaxed">
-                    Tackling real exam questions on <strong>{lesson.topic}</strong> will cement what you just learned. Open your past papers and find questions on this topic!
+                    Tackling real exam questions on <strong>{lesson.topic}</strong> will cement what you just learned. Open your past papers and find questions on this topic.
                   </p>
                 </div>
 
@@ -734,7 +660,7 @@ function DailyLessonsContent() {
                     className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <Target02Icon size={18} className="text-black" />
-                    <span>Take 15-Question Exam Quiz 📝</span>
+                    <span>Take 15-Question Exam Quiz</span>
                   </button>
 
                   <button
@@ -742,7 +668,7 @@ function DailyLessonsContent() {
                     className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <SparklesIcon size={18} className="text-black" />
-                    <span>Practice Topic Flashcards 🎴</span>
+                    <span>Practice Topic Flashcards</span>
                   </button>
 
                   <button
@@ -750,7 +676,7 @@ function DailyLessonsContent() {
                     className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <PlayIcon size={16} className="text-black fill-current" />
-                    <span>Watch More Concept Videos 🎬</span>
+                    <span>Watch More Concept Videos</span>
                   </button>
 
                   <button
@@ -766,7 +692,7 @@ function DailyLessonsContent() {
         )}
       </main>
 
-      {/* ============ AFFIRMATION POPUP MODAL ============ */}
+      {/* ──── AFFIRMATION POPUP MODAL ──── */}
       <AnimatePresence>
         {showAffirmation && (
           <motion.div
@@ -783,7 +709,9 @@ function DailyLessonsContent() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-sm bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-4"
             >
-              <div className="text-6xl">{affirmation.emoji}</div>
+              <div className="w-20 h-20 bg-[#B6FF00] border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
+                <AffirmationIcon name={affirmation.icon} size={40} />
+              </div>
               <h3 className="text-2xl font-black uppercase tracking-tight text-black">
                 {affirmation.title}
               </h3>
