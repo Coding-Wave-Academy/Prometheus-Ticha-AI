@@ -10,6 +10,7 @@ export interface UserProfile {
   avatar_url?: string;
   education_level?: string;
   goal?: string;
+  struggles?: string[];
   streak_count: number;
   freezes_remaining: number;
   last_active_date?: string;

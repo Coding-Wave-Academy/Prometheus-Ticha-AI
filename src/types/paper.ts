@@ -3,6 +3,7 @@ export interface EducationalLevel {
   code: 'O/L' | 'A/L' | 'UNIVERSITY';
   name: string;
   sort_order: number;
+  created_at?: string;
 }
 
 export interface Subject {
@@ -11,6 +12,7 @@ export interface Subject {
   name: string;
   is_active: boolean;
   level?: EducationalLevel;
+  created_at?: string;
 }
 
 export interface Paper {

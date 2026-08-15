@@ -97,9 +97,11 @@ function StudentDashboardPageContent() {
   const [dynamicFeaturedSubjects, setDynamicFeaturedSubjects] = useState<SubjectData[]>([]);
 
   useEffect(() => {
-    // Read struggles from localStorage or profile vector
+    // Read struggles: prioritize database profile if loaded, then localStorage fallback
     let struggles: string[] = ["physics", "math", "ict"];
-    if (typeof window !== "undefined") {
+    if (profile?.struggles && Array.isArray(profile.struggles) && profile.struggles.length > 0) {
+      struggles = profile.struggles;
+    } else if (typeof window !== "undefined") {
       const storedStruggles = localStorage.getItem("ticha_onboarding_struggles");
       if (storedStruggles) {
         try {

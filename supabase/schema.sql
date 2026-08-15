@@ -53,13 +53,29 @@ CREATE POLICY "Users can update their own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url)
+  INSERT INTO public.profiles (
+    id,
+    full_name,
+    avatar_url,
+    goal,
+    education_level,
+    struggles,
+    preferred_language
+  )
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Student'),
-    NEW.raw_user_meta_data->>'avatar_url'
+    NEW.raw_user_meta_data->>'avatar_url',
+    NEW.raw_user_meta_data->>'goal',
+    NEW.raw_user_meta_data->>'education_level',
+    COALESCE(NEW.raw_user_meta_data->'struggles', '["Physics", "Pure Mathematics", "ICT"]'::jsonb),
+    COALESCE(NEW.raw_user_meta_data->>'preferred_language', 'en')
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    goal = COALESCE(EXCLUDED.goal, public.profiles.goal),
+    education_level = COALESCE(EXCLUDED.education_level, public.profiles.education_level),
+    struggles = COALESCE(EXCLUDED.struggles, public.profiles.struggles),
+    preferred_language = COALESCE(EXCLUDED.preferred_language, public.profiles.preferred_language);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
