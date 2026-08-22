@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import ToastContainer from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { useIsMounted } from "@/hooks/useIsMounted";
+import { useAuth } from "@/hooks/useAuth";
 import { loginSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
@@ -19,6 +20,7 @@ import "@/lib/i18n";
 export default function LoginPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const isMounted = useIsMounted();
   const router = useRouter();
 
@@ -27,6 +29,12 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   const supabase = createClient();
 
@@ -105,7 +113,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
+          redirectTo: `${origin}/auth/callback?next=/dashboard`,
         },
       });
 

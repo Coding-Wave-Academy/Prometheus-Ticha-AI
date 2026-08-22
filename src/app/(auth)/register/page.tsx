@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,7 @@ import Card from "@/components/ui/Card";
 import { useToast } from "@/hooks/useToast";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { useIsMounted } from "@/hooks/useIsMounted";
+import { useAuth } from "@/hooks/useAuth";
 import { registerSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
@@ -24,6 +25,7 @@ import "@/lib/i18n";
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const isMounted = useIsMounted();
   const router = useRouter();
 
@@ -33,6 +35,12 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   const strength = usePasswordStrength(password);
   const supabase = createClient();
@@ -122,7 +130,7 @@ export default function RegisterPage() {
       // 2. Direct Signup -> Dashboard transition
       if (data.session) {
         addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
-        router.push("/dashboard?showSetup=true");
+        router.push("/dashboard");
       } else {
         // Attempt instant sign-in to bypass email confirmation step
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -142,7 +150,7 @@ export default function RegisterPage() {
             updated_at: new Date().toISOString(),
           });
           addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
-          router.push("/dashboard?showSetup=true");
+          router.push("/dashboard");
         } else {
           // If email confirmation is strictly enforced in Supabase Dashboard settings:
           addToast(
@@ -150,7 +158,7 @@ export default function RegisterPage() {
             "info",
             "Account Registered"
           );
-          router.push("/dashboard?showSetup=true");
+          router.push("/dashboard");
         }
       }
     } catch (err: unknown) {
@@ -167,7 +175,7 @@ export default function RegisterPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
+          redirectTo: `${origin}/auth/callback?next=/dashboard`,
         },
       });
 

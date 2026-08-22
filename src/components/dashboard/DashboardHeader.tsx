@@ -44,20 +44,9 @@ export default function DashboardHeader({
           )}
         </div>
         <div>
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight">
-              {t("dashboard.hello")} {userName} 👋
-            </h1>
-            <div className="w-7 h-7 rounded-lg border-[2px] border-black overflow-hidden shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] bg-white shrink-0">
-              <Image
-                src="/images/ticha-logo.png"
-                alt="1% Ticha AI Logo"
-                width={28}
-                height={28}
-                className="object-contain w-full h-full"
-              />
-            </div>
-          </div>
+          <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight">
+            {t("dashboard.hello")} {userName} 👋
+          </h1>
         </div>
       </div>
 

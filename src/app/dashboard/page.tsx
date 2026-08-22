@@ -225,8 +225,18 @@ function StudentDashboardPageContent() {
       .map((s) => subjectMap[s.toLowerCase().trim()])
       .filter(Boolean);
 
-    if (mapped.length > 0) {
-      setDynamicFeaturedSubjects(mapped);
+    // Strict deduplication by subject ID to avoid duplicate cards
+    const uniqueFeatured: SubjectData[] = [];
+    const seenIds = new Set<string>();
+    for (const subj of mapped) {
+      if (subj && !seenIds.has(subj.id)) {
+        seenIds.add(subj.id);
+        uniqueFeatured.push(subj);
+      }
+    }
+
+    if (uniqueFeatured.length > 0) {
+      setDynamicFeaturedSubjects(uniqueFeatured);
     } else {
       setDynamicFeaturedSubjects([
         subjectMap.physics,
@@ -236,14 +246,26 @@ function StudentDashboardPageContent() {
     }
   }, [profile]);
 
-  // Show setup modal if profile is not completed
+  // Show setup modal only if explicitly triggered via query param and not previously dismissed
   useEffect(() => {
     if (isLoading) return;
     const showSetupQuery = searchParams.get("showSetup") === "true";
-    if (showSetupQuery || !profile?.profile_completed) {
+    const wasDismissed = typeof window !== "undefined" && localStorage.getItem("ticha_setup_modal_dismissed") === "true";
+    
+    if (showSetupQuery && !wasDismissed && !profile?.profile_completed) {
       setIsSetupModalOpen(true);
     }
   }, [searchParams, isLoading, profile?.profile_completed]);
+
+  const handleCloseSetupModal = () => {
+    setIsSetupModalOpen(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ticha_setup_modal_dismissed", "true");
+    }
+    if (searchParams.get("showSetup")) {
+      router.replace("/dashboard");
+    }
+  };
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
@@ -325,7 +347,7 @@ function StudentDashboardPageContent() {
 
       <FinishSetupModal
         isOpen={isSetupModalOpen}
-        onClose={() => setIsSetupModalOpen(false)}
+        onClose={handleCloseSetupModal}
       />
 
       <BottomNav items={navItems} />

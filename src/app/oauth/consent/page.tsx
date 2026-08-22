@@ -35,7 +35,7 @@ function OAuthConsentContent() {
         const finalUrl = state ? `${redirectUri}${separator}state=${encodeURIComponent(state)}` : redirectUri;
         router.push(finalUrl);
       } else {
-        router.push("/dashboard?showSetup=true");
+        router.push("/dashboard");
       }
     }, 800);
   };

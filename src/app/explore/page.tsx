@@ -187,20 +187,9 @@ export default function ExploreHubPage() {
               )}
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight group-hover:underline">
-                  {userName}
-                </h1>
-                <div className="w-6 h-6 rounded-md border-[2px] border-black overflow-hidden shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] bg-white shrink-0">
-                  <Image
-                    src="/images/ticha-logo.png"
-                    alt="1% Ticha AI Logo"
-                    width={24}
-                    height={24}
-                    className="object-contain w-full h-full"
-                  />
-                </div>
-              </div>
+              <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight group-hover:underline">
+                {userName}
+              </h1>
               <p className="text-xs font-bold uppercase text-stone-600">Explore Hub</p>
             </div>
           </div>

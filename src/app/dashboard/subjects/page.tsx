@@ -30,7 +30,7 @@ export default function AllSubjectsPage() {
   const [studentStruggles, setStudentStruggles] = useState<string[]>(["Physics", "Pure Mathematics", "ICT"]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Load student's selected subjects
+  // Load student's selected subjects (strictly deduplicated)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("ticha_onboarding_struggles");
@@ -38,7 +38,19 @@ export default function AllSubjectsPage() {
         try {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setStudentStruggles(parsed);
+            const seen = new Set<string>();
+            const unique: string[] = [];
+            for (const s of parsed) {
+              const clean = String(s).trim();
+              const lower = clean.toLowerCase();
+              if (clean && !seen.has(lower)) {
+                seen.add(lower);
+                unique.push(clean);
+              }
+            }
+            if (unique.length > 0) {
+              setStudentStruggles(unique);
+            }
           }
         } catch {
           // ignore
