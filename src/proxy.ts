@@ -16,7 +16,7 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. API Security: Rate Limiting & Origin Verification for /api/*
