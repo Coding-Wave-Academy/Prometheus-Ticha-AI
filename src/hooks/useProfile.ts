@@ -20,6 +20,52 @@ export interface ProfileUpdate {
   preferred_language?: string;
 }
 
+function compressImage(file: File, maxWidth = 256, maxHeight = 256, quality = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") {
+      resolve("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function useProfile() {
   const { user, profile: authProfile, isLoading: authLoading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -65,6 +111,9 @@ export function useProfile() {
         if (updates.education_level) {
           localStorage.setItem("ticha_onboarding_education", updates.education_level);
         }
+        if (updates.avatar_url) {
+          localStorage.setItem("ticha_user_avatar", updates.avatar_url);
+        }
       }
       return { error: null };
     },
@@ -93,6 +142,9 @@ export function useProfile() {
         }
         if (authProfile.education_level) {
           localStorage.setItem("ticha_onboarding_education", authProfile.education_level);
+        }
+        if (authProfile.avatar_url) {
+          localStorage.setItem("ticha_user_avatar", authProfile.avatar_url);
         }
 
         // 2. If database is missing goals/struggles but localStorage has onboarding data, push to DB!
@@ -166,6 +218,9 @@ export function useProfile() {
       if (data.education_level) {
         localStorage.setItem("ticha_onboarding_education", data.education_level);
       }
+      if (data.avatar_url) {
+        localStorage.setItem("ticha_user_avatar", data.avatar_url);
+      }
     }
   }, [user]);
 
@@ -176,34 +231,45 @@ export function useProfile() {
       setIsUploading(true);
 
       try {
+        // 1. Generate optimized compact data URL as immediate resilient fallback
+        const base64Url = await compressImage(file);
+
         const supabase = createClient();
-        const fileExt = file.name.split(".").pop();
+        const fileExt = file.name.split(".").pop() || "jpg";
         const filePath = `${user.id}/avatar.${fileExt}`;
 
-        // Upload to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(filePath, file, {
-            cacheControl: "3600",
-            upsert: true,
-          });
+        let finalUrl = base64Url;
 
-        if (uploadError) {
-          console.error("Error uploading avatar:", uploadError);
-          return { error: uploadError.message, url: null };
+        // 2. Try Supabase Storage upload
+        try {
+          const { error: uploadError } = await supabase.storage
+            .from("avatars")
+            .upload(filePath, file, {
+              cacheControl: "3600",
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage
+              .from("avatars")
+              .getPublicUrl(filePath);
+            if (urlData?.publicUrl) {
+              finalUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+            }
+          } else {
+            console.warn("Supabase Storage bucket upload skipped or failed, using optimized local data URL:", uploadError.message);
+          }
+        } catch (storageErr) {
+          console.warn("Storage upload exception, using fallback:", storageErr);
         }
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(filePath);
+        // 3. Update profile with avatar URL (either public storage URL or data URL)
+        await updateProfile({ avatar_url: finalUrl });
+        if (typeof window !== "undefined") {
+          localStorage.setItem("ticha_user_avatar", finalUrl);
+        }
 
-        const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-        // Update profile with new avatar URL
-        await updateProfile({ avatar_url: avatarUrl });
-
-        return { error: null, url: avatarUrl };
+        return { error: null, url: finalUrl };
       } catch (err) {
         console.error("Avatar upload exception:", err);
         return { error: "Upload failed", url: null };

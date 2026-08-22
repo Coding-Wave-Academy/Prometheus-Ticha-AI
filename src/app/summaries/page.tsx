@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useStreak } from "@/hooks/useStreak";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import SubjectSelector from "@/components/summaries/SubjectSelector";
 import TopicList from "@/components/summaries/TopicList";
@@ -29,6 +30,7 @@ interface SummaryResponse {
 export default function SummariesPage() {
   const navItems = useNavItems();
   const isMounted = useIsMounted();
+  const { claimDailyStreak } = useStreak();
   const { t } = useTranslation();
 
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -73,6 +75,8 @@ export default function SummariesPage() {
 
         const data: SummaryResponse = await res.json();
         setSummaryData(data);
+        // Auto-claim streak for engaging with study material
+        claimDailyStreak().catch(() => {});
       } catch (err) {
         console.error("Summary fetch error:", err);
         setError(

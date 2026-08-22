@@ -17,6 +17,7 @@ import {
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
@@ -54,6 +55,7 @@ function DailyQuizContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const navItems = useNavItems();
+  const { claimDailyStreak } = useStreak();
 
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
@@ -235,6 +237,9 @@ function DailyQuizContent() {
 
     const computedScore = typeof finalScore === "number" ? finalScore : score;
     const passThreshold = Math.ceil(quiz.length * 0.6);
+
+    // Auto-claim daily streak upon completing the quiz
+    claimDailyStreak().catch(() => {});
 
     if (computedScore >= passThreshold) {
       fireSideCannons();

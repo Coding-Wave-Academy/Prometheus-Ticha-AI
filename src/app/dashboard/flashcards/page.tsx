@@ -17,6 +17,7 @@ import {
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
+import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
@@ -32,6 +33,7 @@ interface FlashCard {
 export default function FlashcardsPage() {
   const router = useRouter();
   const navItems = useNavItems();
+  const { claimDailyStreak } = useStreak();
 
   const [subject, setSubject] = useState("Physics");
   const [topic, setTopic] = useState("Newton's Laws of Motion");
@@ -133,6 +135,7 @@ export default function FlashcardsPage() {
       setCurrentIdx((i) => i + 1);
     } else {
       setIsFinished(true);
+      claimDailyStreak().catch(() => {});
       fireSideCannons();
       hapticSuccess();
     }

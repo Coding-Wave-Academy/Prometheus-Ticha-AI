@@ -74,9 +74,10 @@ export function useStreak() {
             status = "active";
           } else if (claimedDates.includes(dateStr)) {
             status = "active";
-          } else if (idx < todayIndex && userStreak > 0 && idx === 2) {
-            // Example freeze logic for past missed days if streak active
-            status = "frozen";
+          } else if (idx < todayIndex) {
+            // Past day without activity: check if user had a freeze or missed
+            const isFrozenDate = typeof window !== "undefined" && localStorage.getItem(`ticha_frozen_${dateStr}`) === "true";
+            status = isFrozenDate ? "frozen" : "upcoming";
           }
 
           return { ...d, status };
