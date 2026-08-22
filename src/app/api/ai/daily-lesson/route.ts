@@ -6,6 +6,8 @@ import {
   verifyYouTubeVideo,
   GCE_VIDEO_CATALOG,
 } from "@/lib/videoCatalog";
+import { retrieveContext } from "@/lib/rag/retriever";
+import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
 
 export const dynamic = "force-dynamic";
 
@@ -235,9 +237,17 @@ export async function POST(req: NextRequest) {
         ),
       });
     }
+    // RAG: Retrieve curriculum context for lesson grounding
+    const chunks = await retrieveContext({
+      query: `${targetSubject} ${targetTopic} concepts explanation`,
+      subject: targetSubject,
+      educationLevel: education || 'al',
+      topK: 5,
+      threshold: 0.4,
+    });
 
     // 4. Ask Gemini to generate lesson content AND a YouTube search query
-    const prompt = `
+    const basePrompt = `
 You are Madame Ticha, a Cameroonian GCE exam preparation specialist.
 Generate a daily lesson for subject: "${targetSubject}", topic: "${targetTopic}".
 Student level: "${education || "al"}".
@@ -279,6 +289,9 @@ Return ONLY raw JSON matching this exact structure:
   ],
   "pastPaperHint": "Look for ${targetSubject} past paper questions about ${targetTopic} in your GCE revision pack."
 }`;
+
+    // Inject RAG context into the prompt
+    const prompt = injectContextIntoPrompt(basePrompt, chunks, 3000);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,

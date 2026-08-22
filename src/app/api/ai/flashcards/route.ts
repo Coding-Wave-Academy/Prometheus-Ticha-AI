@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { formatAIText } from "@/lib/formatAIText";
+import { retrieveContext } from "@/lib/rag/retriever";
+import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +26,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const prompt = `
+    // RAG: Retrieve curriculum context for flashcard grounding
+    const chunks = await retrieveContext({
+      query: `${targetSubject} ${targetTopic} definitions key terms formulas`,
+      subject: targetSubject,
+      topK: 5,
+      threshold: 0.4,
+    });
+
+    const basePrompt = `
 You are Madame Ticha, a Cameroonian GCE revision specialist.
 Create 8 high-yield exam flashcards for:
 Subject: "${targetSubject}"
@@ -46,6 +56,9 @@ Return ONLY raw JSON matching this structure:
     }
   ]
 }`;
+
+    // Inject RAG context into the prompt
+    const prompt = injectContextIntoPrompt(basePrompt, chunks, 3000);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,

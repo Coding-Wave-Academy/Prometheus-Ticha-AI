@@ -187,6 +187,123 @@ CREATE POLICY "Knowledge embeddings viewable by authenticated users"
   USING (true);
 
 
+-- 4b. CORRECTED RAG — KNOWLEDGE DOCUMENTS (Source-of-truth Markdown files)
+CREATE TABLE IF NOT EXISTS public.knowledge_documents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  topic TEXT,
+  education_level TEXT DEFAULT 'al' CHECK (education_level IN ('ol', 'al', 'university')),
+  source_type TEXT NOT NULL DEFAULT 'pdf' CHECK (source_type IN ('pdf', 'image', 'docx', 'txt', 'manual')),
+  source_filename TEXT,
+  markdown_content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  chunk_count INT NOT NULL DEFAULT 0,
+  status TEXT DEFAULT 'processing' CHECK (status IN ('processing', 'ready', 'error')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.knowledge_documents ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Knowledge documents viewable by authenticated" ON public.knowledge_documents;
+DROP POLICY IF EXISTS "Knowledge documents writable by service_role" ON public.knowledge_documents;
+
+CREATE POLICY "Knowledge documents viewable by authenticated"
+  ON public.knowledge_documents FOR SELECT
+  TO authenticated
+  USING (status = 'ready');
+
+CREATE POLICY "Knowledge documents writable by service_role"
+  ON public.knowledge_documents FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+
+-- 4c. CORRECTED RAG — KNOWLEDGE CHUNKS (Vector-indexed semantic pieces)
+CREATE TABLE IF NOT EXISTS public.knowledge_chunks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  document_id UUID NOT NULL REFERENCES public.knowledge_documents(id) ON DELETE CASCADE,
+  chunk_index INT NOT NULL,
+  content TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  topic TEXT,
+  education_level TEXT DEFAULT 'al',
+  embedding vector(768),
+  token_count INT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.knowledge_chunks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Knowledge chunks viewable by authenticated" ON public.knowledge_chunks;
+DROP POLICY IF EXISTS "Knowledge chunks writable by service_role" ON public.knowledge_chunks;
+
+CREATE POLICY "Knowledge chunks viewable by authenticated"
+  ON public.knowledge_chunks FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Knowledge chunks writable by service_role"
+  ON public.knowledge_chunks FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+-- HNSW index for fast cosine similarity search
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_embedding
+  ON public.knowledge_chunks USING hnsw (embedding vector_cosine_ops);
+
+-- Composite index for filtered vector search
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_subject_level
+  ON public.knowledge_chunks (subject, education_level);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_document
+  ON public.knowledge_chunks (document_id);
+
+-- RPC: Semantic search with optional subject/level filtering
+CREATE OR REPLACE FUNCTION match_knowledge_chunks(
+  query_embedding vector(768),
+  match_count INT DEFAULT 5,
+  filter_subject TEXT DEFAULT NULL,
+  filter_level TEXT DEFAULT NULL,
+  similarity_threshold FLOAT DEFAULT 0.5
+)
+RETURNS TABLE (
+  id UUID,
+  document_id UUID,
+  content TEXT,
+  subject TEXT,
+  topic TEXT,
+  similarity FLOAT,
+  metadata JSONB
+)
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    kc.id,
+    kc.document_id,
+    kc.content,
+    kc.subject,
+    kc.topic,
+    (1 - (kc.embedding <=> query_embedding))::FLOAT AS similarity,
+    kc.metadata
+  FROM public.knowledge_chunks kc
+  WHERE
+    (filter_subject IS NULL OR kc.subject = filter_subject)
+    AND (filter_level IS NULL OR kc.education_level = filter_level)
+    AND (1 - (kc.embedding <=> query_embedding)) > similarity_threshold
+  ORDER BY kc.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+
 -- 5. AI TUTOR SESSIONS & MESSAGES
 CREATE TABLE IF NOT EXISTS public.tutor_sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
