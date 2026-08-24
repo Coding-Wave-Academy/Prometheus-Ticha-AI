@@ -118,8 +118,33 @@ function StudentDashboardPageContent() {
     // Helper to get real stored progress (defaults to 0% for weak subjects until student completes lessons)
     const getProgress = (subjectKey: string): number => {
       if (typeof window !== "undefined") {
-        const stored = localStorage.getItem(`ticha_progress_${subjectKey.toLowerCase()}`);
-        if (stored) return Math.min(100, Number(stored));
+        const s = subjectKey.toLowerCase().trim();
+        const candidateKeys = [`ticha_progress_${s}`];
+        if (s.includes("math")) {
+          candidateKeys.push("ticha_progress_math", "ticha_progress_pure math", "ticha_progress_pure maths", "ticha_progress_pure mathematics", "ticha_progress_mathematics");
+        } else if (s.includes("phys")) {
+          candidateKeys.push("ticha_progress_physics", "ticha_progress_phys");
+        } else if (s.includes("ict") || s.includes("comput")) {
+          candidateKeys.push("ticha_progress_ict", "ticha_progress_computing", "ticha_progress_computer science");
+        } else if (s.includes("chem")) {
+          candidateKeys.push("ticha_progress_chemistry", "ticha_progress_chem");
+        } else if (s.includes("bio")) {
+          candidateKeys.push("ticha_progress_biology", "ticha_progress_bio");
+        } else if (s.includes("eng")) {
+          candidateKeys.push("ticha_progress_english", "ticha_progress_english language");
+        } else if (s.includes("fr")) {
+          candidateKeys.push("ticha_progress_french", "ticha_progress_french language");
+        }
+
+        let maxVal = 0;
+        for (const key of candidateKeys) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const num = Number(stored);
+            if (num > maxVal) maxVal = num;
+          }
+        }
+        return Math.min(100, maxVal);
       }
       return 0; // 0% initial progress for new users!
     };

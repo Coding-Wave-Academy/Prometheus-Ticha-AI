@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
@@ -153,10 +154,18 @@ export default function GoalSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
-        <header className="flex items-center gap-4 w-full">
-          <button
+    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#B6FF00]">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black">
+        {/* Animated Header & Progress */}
+        <motion.header
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-4 w-full"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleBack}
             className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px transition-all shrink-0"
             aria-label="Go back"
@@ -173,18 +182,24 @@ export default function GoalSelectionPage() {
                 d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
               />
             </svg>
-          </button>
+          </motion.button>
 
           <div className="flex gap-1.5 w-full items-center">
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1"></div>
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
           </div>
-        </header>
+        </motion.header>
 
-        <div className="text-center space-y-1 mt-6 mb-4">
+        {/* Title Area */}
+        <motion.div
+          initial={{ y: 15, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="text-center space-y-1 mt-6 mb-4"
+        >
           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
             {isMounted ? t("goal.title") : "What is your primary goal?"}
           </h1>
@@ -193,14 +208,25 @@ export default function GoalSelectionPage() {
               ? t("goal.subtitle")
               : "Let's get 1% better every single day."}
           </p>
-        </div>
+        </motion.div>
 
+        {/* Animated Staggered Goal Cards */}
         <div className="space-y-4 my-auto w-full">
-          {goals.map((goal) => {
+          {goals.map((goal, idx) => {
             const isSelected = selectedGoal === goal.id;
             return (
-              <button
+              <motion.button
                 key={goal.id}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  delay: 0.15 + idx * 0.08,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 24,
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedGoal(goal.id)}
                 className={`w-full text-left p-3.5 md:p-4 rounded-2xl border-[3.5px] border-black flex items-center gap-3.5 transition-all ${
                   isSelected
@@ -229,24 +255,32 @@ export default function GoalSelectionPage() {
                     </span>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
 
-        <footer className="w-full mt-6">
-          <button
+        {/* Footer Continue Button */}
+        <motion.footer
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.45, duration: 0.3 }}
+          className="w-full mt-6"
+        >
+          <motion.button
+            whileHover={selectedGoal ? { scale: 1.02 } : {}}
+            whileTap={selectedGoal ? { scale: 0.97 } : {}}
             onClick={handleContinue}
             disabled={!selectedGoal}
             className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider transition-all shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] ${
               selectedGoal
-                ? "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                ? "bg-[#B6FF00] hover:bg-[#a3e600] text-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
                 : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
             }`}
           >
             {isMounted ? t("goal.continue") : "Continue"}
-          </button>
-        </footer>
+          </motion.button>
+        </motion.footer>
       </main>
     </div>
   );

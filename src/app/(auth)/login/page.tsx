@@ -110,10 +110,14 @@ export default function LoginPage() {
     try {
       addToast("Connecting to Google Auth...", "info");
       const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
 
@@ -123,6 +127,11 @@ export default function LoginPage() {
         } else {
           addToast(error.message, "error", "Google Sign In Failed");
         }
+        return;
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.href = data.url;
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google auth service error";
@@ -235,7 +244,7 @@ export default function LoginPage() {
         <p className="text-stone-700 font-medium text-[15px]">
           {isMounted ? t("login.noAccount") : "New here?"}{" "}
           <Link
-            href="/register"
+            href="/getting-started"
             className="text-[#965A18] font-bold underline decoration-2 underline-offset-2 hover:text-[#7A4711] transition-colors"
           >
             {isMounted ? t("login.createAccount") : "Create an account"}

@@ -75,29 +75,17 @@ export function useProfile() {
 
   const updateProfile = useCallback(
     async (updates: ProfileUpdate) => {
-      if (!user) return { error: "Not authenticated" };
-
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            ...updates,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        )
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error updating profile:", error);
-        return { error: error.message };
-      }
-
-      if (data) {
-        setProfile(data as UserProfile);
+      // 1. Always update local storage and local state
+      if (typeof window !== "undefined") {
+        if (updates.full_name) {
+          localStorage.setItem("ticha_user_fullname", updates.full_name);
+        }
+        if (updates.school_name) {
+          localStorage.setItem("ticha_user_school", updates.school_name);
+        }
+        if (updates.region) {
+          localStorage.setItem("ticha_user_region", updates.region);
+        }
         if (updates.preferred_language) {
           i18n.changeLanguage(updates.preferred_language);
           localStorage.setItem("ticha_lang", updates.preferred_language);
@@ -111,11 +99,62 @@ export function useProfile() {
         if (updates.education_level) {
           localStorage.setItem("ticha_onboarding_education", updates.education_level);
         }
+        if (updates.profile_completed !== undefined) {
+          localStorage.setItem("ticha_profile_completed", String(updates.profile_completed));
+        }
         if (updates.avatar_url) {
           localStorage.setItem("ticha_user_avatar", updates.avatar_url);
         }
       }
-      return { error: null };
+
+      setProfile((prev) => ({
+        id: prev?.id || user?.id || "guest-user",
+        full_name: updates.full_name ?? prev?.full_name ?? "Student",
+        school_name: updates.school_name ?? prev?.school_name ?? "",
+        region: updates.region ?? prev?.region ?? "Littoral",
+        education_level: updates.education_level ?? prev?.education_level ?? "al",
+        goal: updates.goal ?? prev?.goal ?? "gce",
+        struggles: updates.struggles ?? prev?.struggles ?? ["Physics", "Pure Mathematics", "ICT"],
+        streak_count: updates.streak_count ?? prev?.streak_count ?? 1,
+        freezes_remaining: updates.freezes_remaining ?? prev?.freezes_remaining ?? 2,
+        points: prev?.points ?? 0,
+        profile_completed: updates.profile_completed ?? prev?.profile_completed ?? true,
+        preferred_language: updates.preferred_language ?? prev?.preferred_language ?? "en",
+        avatar_url: updates.avatar_url ?? prev?.avatar_url,
+      }));
+
+      if (!user) {
+        return { error: null };
+      }
+
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("profiles")
+          .upsert(
+            {
+              id: user.id,
+              ...updates,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          )
+          .select()
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error updating profile in Supabase:", error);
+          return { error: null };
+        }
+
+        if (data) {
+          setProfile(data as UserProfile);
+        }
+        return { error: null };
+      } catch (err: unknown) {
+        console.warn("Profile update remote exception, local saved:", err);
+        return { error: null };
+      }
     },
     [user]
   );

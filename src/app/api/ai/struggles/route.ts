@@ -10,9 +10,8 @@ interface StruggleSubject {
 }
 
 /**
- * /api/ai/struggles — Returns dynamic struggles subjects customized by Gemini AI
- * based on selected onboarding goal and education level, falling back to clean neobrutalist
- * static data if the key is missing or query fails.
+ * /api/ai/struggles — Returns the top 3 most challenging/disturbing subjects suggested by AI
+ * based on selected onboarding goal and education level, falling back to top 3 level-specific subjects.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    // Standard high-quality fallback subject options mapped by education level
+    // Top 3 most challenging/disturbing subjects per education level in the Cameroonian curriculum
     const defaultMocks: Record<string, StruggleSubject[]> = {
       ol: [
         { id: "math", name: "O-Level Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
@@ -30,40 +29,32 @@ export async function POST(req: NextRequest) {
       al: [
         { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
         { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
-        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
-      ],
-      university: [
-        { id: "calculus", name: "Advanced Calculus", iconBg: "bg-[#A6B7CE]", iconSlug: "calculus" },
-        { id: "cs", name: "Computer Programming", iconBg: "bg-[#B6FF00]", iconSlug: "cs" },
-        { id: "physics", name: "Quantum Mechanics", iconBg: "bg-[#FFD9E0]", iconSlug: "physics" },
-      ],
+        { id: "furtherMath", name: "Further Mathematics", iconBg: "bg-[#FFD9E0]", iconSlug: "math" },
+      ]
     };
 
     const levelMocks = defaultMocks[education] || defaultMocks["al"];
 
     if (!apiKey) {
-      console.log("No GEMINI_API_KEY found, returning premium fallback mocks.");
       return NextResponse.json({ subjects: levelMocks });
     }
 
     const prompt = `
-      You are a Cameroonian curriculum expert counselor at Ticha AI.
-      Given the student's education level: "${education}" (where 'ol' represents O-Level / GCE Ordinary Level / Probatoire, 'al' represents A-Level / GCE Advanced Level / Baccalauréat, and 'university' represents University studies)
-      and their primary goal: "${goal}" (e.g. exam excellence, building habits, ranking, or satisfying curiosity).
+      You are a Cameroonian academic curriculum counselor at Ticha AI.
+      Analyze the student's education level: "${education}" (ol = GCE Ordinary Level / Form 5, al = GCE Advanced Level / Upper Sixth, university = University studies)
+      and their goal: "${goal}".
 
-      Generate exactly 3 specific, highly relevant subjects where Cameroonian students at this level facing those goals typically experience difficulties (struggles).
+      Identify and suggest EXACTLY the top 3 most notoriously challenging and disturbing subjects that students at this specific level struggle with the most in Cameroon.
 
-      Return the result strictly as a JSON object of this structure:
+      Return the result strictly as a raw JSON object with this structure:
       {
         "subjects": [
-          { "id": "subject_slug", "name": "Subject Name", "iconBg": "bg_tailwind_color_class", "iconSlug": "subject_slug" }
+          { "id": "slug", "name": "Subject Name", "iconBg": "bg-[#B6FF00]", "iconSlug": "math|physics|chemistry|cs|calculus" }
         ]
       }
-      
-      Valid iconBg tailwind classes you can use are:
-      "bg-[#A6B7CE]", "bg-[#B6FF00]", "bg-[#FFD9E0]", "bg-[#D3E2FF]", "bg-[#FFE5C4]"
 
-      Do not wrap it in markdown block tags. Return only raw, valid JSON.
+      Valid iconBg classes to cycle through: "bg-[#A6B7CE]", "bg-[#B6FF00]", "bg-[#FFD9E0]", "bg-[#D3E2FF]", "bg-[#FFE5C4]"
+      Do not include markdown backticks. Return exactly 3 items.
     `;
 
     const response = await fetch(
@@ -79,23 +70,27 @@ export async function POST(req: NextRequest) {
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API returned status ${response.status}`);
+      return NextResponse.json({ subjects: levelMocks });
     }
 
     const json = await response.json();
     const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) throw new Error("Empty response from Gemini");
+    if (!rawText) return NextResponse.json({ subjects: levelMocks });
 
     const parsed = JSON.parse(rawText.trim());
-    return NextResponse.json({ subjects: parsed.subjects || levelMocks });
+    const validSubjects = Array.isArray(parsed.subjects) && parsed.subjects.length > 0
+      ? parsed.subjects.slice(0, 3)
+      : levelMocks;
+
+    return NextResponse.json({ subjects: validSubjects });
 
   } catch (error) {
-    console.error("Gemini query failed, bailing out to mock data:", error);
+    console.error("Gemini struggles query exception:", error);
     return NextResponse.json({
       subjects: [
         { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
         { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
-        { id: "chemistry", name: "Advanced Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
+        { id: "furtherMath", name: "Further Mathematics", iconBg: "bg-[#FFD9E0]", iconSlug: "math" },
       ]
     });
   }

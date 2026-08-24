@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft01Icon,
@@ -31,7 +31,22 @@ interface FlashCard {
 }
 
 export default function FlashcardsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
+          <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <FlashcardsContent />
+    </Suspense>
+  );
+}
+
+function FlashcardsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const navItems = useNavItems();
   const { claimDailyStreak } = useStreak();
 
@@ -43,15 +58,9 @@ export default function FlashcardsPage() {
   const [showHint, setShowHint] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [masteredCount, setMasteredCount] = useState(0);
-  const [reviewList, setReviewList] = useState<FlashCard[]>([]);
   const [isFinished, setIsFinished] = useState(false);
 
-  // Load subject/topic from localStorage (ticha_today_lesson_topic)
-  useEffect(() => {
-    loadTopicAndCards();
-  }, []);
-
-  const loadTopicAndCards = async () => {
+  const loadTopicAndCards = useCallback(async (forcedSub?: string, forcedTop?: string) => {
     setIsLoading(true);
     setIsFinished(false);
     setCurrentIdx(0);
@@ -59,22 +68,78 @@ export default function FlashcardsPage() {
     setIsFlipped(false);
     setShowHint(false);
 
-    let curSub = "Physics";
-    let curTop = "Newton's Laws of Motion";
+    let curSub = forcedSub || searchParams.get("subject") || "";
+    let curTop = forcedTop || searchParams.get("topic") || "";
+    let lessonData: Record<string, unknown> | null = null;
 
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("ticha_today_lesson_topic");
-      if (stored) {
+      // 1. Read today's lesson topic and lesson data
+      const storedTopic = localStorage.getItem("ticha_today_lesson_topic");
+      if (storedTopic && (!curSub || !curTop)) {
         try {
-          const parsed = JSON.parse(stored);
-          if (parsed.subject) curSub = parsed.subject;
-          if (parsed.topic) curTop = parsed.topic;
+          const parsed = JSON.parse(storedTopic);
+          if (!curSub && parsed.subject) curSub = parsed.subject;
+          if (!curTop && parsed.topic) curTop = parsed.topic;
+        } catch { /* ignore */ }
+      }
+
+      const storedLesson = localStorage.getItem("ticha_today_lesson_data");
+      if (storedLesson) {
+        try {
+          lessonData = JSON.parse(storedLesson);
         } catch { /* ignore */ }
       }
     }
 
+    if (!curSub) curSub = "Physics";
+    if (!curTop) curTop = "Newton's Laws of Motion";
+
     setSubject(curSub);
     setTopic(curTop);
+
+    // Build flashcards directly from today's daily lesson questions & tips if available
+    const customLessonCards: FlashCard[] = [];
+    if (lessonData && (lessonData.topic === curTop || !forcedTop)) {
+      const quizQs = Array.isArray(lessonData.quizQuestions) ? lessonData.quizQuestions : [];
+      quizQs.forEach((q: { question?: string; options?: string[]; correctIdx?: number; explanation?: string }, i: number) => {
+        if (q && q.question) {
+          const correctOption = q.options && typeof q.correctIdx === "number" ? q.options[q.correctIdx] : "";
+          customLessonCards.push({
+            id: `lesson-q-${i}`,
+            front: q.question,
+            back: correctOption ? `${correctOption}${q.explanation ? ` — ${q.explanation}` : ""}` : (q.explanation || "Correct Answer"),
+            hint: `Today's Daily Lesson Question #${i + 1}`,
+          });
+        }
+      });
+
+      const tips = Array.isArray(lessonData.tips) ? lessonData.tips : [];
+      tips.forEach((tip: string, i: number) => {
+        if (tip) {
+          customLessonCards.push({
+            id: `lesson-tip-${i}`,
+            front: `Exam Tip: How to master ${curTop}?`,
+            back: tip,
+            hint: `Madame Ticha Tip #${i + 1}`,
+          });
+        }
+      });
+
+      if (lessonData.keyTakeaway && typeof lessonData.keyTakeaway === "string") {
+        customLessonCards.push({
+          id: `lesson-takeaway`,
+          front: `Core Exam Takeaway: ${curTop}`,
+          back: lessonData.keyTakeaway,
+          hint: "Key syllabus takeaway",
+        });
+      }
+    }
+
+    if (customLessonCards.length > 0) {
+      setCards(customLessonCards);
+      setIsLoading(false);
+      return;
+    }
 
     // Try loading saved deck from localStorage first for offline review
     const storageKey = `ticha_flashcards_${curSub}_${curTop}`.replace(/\s+/g, "_");
@@ -85,7 +150,6 @@ export default function FlashcardsPage() {
           const parsedDeck = JSON.parse(offlineDeck);
           if (Array.isArray(parsedDeck) && parsedDeck.length > 0) {
             setCards(parsedDeck);
-            setReviewList(parsedDeck);
             setIsLoading(false);
             return;
           }
@@ -105,7 +169,6 @@ export default function FlashcardsPage() {
       const data = await res.json();
       const loaded: FlashCard[] = data.flashcards || [];
       setCards(loaded);
-      setReviewList(loaded);
 
       if (typeof window !== "undefined" && loaded.length > 0) {
         localStorage.setItem(storageKey, JSON.stringify(loaded));
@@ -115,7 +178,11 @@ export default function FlashcardsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    loadTopicAndCards();
+  }, [loadTopicAndCards]);
 
   const handleFlip = () => {
     hapticTap();
@@ -158,9 +225,9 @@ export default function FlashcardsPage() {
         <header className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
             <Link
-              href="/explore"
+              href="/dashboard"
               className="w-10 h-10 bg-white border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform"
-              aria-label="Back to explore"
+              aria-label="Back to dashboard"
             >
               <ArrowLeft01Icon className="w-5 h-5 text-black" />
             </Link>
@@ -168,14 +235,14 @@ export default function FlashcardsPage() {
               <h1 className="text-xl font-black uppercase tracking-tight text-[#1A1A1A]">
                 Revision Flashcards
               </h1>
-              <p className="text-xs font-bold text-stone-600">
+              <p className="text-xs font-bold text-stone-600 truncate max-w-[220px]">
                 {subject} • {topic}
               </p>
             </div>
           </div>
 
           <button
-            onClick={loadTopicAndCards}
+            onClick={() => loadTopicAndCards(subject, topic)}
             aria-label="Reload cards"
             className="w-10 h-10 bg-[#B6FF00] border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform"
           >
@@ -188,7 +255,7 @@ export default function FlashcardsPage() {
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
-              Generating High-Yield Flashcards...
+              Loading Daily Topic Flashcards...
             </h3>
             <p className="text-xs font-bold text-stone-600">
               Formulating GCE revision cards for {topic}.
@@ -209,23 +276,23 @@ export default function FlashcardsPage() {
                 {masteredCount} / {cards.length} Mastered!
               </h2>
               <p className="text-xs font-extrabold text-stone-900 max-w-xs mx-auto pt-1">
-                You reviewed all key concepts for {topic}. Spaced memory practice keeps information sharp for exam day!
+                You reviewed all key concepts and questions for {topic}. Spaced memory practice keeps information sharp for exam day!
               </p>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-col gap-2.5 pt-2">
               <button
                 onClick={handleRestart}
-                className="flex-1 bg-white hover:bg-stone-50 border-[2.5px] border-black rounded-xl py-3 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black flex items-center justify-center gap-1.5"
+                className="w-full bg-white hover:bg-stone-50 border-[2.5px] border-black rounded-xl py-3.5 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black flex items-center justify-center gap-1.5"
               >
                 <RotateRight01Icon size={16} />
-                <span>Review Again</span>
+                <span>Review Deck Again</span>
               </button>
               <button
-                onClick={() => router.push("/explore")}
-                className="flex-1 bg-[#FFB040] hover:bg-[#ffa326] border-[2.5px] border-black rounded-xl py-3 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
+                onClick={() => router.push("/dashboard/daily-lessons")}
+                className="w-full bg-[#FFB040] hover:bg-[#ffa326] border-[2.5px] border-black rounded-xl py-3.5 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
               >
-                Explore Hub
+                Back to Daily Lesson
               </button>
             </div>
           </div>
