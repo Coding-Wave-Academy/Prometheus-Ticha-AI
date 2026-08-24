@@ -244,7 +244,7 @@ export default function LoginPage() {
         <p className="text-stone-700 font-medium text-[15px]">
           {isMounted ? t("login.noAccount") : "New here?"}{" "}
           <Link
-            href="/register"
+            href="/getting-started"
             className="text-[#965A18] font-bold underline decoration-2 underline-offset-2 hover:text-[#7A4711] transition-colors"
           >
             {isMounted ? t("login.createAccount") : "Create an account"}
