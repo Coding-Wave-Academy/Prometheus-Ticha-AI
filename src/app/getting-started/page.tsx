@@ -1,16 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useIsMounted } from "@/hooks/useIsMounted";
+import { useAuth } from "@/hooks/useAuth";
 import "@/lib/i18n"; // Import i18n instance
 
 export default function WelcomePage() {
   const { t } = useTranslation();
   const isMounted = useIsMounted();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, isLoading, router]);
 
   const handleGetStarted = () => {
     router.push("/getting-started/language");

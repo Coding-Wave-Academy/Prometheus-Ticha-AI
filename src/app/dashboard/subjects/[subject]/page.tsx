@@ -130,7 +130,7 @@ export default function SubjectDetailPage() {
           </div>
 
           <button
-            onClick={() => router.push("/dashboard/daily-lessons")}
+            onClick={() => router.push(`/dashboard/daily-lessons?subject=${encodeURIComponent(syllabus.name)}`)}
             className="w-full bg-white hover:bg-stone-50 border-[2.5px] border-black rounded-xl py-2.5 px-3 font-black text-xs uppercase shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 text-black"
           >
             <PlayIcon size={16} className="fill-current text-black" />
@@ -166,37 +166,56 @@ export default function SubjectDetailPage() {
                     <div
                       key={topic.id}
                       onClick={() => handleToggleTopic(topic.id)}
-                      className={`border-[3px] border-black rounded-xl p-3.5 shadow-[3.5px_3.5px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-start gap-3.5 ${
+                      className={`border-[3px] border-black rounded-xl p-3.5 shadow-[3.5px_3.5px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex flex-col gap-2.5 ${
                         isChecked ? "bg-[#C8F7C5]" : "bg-white"
                       }`}
                     >
-                      {/* Checkbox */}
-                      <div
-                        className={`w-6 h-6 rounded-lg border-[2.5px] border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-colors ${
-                          isChecked ? "bg-black text-[#B6FF00]" : "bg-white"
-                        }`}
-                      >
-                        {isChecked && <CheckmarkCircle02Icon size={16} className="text-[#B6FF00]" />}
+                      <div className="flex items-start gap-3.5 w-full">
+                        {/* Checkbox */}
+                        <div
+                          className={`w-6 h-6 rounded-lg border-[2.5px] border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-colors ${
+                            isChecked ? "bg-black text-[#B6FF00]" : "bg-white"
+                          }`}
+                        >
+                          {isChecked && <CheckmarkCircle02Icon size={16} className="text-[#B6FF00]" />}
+                        </div>
+
+                        {/* Topic Title & Subtitle */}
+                        <div className="flex-1 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-stone-600">
+                              Topic {topic.order}
+                            </span>
+                            {isChecked && (
+                              <span className="text-[9px] font-black bg-black text-[#B6FF00] px-1.5 py-0.5 rounded uppercase">
+                                Mastered ✓
+                              </span>
+                            )}
+                          </div>
+                          <h4 className={`text-sm font-black text-black leading-snug ${isChecked ? "line-through opacity-80" : ""}`}>
+                            {topic.title}
+                          </h4>
+                          <p className="text-xs font-medium text-stone-700 leading-tight">
+                            {topic.subtitle}
+                          </p>
+                        </div>
                       </div>
 
-                      {/* Topic Title & Subtitle */}
-                      <div className="flex-1 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-stone-600">
-                            Topic {topic.order}
-                          </span>
-                          {isChecked && (
-                            <span className="text-[9px] font-black bg-black text-[#B6FF00] px-1.5 py-0.5 rounded uppercase">
-                              Mastered ✓
-                            </span>
-                          )}
-                        </div>
-                        <h4 className={`text-sm font-black text-black leading-snug ${isChecked ? "line-through opacity-80" : ""}`}>
-                          {topic.title}
-                        </h4>
-                        <p className="text-xs font-medium text-stone-700 leading-tight">
-                          {topic.subtitle}
-                        </p>
+                      {/* Direct Topic Practice Button */}
+                      <div className="flex items-center justify-end pt-1 border-t border-black/10">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(
+                              `/dashboard/daily-lessons?subject=${encodeURIComponent(syllabus.name)}&topic=${encodeURIComponent(topic.title)}`
+                            );
+                          }}
+                          className="bg-[#B6FF00] hover:bg-[#a6ec00] border-[2px] border-black rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1.5 text-black"
+                        >
+                          <PlayIcon size={12} className="fill-current text-black" />
+                          <span>Study This Topic</span>
+                        </button>
                       </div>
                     </div>
                   );

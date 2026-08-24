@@ -10,6 +10,7 @@ export interface UserProfile {
   avatar_url?: string;
   education_level?: string;
   goal?: string;
+  struggles?: string[];
   streak_count: number;
   freezes_remaining: number;
   last_active_date?: string;
@@ -91,7 +92,7 @@ export function useAuth() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
+        redirectTo: `${origin}/auth/callback?next=/dashboard`,
       },
     });
     if (error) {

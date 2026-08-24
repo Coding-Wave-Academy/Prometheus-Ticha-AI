@@ -126,6 +126,20 @@ export default function StrugglesIdentificationPage() {
     const trimmed = customInput.trim();
     if (!trimmed) return;
 
+    const existing = subjects.find(
+      (s) => s.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (existing) {
+      setSelectedSubjects((prev) => {
+        const next = new Set(prev);
+        next.add(existing.id);
+        return next;
+      });
+      setCustomInput("");
+      setIsAddingCustom(false);
+      return;
+    }
+
     const newId = `custom-${Date.now()}`;
     const newSubject: SubjectStruggle = {
       id: newId,
@@ -148,10 +162,14 @@ export default function StrugglesIdentificationPage() {
   const handleContinue = () => {
     if (selectedSubjects.size === 0) return;
     
-    const chosenNames = Array.from(selectedSubjects).map((id) => {
-      const sub = subjects.find((s) => s.id === id);
-      return sub ? sub.name : id;
-    });
+    const chosenNames = Array.from(
+      new Set(
+        Array.from(selectedSubjects).map((id) => {
+          const sub = subjects.find((s) => s.id === id);
+          return sub ? sub.name : id;
+        })
+      )
+    );
 
     localStorage.setItem("ticha_onboarding_struggles", JSON.stringify(chosenNames));
     router.push("/getting-started/intel");

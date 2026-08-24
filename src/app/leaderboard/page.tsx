@@ -364,7 +364,7 @@ export default function LeaderboardsPage() {
                   <FlashIcon size={20} className="text-black" />
                 </div>
                 <div>
-                  <h4 className="font-black text-xs uppercase text-black">AI Study Micro-Lessons</h4>
+                  <h4 className="font-black text-xs uppercase text-black">AI Study Lessons</h4>
                   <p className="text-[11px] font-bold text-stone-600">+10 Points per lesson block completed</p>
                 </div>
               </div>

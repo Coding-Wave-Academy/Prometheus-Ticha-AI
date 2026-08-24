@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { formatAIText } from "@/lib/formatAIText";
+import { retrieveContext } from "@/lib/rag/retriever";
+import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +114,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ quiz: fallbackPaper1Questions });
     }
 
-    const prompt = `
+    // RAG: Retrieve curriculum context for quiz question grounding
+    const chunks = await retrieveContext({
+      query: `${targetSubject} ${targetTopic} exam questions concepts definitions`,
+      subject: targetSubject,
+      educationLevel: education || 'al',
+      topK: 6,
+      threshold: 0.4,
+    });
+
+    const basePrompt = `
       You are a senior examiner for the Cameroon GCE Board (Ordinary & Advanced Level).
       Create a 15-question GCE Paper 1 Multiple Choice Exam.
 
@@ -149,6 +160,9 @@ export async function POST(req: NextRequest) {
         ]
       }
     `;
+
+    // Inject RAG context into the prompt for grounded question generation
+    const prompt = injectContextIntoPrompt(basePrompt, chunks, 3000);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
