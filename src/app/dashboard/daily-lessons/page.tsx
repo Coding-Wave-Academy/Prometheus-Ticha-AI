@@ -164,6 +164,10 @@ function DailyLessonsContent() {
           "ticha_today_lesson_topic",
           JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
         );
+        localStorage.setItem(
+          "ticha_today_lesson_data",
+          JSON.stringify(loadedLesson)
+        );
       }
     } catch (err) {
       console.error("Failed to load daily lesson:", err);
@@ -241,10 +245,51 @@ function DailyLessonsContent() {
       await claimDailyStreak();
 
       if (typeof window !== "undefined" && lesson.subject) {
-        const subjectKey = `ticha_progress_${lesson.subject.toLowerCase()}`;
-        const currentProgress = Number(localStorage.getItem(subjectKey) || 0);
-        const newProgress = Math.min(100, currentProgress + 25);
-        localStorage.setItem(subjectKey, String(newProgress));
+        const rawSubject = lesson.subject.trim();
+        const lower = rawSubject.toLowerCase();
+
+        const keysToUpdate = new Set<string>();
+        keysToUpdate.add(`ticha_progress_${lower}`);
+
+        if (lower.includes("math")) {
+          keysToUpdate.add("ticha_progress_math");
+          keysToUpdate.add("ticha_progress_pure math");
+          keysToUpdate.add("ticha_progress_pure maths");
+          keysToUpdate.add("ticha_progress_pure mathematics");
+          keysToUpdate.add("ticha_progress_mathematics");
+        } else if (lower.includes("phys")) {
+          keysToUpdate.add("ticha_progress_physics");
+          keysToUpdate.add("ticha_progress_phys");
+        } else if (lower.includes("ict") || lower.includes("comput")) {
+          keysToUpdate.add("ticha_progress_ict");
+          keysToUpdate.add("ticha_progress_computing");
+          keysToUpdate.add("ticha_progress_computer science");
+        } else if (lower.includes("chem")) {
+          keysToUpdate.add("ticha_progress_chemistry");
+          keysToUpdate.add("ticha_progress_chem");
+        } else if (lower.includes("bio")) {
+          keysToUpdate.add("ticha_progress_biology");
+          keysToUpdate.add("ticha_progress_bio");
+        } else if (lower.includes("eng")) {
+          keysToUpdate.add("ticha_progress_english");
+          keysToUpdate.add("ticha_progress_english language");
+        } else if (lower.includes("fr")) {
+          keysToUpdate.add("ticha_progress_french");
+          keysToUpdate.add("ticha_progress_french language");
+        }
+
+        let currentMax = 0;
+        keysToUpdate.forEach((k) => {
+          const val = Number(localStorage.getItem(k) || 0);
+          if (val > currentMax) currentMax = val;
+        });
+
+        const newProgress = Math.min(100, currentMax + 25);
+        keysToUpdate.forEach((k) => {
+          localStorage.setItem(k, String(newProgress));
+        });
+
+        window.dispatchEvent(new Event("ticha_progress_updated"));
       }
 
       const randomAff = affirmations[Math.floor(Math.random() * affirmations.length)];
@@ -664,7 +709,7 @@ function DailyLessonsContent() {
                   </button>
 
                   <button
-                    onClick={() => router.push("/dashboard/flashcards")}
+                    onClick={() => router.push(`/dashboard/flashcards?subject=${encodeURIComponent(lesson.subject)}&topic=${encodeURIComponent(lesson.topic)}`)}
                     className="w-full bg-white border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <SparklesIcon size={18} className="text-black" />

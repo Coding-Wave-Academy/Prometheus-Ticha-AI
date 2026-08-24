@@ -110,10 +110,14 @@ export default function LoginPage() {
     try {
       addToast("Connecting to Google Auth...", "info");
       const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
 
@@ -123,6 +127,11 @@ export default function LoginPage() {
         } else {
           addToast(error.message, "error", "Google Sign In Failed");
         }
+        return;
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.href = data.url;
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google auth service error";

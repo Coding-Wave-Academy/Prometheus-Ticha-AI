@@ -89,14 +89,21 @@ export function useAuth() {
   const signInWithGoogle = async () => {
     const supabase = createClient();
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${origin}/auth/callback?next=/dashboard`,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
     });
     if (error) {
       throw error;
+    }
+    if (data?.url && typeof window !== "undefined") {
+      window.location.href = data.url;
     }
   };
 
