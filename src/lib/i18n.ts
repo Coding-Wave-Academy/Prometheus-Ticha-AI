@@ -19,9 +19,29 @@ const resources = {
         french: "Français",
       },
       goal: {
-        title: "What is your primary goal?",
-        subtitle: "Let's get 1% better every single day.",
-        continue: "Continue",
+        title: "What's Your Main Goal?",
+        subtitle: "Select one or more — we'll tailor your experience to help you succeed.",
+        continue: "NEXT",
+        passOl: {
+          title: "Pass GCE O/L",
+          subtitle: "Form 5 focus",
+        },
+        passAl: {
+          title: "Pass GCE A/L",
+          subtitle: "Upper Sixth",
+        },
+        excelUni: {
+          title: "Excel in University CAs",
+          subtitle: "Continuous Assessment prep",
+        },
+        deepUnderstanding: {
+          title: "Deep Understanding",
+          subtitle: "Master concepts",
+        },
+        buildConfidence: {
+          title: "Build Confidence",
+          subtitle: "Exam readiness",
+        },
         gce: {
           title: "Ace my GCE exams",
           description: "Master your subjects with AI",
@@ -45,17 +65,22 @@ const resources = {
       },
       education: {
         title: "Your Education Level",
+        subtitle: "Tell us where you are in your journey so Ticha AI can tailor the lessons for you.",
         ol: {
-          title: "GCE Ordinary Level (O/L)",
-          subtitle: "Form 5 • Probatoire",
+          title: "GCE O Level",
+          subtitle: "Secondary School",
         },
         al: {
-          title: "GCE Advanced Level (A/L)",
-          subtitle: "Upper Sixth • Baccalauréat",
+          title: "GCE A Level",
+          subtitle: "High School",
+        },
+        technical: {
+          title: "Technical",
+          subtitle: "Vocational Studies",
         },
         university: {
           title: "University Student",
-          subtitle: "Higher education & entrance exams",
+          subtitle: "Undergraduate",
         },
         continue: "Continue",
       },
@@ -211,8 +236,28 @@ const resources = {
       },
       goal: {
         title: "Quel est votre objectif principal?",
-        subtitle: "Devenons 1% meilleur chaque jour.",
-        continue: "Continuer",
+        subtitle: "Sélectionnez-en un ou plusieurs — nous adapterons votre expérience pour vous aider à réussir.",
+        continue: "SUIVANT",
+        passOl: {
+          title: "Pass GCE O/L",
+          subtitle: "Form 5 focus",
+        },
+        passAl: {
+          title: "Pass GCE A/L",
+          subtitle: "Upper Sixth",
+        },
+        excelUni: {
+          title: "Exceller aux CC d'université",
+          subtitle: "Préparation aux Contrôles Continus",
+        },
+        deepUnderstanding: {
+          title: "Compréhension profonde",
+          subtitle: "Maîtriser les concepts",
+        },
+        buildConfidence: {
+          title: "Bâtir la confiance",
+          subtitle: "Prêt pour les examens",
+        },
         gce: {
           title: "Réussir mes examens GCE / BACC",
           description: "Maîtrisez vos matières avec l'IA",
@@ -236,17 +281,22 @@ const resources = {
       },
       education: {
         title: "Votre niveau d'études",
+        subtitle: "Dites-nous où vous en êtes dans votre parcours pour que Ticha AI adapte vos leçons.",
         ol: {
-          title: "GCE Ordinary Level (O/L)",
-          subtitle: "Form 5 • Probatoire",
+          title: "GCE O Level",
+          subtitle: "Secondary School",
         },
         al: {
-          title: "GCE Advanced Level (A/L)",
-          subtitle: "Upper Sixth • Terminale / Baccalauréat",
+          title: "GCE A Level",
+          subtitle: "High School",
+        },
+        technical: {
+          title: "Technical",
+          subtitle: "Vocational Studies",
         },
         university: {
-          title: "Étudiant universitaire",
-          subtitle: "Enseignement supérieur & concours",
+          title: "University Student",
+          subtitle: "Undergraduate",
         },
         continue: "Continuer",
       },
