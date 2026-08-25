@@ -13,7 +13,7 @@ export default function SummariesPage() {
       <main className="flex-1 flex items-center justify-center p-4">
         <ComingSoon
           title="Study Summaries Coming Soon"
-          description="High-yield revision notes, bite-sized topic summaries, and key formula guides tailored for Cameroonian students!"
+          description="High-yield syllabus study summaries, revision notes, and core formulas from verified curriculum materials."
           showBackHome={true}
         />
       </main>

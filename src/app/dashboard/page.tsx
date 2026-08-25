@@ -97,9 +97,11 @@ function StudentDashboardPageContent() {
   const [dynamicFeaturedSubjects, setDynamicFeaturedSubjects] = useState<SubjectData[]>([]);
 
   useEffect(() => {
-    // Read struggles from localStorage or profile vector
+    // Read struggles: prioritize database profile if loaded, then localStorage fallback
     let struggles: string[] = ["physics", "math", "ict"];
-    if (typeof window !== "undefined") {
+    if (profile?.struggles && Array.isArray(profile.struggles) && profile.struggles.length > 0) {
+      struggles = profile.struggles;
+    } else if (typeof window !== "undefined") {
       const storedStruggles = localStorage.getItem("ticha_onboarding_struggles");
       if (storedStruggles) {
         try {
@@ -116,84 +118,150 @@ function StudentDashboardPageContent() {
     // Helper to get real stored progress (defaults to 0% for weak subjects until student completes lessons)
     const getProgress = (subjectKey: string): number => {
       if (typeof window !== "undefined") {
-        const stored = localStorage.getItem(`ticha_progress_${subjectKey.toLowerCase()}`);
-        if (stored) return Math.min(100, Number(stored));
+        const s = subjectKey.toLowerCase().trim();
+        const candidateKeys = [`ticha_progress_${s}`];
+        if (s.includes("math")) {
+          candidateKeys.push("ticha_progress_math", "ticha_progress_pure math", "ticha_progress_pure maths", "ticha_progress_pure mathematics", "ticha_progress_mathematics");
+        } else if (s.includes("phys")) {
+          candidateKeys.push("ticha_progress_physics", "ticha_progress_phys");
+        } else if (s.includes("ict") || s.includes("comput")) {
+          candidateKeys.push("ticha_progress_ict", "ticha_progress_computing", "ticha_progress_computer science");
+        } else if (s.includes("chem")) {
+          candidateKeys.push("ticha_progress_chemistry", "ticha_progress_chem");
+        } else if (s.includes("bio")) {
+          candidateKeys.push("ticha_progress_biology", "ticha_progress_bio");
+        } else if (s.includes("eng")) {
+          candidateKeys.push("ticha_progress_english", "ticha_progress_english language");
+        } else if (s.includes("fr")) {
+          candidateKeys.push("ticha_progress_french", "ticha_progress_french language");
+        }
+
+        let maxVal = 0;
+        for (const key of candidateKeys) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const num = Number(stored);
+            if (num > maxVal) maxVal = num;
+          }
+        }
+        return Math.min(100, maxVal);
       }
       return 0; // 0% initial progress for new users!
     };
 
+    const mathSubject: SubjectData = {
+      id: "math",
+      category: "Mathematics",
+      title: "Pure Maths",
+      subtitle: "Algebra, Calculus & Vectors",
+      progress: getProgress("pure mathematics"),
+      bgColor: "bg-[#B6FF00]",
+      icon: <SquareIcon size={24} className="text-black" />,
+    };
+
+    const physicsSubject: SubjectData = {
+      id: "phys",
+      category: "Sciences",
+      title: "Physics",
+      subtitle: "Mechanics, Fields & Waves",
+      progress: getProgress("physics"),
+      bgColor: "bg-[#FFB040]",
+      icon: <FlashIcon size={24} className="text-black" />,
+    };
+
+    const ictSubject: SubjectData = {
+      id: "ict",
+      category: "Technology",
+      title: "ICT & Computing",
+      subtitle: "Databases, Networks & SDLC",
+      progress: getProgress("ict"),
+      bgColor: "bg-[#FFDF9E]",
+      icon: <ComputerIcon size={24} className="text-black" />,
+    };
+
+    const chemSubject: SubjectData = {
+      id: "chem",
+      category: "Sciences",
+      title: "Chemistry",
+      subtitle: "Atomic Structure & Energetics",
+      progress: getProgress("chemistry"),
+      bgColor: "bg-[#D3E2FF]",
+      icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
+    };
+
+    const bioSubject: SubjectData = {
+      id: "bio",
+      category: "Sciences",
+      title: "Biology",
+      subtitle: "Genetics & Cell Structure",
+      progress: getProgress("biology"),
+      bgColor: "bg-[#FFD9E0]",
+      icon: <Award01Icon size={24} className="text-black" />,
+    };
+
+    const engSubject: SubjectData = {
+      id: "eng",
+      category: "Arts",
+      title: "English Language",
+      subtitle: "Essay Structure & Comprehension",
+      progress: getProgress("english"),
+      bgColor: "bg-[#E2D3FF]",
+      icon: <Book01Icon size={24} className="text-black" />,
+    };
+
+    const frSubject: SubjectData = {
+      id: "fr",
+      category: "Arts",
+      title: "French Language",
+      subtitle: "Grammar & Expression Écrite",
+      progress: getProgress("french"),
+      bgColor: "bg-[#A8FFD3]",
+      icon: <Globe02Icon size={24} className="text-black" />,
+    };
+
     const subjectMap: Record<string, SubjectData> = {
-      physics: {
-        id: "phys",
-        category: "Sciences",
-        title: "Physics",
-        subtitle: "Electromagnetism & Quantum Physics",
-        progress: getProgress("physics"),
-        bgColor: "bg-[#FFB040]",
-        icon: <FlashIcon size={24} className="text-black" />,
-      },
-      math: {
-        id: "math",
-        category: "Mathematics",
-        title: "Pure Maths",
-        subtitle: "Complex Numbers & Calculus Limits",
-        progress: getProgress("pure mathematics"),
-        bgColor: "bg-[#B6FF00]",
-        icon: <SquareIcon size={24} className="text-black" />,
-      },
-      ict: {
-        id: "ict",
-        category: "Technology",
-        title: "ICT & Computing",
-        subtitle: "Database Normalization & Networks",
-        progress: getProgress("ict"),
-        bgColor: "bg-[#FFDF9E]",
-        icon: <ComputerIcon size={24} className="text-black" />,
-      },
-      chemistry: {
-        id: "chem",
-        category: "Sciences",
-        title: "Chemistry",
-        subtitle: "Organic Reactions & Energetics",
-        progress: getProgress("chemistry"),
-        bgColor: "bg-[#D3E2FF]",
-        icon: <CheckmarkCircle02Icon size={24} className="text-black" />,
-      },
-      biology: {
-        id: "bio",
-        category: "Sciences",
-        title: "Biology",
-        subtitle: "Genetics & Cell Structure",
-        progress: getProgress("biology"),
-        bgColor: "bg-[#FFD9E0]",
-        icon: <Award01Icon size={24} className="text-black" />,
-      },
-      english: {
-        id: "eng",
-        category: "Arts",
-        title: "English Language",
-        subtitle: "Essay Structure & Comprehension",
-        progress: getProgress("english"),
-        bgColor: "bg-[#E2D3FF]",
-        icon: <Book01Icon size={24} className="text-black" />,
-      },
-      french: {
-        id: "fr",
-        category: "Arts",
-        title: "French Language",
-        subtitle: "Grammar & Expression Écrite",
-        progress: getProgress("french"),
-        bgColor: "bg-[#A8FFD3]",
-        icon: <Globe02Icon size={24} className="text-black" />,
-      },
+      physics: physicsSubject,
+      phys: physicsSubject,
+      "advanced physics": physicsSubject,
+      "o-level physics": physicsSubject,
+      math: mathSubject,
+      "pure math": mathSubject,
+      "pure maths": mathSubject,
+      "pure mathematics": mathSubject,
+      mathematics: mathSubject,
+      "o-level mathematics": mathSubject,
+      "further math": mathSubject,
+      "further mathematics": mathSubject,
+      ict: ictSubject,
+      computing: ictSubject,
+      "computer science": ictSubject,
+      "computer programming": ictSubject,
+      chemistry: chemSubject,
+      chem: chemSubject,
+      "advanced chemistry": chemSubject,
+      "o-level chemistry": chemSubject,
+      biology: bioSubject,
+      bio: bioSubject,
+      english: engSubject,
+      french: frSubject,
     };
 
     const mapped = struggles
-      .map((s) => subjectMap[s.toLowerCase()])
+      .map((s) => subjectMap[s.toLowerCase().trim()])
       .filter(Boolean);
 
-    if (mapped.length > 0) {
-      setDynamicFeaturedSubjects(mapped);
+    // Strict deduplication by subject ID to avoid duplicate cards
+    const uniqueFeatured: SubjectData[] = [];
+    const seenIds = new Set<string>();
+    for (const subj of mapped) {
+      if (subj && !seenIds.has(subj.id)) {
+        seenIds.add(subj.id);
+        uniqueFeatured.push(subj);
+      }
+    }
+
+    if (uniqueFeatured.length > 0) {
+      setDynamicFeaturedSubjects(uniqueFeatured);
     } else {
       setDynamicFeaturedSubjects([
         subjectMap.physics,
@@ -203,14 +271,26 @@ function StudentDashboardPageContent() {
     }
   }, [profile]);
 
-  // Show setup modal if profile is not completed
+  // Show setup modal only if explicitly triggered via query param and not previously dismissed
   useEffect(() => {
     if (isLoading) return;
     const showSetupQuery = searchParams.get("showSetup") === "true";
-    if (showSetupQuery || !profile?.profile_completed) {
+    const wasDismissed = typeof window !== "undefined" && localStorage.getItem("ticha_setup_modal_dismissed") === "true";
+    
+    if (showSetupQuery && !wasDismissed && !profile?.profile_completed) {
       setIsSetupModalOpen(true);
     }
   }, [searchParams, isLoading, profile?.profile_completed]);
+
+  const handleCloseSetupModal = () => {
+    setIsSetupModalOpen(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ticha_setup_modal_dismissed", "true");
+    }
+    if (searchParams.get("showSetup")) {
+      router.replace("/dashboard");
+    }
+  };
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
@@ -292,7 +372,7 @@ function StudentDashboardPageContent() {
 
       <FinishSetupModal
         isOpen={isSetupModalOpen}
-        onClose={() => setIsSetupModalOpen(false)}
+        onClose={handleCloseSetupModal}
       />
 
       <BottomNav items={navItems} />

@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
 
 interface EducationOption {
@@ -15,12 +17,8 @@ interface EducationOption {
 export default function EducationLevelPage() {
   const { t } = useTranslation();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const router = useRouter();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const levels: EducationOption[] = [
     {
@@ -66,43 +64,76 @@ export default function EducationLevelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans">
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black animate-page-in">
-        
-        <header className="flex items-center gap-4 w-full">
-          <button 
+    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#B6FF00]">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black">
+        {/* Animated Header & Progress */}
+        <motion.header
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-4 w-full"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleBack}
             className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
             aria-label="Go back"
           >
-            <svg className="w-6 h-6 stroke-[3.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <svg
+              className="w-6 h-6 stroke-[3.5px]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
             </svg>
-          </button>
+          </motion.button>
 
           <div className="flex gap-1.5 w-full items-center">
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1"></div>
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
           </div>
-        </header>
+        </motion.header>
 
-        <div className="text-center mt-8 mb-4">
+        {/* Title Area */}
+        <motion.div
+          initial={{ y: 15, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="text-center mt-8 mb-4"
+        >
           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
             {isMounted ? t("education.title") : "Your Education Level"}
           </h1>
-        </div>
+        </motion.div>
 
+        {/* Animated Staggered Education Level Options */}
         <div className="space-y-5 my-auto w-full">
-          {levels.map((level) => {
+          {levels.map((level, idx) => {
             const isSelected = selectedLevel === level.id;
             return (
-              <button
+              <motion.button
                 key={level.id}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  delay: 0.15 + idx * 0.08,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 24,
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedLevel(level.id)}
-                className={`w-full py-6 px-4 rounded-2xl border-[3.5px] border-black flex flex-col items-center justify-center text-center transition-all ${
+                className={`w-full py-5 px-4 rounded-2xl border-[3.5px] border-black flex flex-col items-center justify-center text-center transition-all ${
                   isSelected
                     ? "bg-[#B6FF00] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] translate-x-[2px] translate-y-[2px]"
                     : "bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
@@ -118,25 +149,32 @@ export default function EducationLevelPage() {
                 <p className="text-sm text-stone-600 font-medium mt-0.5">
                   {isMounted ? t(level.subtitleKey) : level.subtitleKey}
                 </p>
-              </button>
+              </motion.button>
             );
           })}
         </div>
 
-        <footer className="w-full mt-6">
-          <button
+        {/* Footer Continue Button */}
+        <motion.footer
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="w-full mt-6"
+        >
+          <motion.button
+            whileHover={selectedLevel ? { scale: 1.02 } : {}}
+            whileTap={selectedLevel ? { scale: 0.97 } : {}}
             onClick={handleContinue}
             disabled={!selectedLevel}
             className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider transition-all shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] ${
               selectedLevel
-                ? "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                ? "bg-[#B6FF00] hover:bg-[#a3e600] text-black cursor-pointer shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]"
                 : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
             }`}
           >
             {isMounted ? t("education.continue") : "Continue"}
-          </button>
-        </footer>
-
+          </motion.button>
+        </motion.footer>
       </main>
     </div>
   );

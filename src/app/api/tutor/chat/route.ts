@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { retrieveContext } from "@/lib/rag/retriever";
+import { buildGroundedPrompt } from "@/lib/rag/promptBuilder";
 
 const SYSTEM_PROMPT = `You are the Ticha AI Tutor, an expert teacher aligned with the Cameroonian GCE curriculum (Ordinary and Advanced Level).
 You must use DataCamp-style adaptive pacing:
@@ -22,7 +24,7 @@ Structure your responses using these exact markers (include the brackets):
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, message, subject, educationLevel, performanceScore, history } = await req.json();
+    const { message, subject, educationLevel, performanceScore, history } = await req.json();
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -30,18 +32,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing Gemini API key" }, { status: 500 });
     }
 
-    const contents = [
-      {
-        role: "user",
-        parts: [{ text: SYSTEM_PROMPT + `\n\nCurrent subject: ${subject}\nEducation level: ${educationLevel}\nPerformance score: ${performanceScore}` }]
-      },
-      {
-        role: "model",
-        parts: [{ text: "Understood. I am ready to act as the adaptive Ticha AI Tutor." }]
-      },
-      ...(history || []),
-      { role: "user", parts: [{ text: message }] }
-    ];
+    // RAG: Retrieve relevant curriculum context for the student's message
+    const chunks = await retrieveContext({
+      query: message,
+      subject: subject || undefined,
+      educationLevel: educationLevel || undefined,
+      topK: 5,
+      threshold: 0.45,
+    });
+
+    // Build grounded prompt with retrieved context injected
+    const fullSystemPrompt = SYSTEM_PROMPT + `\n\nCurrent subject: ${subject}\nEducation level: ${educationLevel}\nPerformance score: ${performanceScore}`;
+
+    const contents = buildGroundedPrompt({
+      systemPrompt: fullSystemPrompt,
+      retrievedChunks: chunks,
+      userQuery: message,
+      history: history || [],
+    });
 
     // Default model: gemini-2.5-flash
     let modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";

@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  GCE_VIDEO_CATALOG,
+  normalizeSubjectName,
+  verifyYouTubeVideo,
+} from "@/lib/videoCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -12,138 +17,129 @@ export interface YouTubeVideoResult {
   embedUrl: string;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Subject-specific search refinements                                */
-/* ------------------------------------------------------------------ */
-const subjectSearchRefinements: Record<string, string> = {
-  physics: "physics GCE A-Level explainer tutorial",
-  math: "mathematics GCE A-Level tutorial explained",
-  "pure mathematics": "pure mathematics A-Level tutorial explained",
-  "further mathematics": "further mathematics A-Level tutorial",
-  ict: "ICT computing GCE tutorial explained",
-  chemistry: "chemistry GCE A-Level tutorial explained",
-  biology: "biology GCE A-Level tutorial explained",
-};
+function searchCatalog(query: string, subject?: string): YouTubeVideoResult[] {
+  const normSubject = subject ? normalizeSubjectName(subject).toLowerCase() : "";
+  const queryTokens = query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 2);
 
-/* ------------------------------------------------------------------ */
-/*  Verified embeddable fallback video IDs per subject                 */
-/* ------------------------------------------------------------------ */
-const fallbackVideos: Record<string, YouTubeVideoResult[]> = {
-  physics: [
-    {
-      id: "ZM8ECpBuQYE",
-      title: "Newton's Laws of Motion - Full Course",
-      description: "Complete breakdown of Newton's three laws with real-world examples.",
-      thumbnail: "https://i.ytimg.com/vi/ZM8ECpBuQYE/hqdefault.jpg",
-      channelTitle: "Khan Academy",
-      youtubeUrl: "https://www.youtube.com/watch?v=ZM8ECpBuQYE",
-      embedUrl: "https://www.youtube.com/embed/ZM8ECpBuQYE",
-    },
-    {
-      id: "kKKM8Y-u7ds",
-      title: "Electromagnetic Induction Explained",
-      description: "How changing magnetic fields create electric current.",
-      thumbnail: "https://i.ytimg.com/vi/kKKM8Y-u7ds/hqdefault.jpg",
-      channelTitle: "The Organic Chemistry Tutor",
-      youtubeUrl: "https://www.youtube.com/watch?v=kKKM8Y-u7ds",
-      embedUrl: "https://www.youtube.com/embed/kKKM8Y-u7ds",
-    },
-  ],
-  math: [
-    {
-      id: "riXcZT2ICjA",
-      title: "Introduction to Limits & Calculus",
-      description: "Khan Academy tutorial on limits, slopes, and instantaneous rates of change.",
-      thumbnail: "https://i.ytimg.com/vi/riXcZT2ICjA/hqdefault.jpg",
-      channelTitle: "Khan Academy",
-      youtubeUrl: "https://www.youtube.com/watch?v=riXcZT2ICjA",
-      embedUrl: "https://www.youtube.com/embed/riXcZT2ICjA",
-    },
-  ],
-  ict: [
-    {
-      id: "UrYLYV7WSHM",
-      title: "Database Normalization (1NF, 2NF, 3NF)",
-      description: "Step-by-step tutorial on eliminating data redundancy in relational databases.",
-      thumbnail: "https://i.ytimg.com/vi/UrYLYV7WSHM/hqdefault.jpg",
-      channelTitle: "Decomplexify",
-      youtubeUrl: "https://www.youtube.com/watch?v=UrYLYV7WSHM",
-      embedUrl: "https://www.youtube.com/embed/UrYLYV7WSHM",
-    },
-  ],
-  chemistry: [
-    {
-      id: "xuPl_8wv9xo",
-      title: "Atomic Structure & Electron Configuration",
-      description: "Complete breakdown of atomic structure for exam preparation.",
-      thumbnail: "https://i.ytimg.com/vi/xuPl_8wv9xo/hqdefault.jpg",
-      channelTitle: "Professor Dave Explains",
-      youtubeUrl: "https://www.youtube.com/watch?v=xuPl_8wv9xo",
-      embedUrl: "https://www.youtube.com/embed/xuPl_8wv9xo",
-    },
-  ],
-  biology: [
-    {
-      id: "URUJD5NEXC8",
-      title: "Cell Structure & Function",
-      description: "Amoeba Sisters guide to cell organelles and their functions.",
-      thumbnail: "https://i.ytimg.com/vi/URUJD5NEXC8/hqdefault.jpg",
-      channelTitle: "Amoeba Sisters",
-      youtubeUrl: "https://www.youtube.com/watch?v=URUJD5NEXC8",
-      embedUrl: "https://www.youtube.com/embed/URUJD5NEXC8",
-    },
-  ],
-};
+  // Filter by subject first if provided
+  let pool = GCE_VIDEO_CATALOG;
+  if (normSubject) {
+    const subjectMatches = GCE_VIDEO_CATALOG.filter(
+      (item) => item.subject.toLowerCase() === normSubject
+    );
+    if (subjectMatches.length > 0) {
+      pool = subjectMatches;
+    }
+  }
+
+  // Score items based on token matches in title, topic, and keywords
+  const scored = pool.map((item) => {
+    let score = 0;
+    const itemText = `${item.topic} ${item.title} ${item.keywords.join(" ")}`.toLowerCase();
+
+    for (const token of queryTokens) {
+      if (itemText.includes(token)) {
+        if (item.topic.toLowerCase().includes(token)) score += 5;
+        else if (item.title.toLowerCase().includes(token)) score += 3;
+        else score += 1;
+      }
+    }
+    return { item, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const matched = scored
+    .filter((s) => s.score > 0)
+    .map((s) => ({
+      id: s.item.id,
+      title: s.item.title,
+      description: `Concept tutorial on ${s.item.topic} for GCE revision.`,
+      thumbnail: `https://i.ytimg.com/vi/${s.item.id}/hqdefault.jpg`,
+      channelTitle: s.item.channelTitle,
+      youtubeUrl: `https://www.youtube.com/watch?v=${s.item.id}`,
+      embedUrl: `https://www.youtube.com/embed/${s.item.id}`,
+    }));
+
+  if (matched.length > 0) return matched;
+
+  // Fallback to top pool items
+  return pool.slice(0, 6).map((item) => ({
+    id: item.id,
+    title: item.title,
+    description: `Concept tutorial on ${item.topic} for GCE revision.`,
+    thumbnail: `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
+    channelTitle: item.channelTitle,
+    youtubeUrl: `https://www.youtube.com/watch?v=${item.id}`,
+    embedUrl: `https://www.youtube.com/embed/${item.id}`,
+  }));
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { query, subject } = await req.json();
+    const { query, subject } = await req.json().catch(() => ({}));
     const apiKey = process.env.YOUTUBE_API_KEY;
 
-    // Build a subject-aware search query
-    const subjectKey = (subject || "physics").toLowerCase();
-    const refinement = subjectSearchRefinements[subjectKey] || "GCE A-Level explainer tutorial";
-    const searchQuery = query
-      ? `${query} ${refinement}`
-      : `${subject || "Physics"} ${refinement}`;
+    const subjectName = normalizeSubjectName(subject);
+    const catalogResults = searchCatalog(query || subjectName, subject);
 
     if (!apiKey) {
-      console.log("No YOUTUBE_API_KEY configured, returning fallback videos.");
-      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
+      return NextResponse.json({ videos: catalogResults });
     }
 
-    // Call YouTube Data API v3 with videoEmbeddable=true and medium duration for quality content
+    const searchQuery = query
+      ? `${query} ${subjectName} GCE A-Level tutorial`
+      : `${subjectName} GCE A-Level explainer tutorial`;
+
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(
       searchQuery
     )}&type=video&videoEmbeddable=true&key=${apiKey}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Referer: "https://prometheus-ticha-ai.vercel.app/",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.warn("YouTube Data API response non-ok:", response.status, errorText);
-      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
+      return NextResponse.json({ videos: catalogResults });
     }
 
     const data = await response.json();
 
     if (!data.items || data.items.length === 0) {
-      return NextResponse.json({ videos: fallbackVideos[subjectKey] || fallbackVideos.physics });
+      return NextResponse.json({ videos: catalogResults });
     }
 
-    const videos: YouTubeVideoResult[] = data.items.map((item: any) => ({
-      id: item.id.videoId,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
-      channelTitle: item.snippet.channelTitle,
-      youtubeUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-      embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`,
-    }));
+    const liveVideos: YouTubeVideoResult[] = [];
+    for (const item of data.items) {
+      const videoId = item.id?.videoId;
+      if (!videoId) continue;
 
-    return NextResponse.json({ videos });
+      const check = await verifyYouTubeVideo(videoId);
+      if (check?.available) {
+        liveVideos.push({
+          id: videoId,
+          title: check.title || item.snippet.title,
+          description: item.snippet.description,
+          thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          channelTitle: item.snippet.channelTitle,
+          youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        });
+      }
+    }
+
+    return NextResponse.json({
+      videos: liveVideos.length > 0 ? liveVideos : catalogResults,
+    });
   } catch (err) {
     console.error("YouTube search API exception:", err);
-    return NextResponse.json({ videos: fallbackVideos.physics });
+    return NextResponse.json({ videos: searchCatalog("Physics", "Physics") });
   }
 }

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import DeviceGate from "@/components/layout/DeviceGate";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ticha AI — Mobile Learning PWA",
   description: "Improving 1% every day with AI tutoring.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [
+      { url: "/images/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +43,7 @@ export default function RootLayout({
         <DeviceGate>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </DeviceGate>
+        <Analytics/>
       </body>
     </html>
   );

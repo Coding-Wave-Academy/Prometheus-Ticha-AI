@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,6 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
-import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import ConfettiOverlay from "@/components/auth/ConfettiOverlay";
 import ToastContainer from "@/components/ui/Toast";
 import Badge from "@/components/ui/Badge";
@@ -16,6 +15,7 @@ import Card from "@/components/ui/Card";
 import { useToast } from "@/hooks/useToast";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { useIsMounted } from "@/hooks/useIsMounted";
+import { useAuth } from "@/hooks/useAuth";
 import { registerSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
@@ -24,6 +24,7 @@ import "@/lib/i18n";
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const isMounted = useIsMounted();
   const router = useRouter();
 
@@ -33,6 +34,12 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   const strength = usePasswordStrength(password);
   const supabase = createClient();
@@ -66,13 +73,32 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // 1. Sign up user with full_name metadata
+      // Read candidate onboarding choices
+      const goal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") || "gce" : "gce";
+      const education_level = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") || "al" : "al";
+      let struggles = ["Physics", "Pure Mathematics", "ICT"];
+      if (typeof window !== "undefined") {
+        const storedStr = localStorage.getItem("ticha_onboarding_struggles");
+        if (storedStr) {
+          try {
+            const parsed = JSON.parse(storedStr);
+            if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
+          } catch { /* ignore */ }
+        }
+      }
+      const preferred_language = typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en";
+
+      // 1. Sign up user with full_name and onboarding metadata
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           data: {
             full_name: cleanName,
+            goal,
+            education_level,
+            struggles,
+            preferred_language,
           },
         },
       });
@@ -85,57 +111,58 @@ export default function RegisterPage() {
 
       localStorage.setItem("ticha_user_fullname", cleanName);
 
+      // Direct profile upsert to guarantee persistence in database
+      const userId = data.user?.id;
+      if (userId) {
+        await supabase.from("profiles").upsert({
+          id: userId,
+          full_name: cleanName,
+          goal,
+          education_level,
+          struggles,
+          preferred_language,
+          profile_completed: true,
+          updated_at: new Date().toISOString(),
+        });
+      }
+
       // 2. Direct Signup -> Dashboard transition
       if (data.session) {
         addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
-        router.push("/dashboard?showSetup=true");
+        router.push("/dashboard");
       } else {
         // Attempt instant sign-in to bypass email confirmation step
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password,
         });
 
-        if (!signInError) {
+        if (!signInError && signInData?.user?.id) {
+          await supabase.from("profiles").upsert({
+            id: signInData.user.id,
+            full_name: cleanName,
+            goal,
+            education_level,
+            struggles,
+            preferred_language,
+            profile_completed: true,
+            updated_at: new Date().toISOString(),
+          });
           addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
-          router.push("/dashboard?showSetup=true");
+          router.push("/dashboard");
         } else {
-          // If email confirmation is strictly enforced in Supabase Dashboard settings:
           addToast(
-            "Account registered! If prompted by your project settings, confirm your email or disable 'Confirm email' in Supabase to land directly on Dashboard.",
-            "info",
+            "Account registered! Welcome to Ticha AI.",
+            "success",
             "Account Registered"
           );
-          router.push("/dashboard?showSetup=true");
+          router.push("/dashboard");
         }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration service unavailable.";
       addToast(msg, "error", "Registration Error");
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      addToast("Connecting to Google Auth...", "info");
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard?showSetup=true`,
-        },
-      });
-
-      if (error) {
-        if (error.message.includes("oauth_client_not_found") || error.message.includes("invalid client_id") || error.message.includes("400")) {
-          addToast("Google OAuth client ID is not configured in your Supabase Dashboard. Please register with Email & Password below.", "warning", "OAuth Setup Required");
-        } else {
-          addToast(error.message, "error", "Google Sign In Failed");
-        }
-      }
-    } catch (err: unknown) {
-      addToast("Google OAuth is not configured in your Supabase project. Please register with Email & Password below.", "warning", "OAuth Setup Required");
     }
   };
 
@@ -282,13 +309,8 @@ export default function RegisterPage() {
         </form>
       </Card>
 
-      {/* Social Auth */}
-      <SocialAuthButtons
-        onGoogle={handleGoogleLogin}
-      />
-
       {/* Footer Navigation */}
-      <footer className="w-full text-center py-2">
+      <footer className="w-full text-center py-2 space-y-2">
         <p className="text-stone-700 font-medium text-[15px]">
           {isMounted ? t("register.hasAccount") : "Already have an account?"}{" "}
           <Link
@@ -298,6 +320,15 @@ export default function RegisterPage() {
             {isMounted ? t("register.login") : "Log in"}
           </Link>
         </p>
+
+        <div>
+          <Link
+            href="/dashboard"
+            className="text-xs font-black uppercase tracking-wider text-stone-500 hover:text-stone-800 transition-colors inline-flex items-center gap-1"
+          >
+            <span>{isMounted ? t("register.skipGuest") : "Skip for now & Explore Dashboard →"}</span>
+          </Link>
+        </div>
       </footer>
     </main>
   );
