@@ -28,9 +28,7 @@ export function usePapers() {
       .then((data) => {
         if (isMounted) {
           setLevels(data);
-          if (data.length > 0 && !activeLevel) {
-            setActiveLevel(data[0].code);
-          }
+          setActiveLevel((curr) => (!curr && data.length > 0 ? data[0].code : curr));
         }
       })
       .catch((err) => {
@@ -79,8 +77,8 @@ export function usePapers() {
       setPapers(response.data || []);
       setTotalPapers(response.meta?.total || 0);
       setTotalPages(response.meta?.totalPages || 1);
-    } catch (err: any) {
-      setError(err.message || "Failed to load past papers");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load past papers");
     } finally {
       setLoading(false);
     }

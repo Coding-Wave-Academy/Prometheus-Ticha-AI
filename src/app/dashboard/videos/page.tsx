@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft01Icon,
   PlayIcon,
-  Book01Icon,
   SparklesIcon,
   Clock01Icon,
 } from "hugeicons-react";
@@ -27,7 +25,6 @@ interface WatchedVideoItem {
 }
 
 export default function VideosPage() {
-  const router = useRouter();
   const navItems = useNavItems();
 
   const [watchedVideos, setWatchedVideos] = useState<WatchedVideoItem[]>([]);
@@ -105,7 +102,7 @@ export default function VideosPage() {
               className="inline-flex items-center justify-center gap-2 w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black"
             >
               <SparklesIcon size={18} />
-              <span>Start Today's Lesson →</span>
+              <span>Start Today&apos;s Lesson →</span>
             </Link>
           </div>
         ) : (

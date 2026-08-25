@@ -24,7 +24,7 @@ Structure your responses using these exact markers (include the brackets):
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, message, subject, educationLevel, performanceScore, history } = await req.json();
+    const { message, subject, educationLevel, performanceScore, history } = await req.json();
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 

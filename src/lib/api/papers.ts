@@ -66,7 +66,7 @@ export async function fetchPapers(params: PaperFilterParams = {}): Promise<Pagin
     if (params.limit) url.searchParams.set("limit", params.limit.toString());
 
     return await fetchJson<PaginatedPapersResponse>(url.pathname + url.search);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to fetch papers:", err);
     throw err;
   }

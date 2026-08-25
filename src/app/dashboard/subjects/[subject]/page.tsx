@@ -6,18 +6,14 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
-  Book01Icon,
   PlayIcon,
-  SparklesIcon,
   Award01Icon,
-  Target02Icon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
 import { GCE_SYLLABUS_DATA, SubjectSyllabus } from "@/lib/gceSyllabusData";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
-import { formatAIText } from "@/lib/formatAIText";
 
 export default function SubjectDetailPage() {
   const params = useParams();
@@ -31,7 +27,6 @@ export default function SubjectDetailPage() {
   const syllabus: SubjectSyllabus = GCE_SYLLABUS_DATA[subjectKey] || GCE_SYLLABUS_DATA.physics;
 
   const [completedTopicIds, setCompletedTopicIds] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load saved checked topic IDs from localStorage
   useEffect(() => {
@@ -43,8 +38,6 @@ export default function SubjectDetailPage() {
         }
       } catch {
         // ignore
-      } finally {
-        setIsLoaded(true);
       }
     }
   }, [syllabus.id]);

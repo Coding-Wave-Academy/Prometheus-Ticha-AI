@@ -3,17 +3,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
   Cancel01Icon,
-  SparklesIcon,
   Book01Icon,
   Award01Icon,
   Timer01Icon,
   RotateRight01Icon,
-  ArrowRight01Icon,
 } from "hugeicons-react";
 import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
@@ -22,6 +20,7 @@ import { formatAIText } from "@/lib/formatAIText";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
+import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
 
 interface QuizQuestion {
@@ -34,8 +33,6 @@ interface QuizQuestion {
 }
 
 const QUESTION_TIME_LIMIT = 108; // 108 seconds per question (15 Qs in 27 mins = 1620s)
-
-
 
 export default function DailyQuizPage() {
   return (
@@ -76,6 +73,53 @@ function DailyQuizContent() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const finishExam = useCallback((finalScore?: number) => {
+    setIsFinished(true);
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (totalTimerRef.current) clearInterval(totalTimerRef.current);
+
+    const computedScore = typeof finalScore === "number" ? finalScore : score;
+    const passThreshold = Math.ceil(quiz.length * 0.6);
+
+    // Auto-claim daily streak upon completing the quiz
+    claimDailyStreak().catch(() => {});
+
+    if (computedScore >= passThreshold) {
+      fireSideCannons();
+      hapticSuccess();
+    }
+
+    // Save quiz result to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const historyKey = "ticha_quiz_history";
+        const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+        history.unshift({
+          date: new Date().toISOString(),
+          subject: subjectTopic.subject,
+          topic: subjectTopic.topic,
+          score: computedScore,
+          total: quiz.length,
+        });
+        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 30)));
+      } catch { /* ignore */ }
+    }
+  }, [claimDailyStreak, quiz.length, score, subjectTopic.subject, subjectTopic.topic]);
+
+  // Handle per-question timer expiration: records -1 and moves to next question silently
+  const handleTimeExpired = useCallback(() => {
+    hapticTap();
+    setUserAnswers((prev) => [...prev, -1]);
+    setSelectedOpt(null);
+
+    if (currentIdx + 1 < quiz.length) {
+      setCurrentIdx((prev) => prev + 1);
+      setTimeLeft(QUESTION_TIME_LIMIT);
+    } else {
+      finishExam();
+    }
+  }, [currentIdx, finishExam, quiz.length]);
+
   const loadQuiz = useCallback(async (targetSub?: string, targetTop?: string) => {
     setIsLoading(true);
     setCurrentIdx(0);
@@ -85,26 +129,31 @@ function DailyQuizContent() {
     setIsFinished(false);
     setReviewIdx(0);
 
-    let subject = targetSub || "Physics";
+    let subject = targetSub || "";
     let topic = targetTop || "";
 
     if (!targetSub && typeof window !== "undefined") {
-      const storedTopic = localStorage.getItem("ticha_today_lesson_topic");
+      const storedTopic = getStoredDailyTopic();
       if (storedTopic) {
-        try {
-          const parsed = JSON.parse(storedTopic);
-          if (parsed.subject) subject = parsed.subject;
-          if (parsed.topic) topic = parsed.topic;
-        } catch { /* ignore */ }
+        if (storedTopic.subject) subject = storedTopic.subject;
+        if (storedTopic.topic) topic = storedTopic.topic;
       }
     }
 
-    if (!topic) {
-      if (subject === "Pure Mathematics") topic = "Binomial Theorem";
-      else if (subject === "ICT") topic = "Database Normalization";
-      else if (subject === "Chemistry") topic = "Atomic Structure";
-      else if (subject === "Biology") topic = "Cell Structure";
-      else topic = "Electromagnetism & Faraday's Law";
+    if (!subject || !topic) {
+      let struggles: string[] = [];
+      if (typeof window !== "undefined") {
+        const storedStruggles = localStorage.getItem("ticha_onboarding_struggles");
+        if (storedStruggles) {
+          try {
+            const parsed = JSON.parse(storedStruggles);
+            if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
+          } catch { /* ignore */ }
+        }
+      }
+      const today = getTodayLessonTopic(struggles);
+      if (!subject) subject = today.subject;
+      if (!topic) topic = today.topic;
     }
 
     setSubjectTopic({ subject, topic });
@@ -164,7 +213,7 @@ function DailyQuizContent() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIdx, isLoading, isFinished]);
+  }, [currentIdx, isLoading, isFinished, handleTimeExpired]);
 
   // Overall exam timer interval
   useEffect(() => {
@@ -187,21 +236,7 @@ function DailyQuizContent() {
     return () => {
       if (totalTimerRef.current) clearInterval(totalTimerRef.current);
     };
-  }, [isLoading, isFinished]);
-
-  // Handle per-question timer expiration: records -1 and moves to next question silently
-  const handleTimeExpired = () => {
-    hapticTap();
-    setUserAnswers((prev) => [...prev, -1]);
-    setSelectedOpt(null);
-
-    if (currentIdx + 1 < quiz.length) {
-      setCurrentIdx((prev) => prev + 1);
-      setTimeLeft(QUESTION_TIME_LIMIT);
-    } else {
-      finishExam();
-    }
-  };
+  }, [isLoading, isFinished, finishExam]);
 
   const handleSelectOption = (idx: number) => {
     hapticTap();
@@ -227,39 +262,6 @@ function DailyQuizContent() {
       setTimeLeft(QUESTION_TIME_LIMIT);
     } else {
       finishExam(isCorrect ? score + 1 : score);
-    }
-  };
-
-  const finishExam = (finalScore?: number) => {
-    setIsFinished(true);
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (totalTimerRef.current) clearInterval(totalTimerRef.current);
-
-    const computedScore = typeof finalScore === "number" ? finalScore : score;
-    const passThreshold = Math.ceil(quiz.length * 0.6);
-
-    // Auto-claim daily streak upon completing the quiz
-    claimDailyStreak().catch(() => {});
-
-    if (computedScore >= passThreshold) {
-      fireSideCannons();
-      hapticSuccess();
-    }
-
-    // Save quiz result to localStorage
-    if (typeof window !== "undefined") {
-      try {
-        const historyKey = "ticha_quiz_history";
-        const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
-        history.unshift({
-          date: new Date().toISOString(),
-          subject: subjectTopic.subject,
-          topic: subjectTopic.topic,
-          score: computedScore,
-          total: quiz.length,
-        });
-        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 30)));
-      } catch { /* ignore */ }
     }
   };
 

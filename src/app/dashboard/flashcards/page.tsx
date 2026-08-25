@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft01Icon,
   RotateRight01Icon,
@@ -21,6 +21,7 @@ import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
+import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
 
 interface FlashCard {
@@ -73,14 +74,26 @@ function FlashcardsContent() {
     let lessonData: Record<string, unknown> | null = null;
 
     if (typeof window !== "undefined") {
-      // 1. Read today's lesson topic and lesson data
-      const storedTopic = localStorage.getItem("ticha_today_lesson_topic");
+      // 1. Check date-validated today's topic
+      const storedTopic = getStoredDailyTopic();
       if (storedTopic && (!curSub || !curTop)) {
-        try {
-          const parsed = JSON.parse(storedTopic);
-          if (!curSub && parsed.subject) curSub = parsed.subject;
-          if (!curTop && parsed.topic) curTop = parsed.topic;
-        } catch { /* ignore */ }
+        if (!curSub && storedTopic.subject) curSub = storedTopic.subject;
+        if (!curTop && storedTopic.topic) curTop = storedTopic.topic;
+      }
+
+      // If still missing, compute today's topic from user struggles
+      if (!curSub || !curTop) {
+        let struggles: string[] = [];
+        const storedStruggles = localStorage.getItem("ticha_onboarding_struggles");
+        if (storedStruggles) {
+          try {
+            const parsed = JSON.parse(storedStruggles);
+            if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
+          } catch { /* ignore */ }
+        }
+        const todayCalculated = getTodayLessonTopic(struggles);
+        if (!curSub) curSub = todayCalculated.subject;
+        if (!curTop) curTop = todayCalculated.topic;
       }
 
       const storedLesson = localStorage.getItem("ticha_today_lesson_data");
@@ -91,8 +104,11 @@ function FlashcardsContent() {
       }
     }
 
-    if (!curSub) curSub = "Physics";
-    if (!curTop) curTop = "Newton's Laws of Motion";
+    if (!curSub || !curTop) {
+      const fallbackTopic = getTodayLessonTopic();
+      if (!curSub) curSub = fallbackTopic.subject;
+      if (!curTop) curTop = fallbackTopic.topic;
+    }
 
     setSubject(curSub);
     setTopic(curTop);

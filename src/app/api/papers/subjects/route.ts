@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
-    let query = supabase
+    const query = supabase
       .from("subjects")
       .select(`
         id,
@@ -33,13 +33,16 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (!error && Array.isArray(data) && data.length > 0) {
-      let results = data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        code: item.code,
-        is_active: item.is_active,
-        level_code: Array.isArray(item.level) ? item.level[0]?.code : item.level?.code,
-      }));
+      let results = data.map((item: Record<string, unknown>) => {
+        const level = item.level as { code?: string } | { code?: string }[] | undefined;
+        return {
+          id: String(item.id || ""),
+          name: String(item.name || ""),
+          code: String(item.code || ""),
+          is_active: Boolean(item.is_active),
+          level_code: Array.isArray(level) ? level[0]?.code : level?.code,
+        };
+      });
 
       if (levelCodeOrId) {
         results = results.filter(

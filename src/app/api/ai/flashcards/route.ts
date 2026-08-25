@@ -3,6 +3,8 @@ import { formatAIText } from "@/lib/formatAIText";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
 
+import { getTodayLessonTopic } from "@/lib/dailyTopic";
+
 export const dynamic = "force-dynamic";
 
 export interface FlashCardItem {
@@ -14,11 +16,15 @@ export interface FlashCardItem {
 
 export async function POST(req: NextRequest) {
   try {
-    const { subject, topic } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { subject, topic, struggles } = body;
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    const targetSubject = subject || "Physics";
-    const targetTopic = topic || "Newton's Laws of Motion";
+    const defaultTopic = getTodayLessonTopic(
+      Array.isArray(struggles) ? struggles : []
+    );
+    const targetSubject = subject || defaultTopic.subject;
+    const targetTopic = topic || defaultTopic.topic;
 
     if (!apiKey) {
       return NextResponse.json({
@@ -94,12 +100,14 @@ Return ONLY raw JSON matching this structure:
       });
     }
 
-    const flashcards: FlashCardItem[] = parsed.flashcards.map((item: any, idx: number) => ({
-      id: `fc-${Date.now()}-${idx}`,
-      front: formatAIText(item.front || `Question on ${targetTopic}`),
-      back: formatAIText(item.back || `Answer on ${targetTopic}`),
-      hint: item.hint ? formatAIText(item.hint) : undefined,
-    }));
+    const flashcards: FlashCardItem[] = parsed.flashcards.map(
+      (item: { front?: string; back?: string; hint?: string }, idx: number) => ({
+        id: `fc-${Date.now()}-${idx}`,
+        front: formatAIText(item.front || `Question on ${targetTopic}`),
+        back: formatAIText(item.back || `Answer on ${targetTopic}`),
+        hint: item.hint ? formatAIText(item.hint) : undefined,
+      })
+    );
 
     return NextResponse.json({ flashcards });
   } catch (err) {

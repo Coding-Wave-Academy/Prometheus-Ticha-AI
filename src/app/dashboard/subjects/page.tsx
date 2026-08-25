@@ -11,8 +11,6 @@ import {
   FlashIcon,
   SquareIcon,
   ComputerIcon,
-  Globe02Icon,
-  CheckmarkCircle02Icon,
   Cancel01Icon,
   SparklesIcon,
 } from "hugeicons-react";

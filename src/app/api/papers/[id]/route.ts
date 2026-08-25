@@ -65,7 +65,7 @@ export async function GET(
       { success: false, error: { message: "Paper not found", code: "NOT_FOUND" } },
       { status: 404 }
     );
-  } catch (err: any) {
+  } catch {
     return NextResponse.json(
       { success: false, error: { message: "Failed to fetch paper" } },
       { status: 500 }
