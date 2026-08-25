@@ -4,7 +4,7 @@
 // Uses mammoth for DOCX → HTML → Markdown conversion.
 // This is the ingestion front door — every file enters the system through here.
 
-import type { ConversionResult, DocumentMetadata, SupportedMimeType } from './types';
+import type { ConversionResult, SupportedMimeType } from './types';
 import { SUPPORTED_MIME_TYPES } from './types';
 
 /** Check if a MIME type is supported. */
@@ -40,17 +40,17 @@ export async function convertToMarkdown(
   let result: ConversionResult;
 
   if (mimeType === 'application/pdf') {
-    result = await convertPdfWithGemini(file, filename);
+    result = await convertPdfWithGemini(file);
   } else if (mimeType.startsWith('image/')) {
     result = await convertImageWithGemini(file, filename, mimeType);
   } else if (
     mimeType ===
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   ) {
-    result = await convertDocx(file, filename);
+    result = await convertDocx(file);
   } else {
     // text/plain or text/markdown — pass through
-    result = convertPlainText(file, filename, mimeType);
+    result = convertPlainText(file);
   }
 
   result.metadata.processingTimeMs = Date.now() - startTime;
@@ -62,8 +62,7 @@ export async function convertToMarkdown(
  * Sends the entire PDF as base64 inline data to Gemini's multimodal endpoint.
  */
 async function convertPdfWithGemini(
-  file: Buffer | ArrayBuffer,
-  filename: string
+  file: Buffer | ArrayBuffer
 ): Promise<ConversionResult> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -222,8 +221,7 @@ Return ONLY the extracted Markdown content.`;
  * and we convert the HTML output to Markdown.
  */
 async function convertDocx(
-  file: Buffer | ArrayBuffer,
-  filename: string
+  file: Buffer | ArrayBuffer
 ): Promise<ConversionResult> {
   // Dynamic import — mammoth is only needed for DOCX
   const mammoth = await import('mammoth');
@@ -250,9 +248,7 @@ async function convertDocx(
  * Handle plain text and Markdown pass-through.
  */
 function convertPlainText(
-  file: Buffer | ArrayBuffer,
-  filename: string,
-  mimeType: string
+  file: Buffer | ArrayBuffer
 ): ConversionResult {
   const buffer = file instanceof ArrayBuffer ? Buffer.from(file) : file;
   const text = buffer.toString('utf-8');

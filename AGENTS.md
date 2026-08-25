@@ -103,3 +103,5 @@ Before concluding any implementation run:
 - [ ] Environment variables are isolated server-side.
 - [ ] Application functions predictably under simulated offline mode.
 - [ ] Git commit message clearly summarizes changes made.
+- [ ] Add documentations of this project for other devs to understand the codebase. These include how the AI works and how the PWA works.
+- [ ] Add a changelog of the code changes in the `docs/` folder.

@@ -142,7 +142,7 @@ export default function StrugglesIdentificationPage() {
       return;
     }
 
-    const newId = `custom-${Date.now()}`;
+    const newId = `custom-${trimmed.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
     const newSubject: SubjectStruggle = {
       id: newId,
       name: trimmed,

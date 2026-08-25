@@ -26,6 +26,7 @@ import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
+import { setStoredDailyTopic } from "@/lib/dailyTopic";
 
 /* ── Types ────────────────────────────────────────────────────────────── */
 interface QuizQuestion {
@@ -160,10 +161,7 @@ function DailyLessonsContent() {
       setLesson(loadedLesson);
 
       if (loadedLesson && typeof window !== "undefined") {
-        localStorage.setItem(
-          "ticha_today_lesson_topic",
-          JSON.stringify({ subject: loadedLesson.subject, topic: loadedLesson.topic })
-        );
+        setStoredDailyTopic(loadedLesson.subject, loadedLesson.topic);
         localStorage.setItem(
           "ticha_today_lesson_data",
           JSON.stringify(loadedLesson)

@@ -6,8 +6,6 @@ import {
   PlayIcon,
   PauseIcon,
   SparklesIcon,
-  VolumeHighIcon,
-  VolumeOffIcon,
   Download01Icon,
   CheckmarkCircle02Icon,
   RotateRight01Icon,
@@ -39,7 +37,6 @@ interface ConceptVideoPlayerProps {
 export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
   const [isCached, setIsCached] = useState(false);
 
   const requestRef = useRef<number | null>(null);

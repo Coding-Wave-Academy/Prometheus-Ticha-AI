@@ -134,7 +134,7 @@ export default function LoginPage() {
         window.location.href = data.url;
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Google auth service error";
+      console.warn("Google auth service error:", err);
       addToast("Google OAuth is not configured in your Supabase project. Please sign in with Email & Password below.", "warning", "OAuth Setup Required");
     }
   };

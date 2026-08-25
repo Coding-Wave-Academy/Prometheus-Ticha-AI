@@ -4,21 +4,10 @@
 // the summary is grounded in verified content. Otherwise falls back to Gemini.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { retrieveContext } from '@/lib/rag/retriever';
 import { injectContextIntoPrompt } from '@/lib/rag/promptBuilder';
 
 export const dynamic = 'force-dynamic';
-
-/** Create a Supabase service client. */
-function getServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
-  if (!url || !secretKey) throw new Error('Missing Supabase config');
-  return createClient(url, secretKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export async function POST(req: NextRequest) {
   try {

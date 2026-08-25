@@ -11,82 +11,7 @@ import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
 
 export const dynamic = "force-dynamic";
 
-/* ── Subject-specific topic pools for daily rotation ─────────────────── */
-const subjectTopicPools: Record<string, string[]> = {
-  Physics: [
-    "Newton's Laws of Motion",
-    "Electromagnetic Induction",
-    "Wave-Particle Duality",
-    "Projectile Motion",
-    "Conservation of Energy",
-    "Electric Circuits & Kirchhoff's Laws",
-    "Simple Harmonic Motion",
-    "Gravitational Fields",
-    "Nuclear Physics & Radioactivity",
-  ],
-  "Pure Mathematics": [
-    "Binomial Theorem",
-    "Trigonometric Identities",
-    "Differentiation from First Principles",
-    "Integration by Substitution",
-    "Quadratic Equations & Discriminant",
-    "Logarithms & Exponential Functions",
-    "Sequences & Series (AP and GP)",
-    "Vectors in 2D and 3D",
-    "Partial Fractions",
-  ],
-  "Further Mathematics": [
-    "Complex Numbers & Argand Diagrams",
-    "Matrix Transformations",
-    "Proof by Induction",
-    "Polar Coordinates",
-    "Differential Equations",
-  ],
-  ICT: [
-    "Database Normalization 1NF 2NF 3NF",
-    "Network Topologies & Protocols",
-    "SQL Queries SELECT INSERT UPDATE",
-    "System Development Life Cycle",
-    "Binary & Hexadecimal Number Systems",
-  ],
-  Chemistry: [
-    "Atomic Structure & Electron Configuration",
-    "Rates of Reaction & Collision Theory",
-    "Equilibrium & Le Chatelier's Principle",
-  ],
-  Biology: [
-    "Cell Structure & Organelles",
-    "DNA Replication & Protein Synthesis",
-  ],
-};
-
-/* ── Fair daily subject rotation ──────────────────────────────────────── */
-function getTodaySubject(normalizedStruggles: string[]): string {
-  const subjects =
-    normalizedStruggles.length > 0
-      ? normalizedStruggles
-      : ["Physics", "Pure Mathematics", "ICT"];
-
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor(
-    (now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  return subjects[Math.abs(dayOfYear % subjects.length)];
-}
-
-/* ── Pick a topic for a subject based on day of year ──────────────────── */
-function pickTodayTopic(subject: string): string {
-  const pool = subjectTopicPools[subject] ||
-    subjectTopicPools.Physics || ["Introduction to Core Concepts"];
-  const now = new Date();
-  const dayOfYear = Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) /
-      (1000 * 60 * 60 * 24)
-  );
-  return pool[Math.abs(dayOfYear % pool.length)];
-}
+import { getTodaySubject, getTodayTopic } from "@/lib/dailyTopic";
 
 /* ── Resolve & verify video with cascading fallback ───────────────────── */
 async function resolveVerifiedVideo(
@@ -210,13 +135,13 @@ export async function POST(req: NextRequest) {
     );
 
     // 1. Determine subject & topic
-    let targetSubject = explicitSubject
+    const targetSubject = explicitSubject
       ? normalizeSubjectName(explicitSubject)
       : getTodaySubject(normalizedStruggles);
 
-    let targetTopic = explicitTopic
+    const targetTopic = explicitTopic
       ? String(explicitTopic).trim()
-      : pickTodayTopic(targetSubject);
+      : getTodayTopic(targetSubject);
 
     // 2. Build YouTube search URL for fallback link
     const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
@@ -358,8 +283,8 @@ Return ONLY raw JSON matching this exact structure:
         : [],
       keyTakeaway: formatAIText(parsed.keyTakeaway || ""),
       quizQuestions: Array.isArray(parsed.quizQuestions)
-        ? parsed.quizQuestions.slice(0, 3).map((q: any) => ({
-            question: formatAIText(q.question),
+        ? parsed.quizQuestions.slice(0, 3).map((q: { question?: string; options?: string[]; correctIdx?: number; explanation?: string }) => ({
+            question: formatAIText(q.question || ""),
             options: Array.isArray(q.options)
               ? q.options.map((o: string) => formatAIText(o))
               : [],

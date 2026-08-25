@@ -75,7 +75,7 @@ export async function GET(
         expires_in: 3600,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Paper download error:", err);
     return NextResponse.json(
       { success: false, error: { message: "Download failed" } },

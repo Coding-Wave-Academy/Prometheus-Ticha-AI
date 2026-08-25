@@ -60,11 +60,11 @@ export async function GET(req: NextRequest) {
 
       const { data, error } = await query;
       if (!error && Array.isArray(data) && data.length > 0) {
-        dbPapers = data.map((item: any) => ({
+        dbPapers = data.map((item: Record<string, unknown>) => ({
           ...item,
           subject: Array.isArray(item.subject) ? item.subject[0] : item.subject,
           level: Array.isArray(item.level) ? item.level[0] : item.level,
-        })) as Paper[];
+        })) as unknown as Paper[];
         isDbSuccess = true;
       }
     } catch {
@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
     };
 
     return NextResponse.json(response);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Past papers API error:", err);
     return NextResponse.json(
       {
