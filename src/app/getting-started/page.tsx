@@ -131,18 +131,33 @@ export default function WelcomePage() {
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        {/* Top Header & Real Logo Image */}
+        {/* Top Header & Branding */}
         <div>
           <div className="flex items-center justify-between">
-            {/* Real Logo Image */}
-            <Image
-              src="/images/ticha-logo.png"
-              alt="Ticha AI Logo"
-              width={140}
-              height={44}
-              priority
-              className="h-10 md:h-11 w-auto object-contain rounded-xl"
-            />
+            {/* Logo: App Icon + Typography */}
+            <div className="flex items-center gap-2">
+              <Image
+                src="/images/Ticha AI - App Icon White.png"
+                alt="1% Ticha AI"
+                width={48}
+                height={48}
+                priority
+                className="w-10 h-10 md:w-11 md:h-11 object-contain mix-blend-multiply"
+              />
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1 leading-none">
+                  <span className="font-extrabold text-xl md:text-[22px] text-[#0A0A0F] font-heading tracking-tight">
+                    Ticha
+                  </span>
+                  <span
+                    className="font-extrabold text-xl md:text-[22px] font-heading transition-colors"
+                    style={{ color: currentSlide.accentColor }}
+                  >
+                    AI
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {/* Sparkle Star */}
             <div className="mr-2">
@@ -154,13 +169,6 @@ export default function WelcomePage() {
                 className="animate-pulse transition-all duration-300"
               />
             </div>
-          </div>
-
-          {/* Welcome Tag */}
-          <div className="mt-3">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF7D6] border border-amber-300 text-[11px] font-bold text-stone-800 shadow-sm">
-              Welcome to Ticha AI ✨
-            </span>
           </div>
         </div>
 
@@ -260,21 +268,7 @@ export default function WelcomePage() {
         </div>
       </main>
 
-      {/* Bottom Wave Banner */}
-      <footer
-        className={`w-full py-2.5 px-4 ${currentSlide.waveBg} rounded-t-3xl border-t border-black/10 flex items-center justify-center gap-2 transition-colors duration-300`}
-      >
-        <Image
-          src={currentSlide.starIcon}
-          alt=""
-          width={16}
-          height={16}
-          className="animate-spin-slow"
-        />
-        <span className="text-xs font-semibold text-stone-700">
-          Learn a little today. Achieve more tomorrow.
-        </span>
-      </footer>
+     
     </div>
   );
 }

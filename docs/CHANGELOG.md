@@ -13,13 +13,14 @@ All notable changes to the Ticha AI platform will be documented in this file.
   - **Body text (`p`, `span`, inputs, etc.)**: Plus Jakarta Sans Regular / Medium (`400` / `500`).
   - **Small labels (`label`, `.font-label`)**: Plus Jakarta Sans SemiBold / Bold (`600` / `700`).
 - **Interactive Startup Carousel (`src/app/getting-started/page.tsx`)**:
-  - Replaced text logo header with native high-resolution logo image (`/images/ticha-logo.png`).
+  - Integrated new 1% app icon badge (`/images/Ticha AI - App Icon White.png`) with `mix-blend-multiply` to blend with the cream background.
+  - Formatted the header logo typography with `Ticha` + dynamic slide-accented `AI` and `Small Steps. Big Mastery.` tagline.
   - Updated Character 3 (Slide 03) CTA button background to `#9333EA` (Purple) with hover `#7E22CE` and white text.
   - Enlarged Character 1 (`max-w-[440px]`) and all hero illustrations to eliminate whitespace and fill the canvas.
-  - Unified 3-step pill progress bar design across `Language`, `Goal`, and `Education` screens.
 - **Browser Header & Metadata (`src/app/layout.tsx`)**:
   - Updated application title to `"Ticha AI - 1% Better Everyday"`.
-  - Added rounded PNG logo icons to metadata configuration.
+  - Added new app icon to metadata configuration.
+
 
 ### Onboarding Flow Fix
 - **Corrected Onboarding Flow**: `Get Started → Language → Goal → Level → Struggles → Sign Up`

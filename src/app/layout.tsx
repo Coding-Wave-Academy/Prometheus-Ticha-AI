@@ -26,12 +26,12 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.ico" },
       { url: "/favicon.png", sizes: "48x48", type: "image/png" },
-      { url: "/images/ticha-logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/Ticha AI - App Icon White.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/images/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      { url: "/images/ticha-logo.png", sizes: "180x180", type: "image/png" },
+      { url: "/images/Ticha AI - App Icon White.png", sizes: "180x180", type: "image/png" },
     ],
+
   },
 };
 
