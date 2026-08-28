@@ -1,11 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF7EC;
-  --foreground: #1A1A1A;
-  --accent-primary: #B6FF00;
-  --accent-warm: #965A18;
-  --border-color: #000000;
+  --background: #FFF8F1;
+  --foreground: #0A0A0F;
+  --accent-primary: #C8FF2A;
+  --accent-warm: #FF882E;
+  --accent-pink: #FFD6E7;
+  --border-color: #0A0A0F;
+}
+
+
+@theme {
+  --font-baloo: var(--font-baloo-2), cursive, sans-serif;
+  --font-body: var(--font-plus-jakarta), sans-serif;
+  --font-sans: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -18,7 +26,8 @@ html {
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+  font-weight: 400;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
@@ -27,6 +36,32 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Typography Rules: Baloo 2 for Headings & Buttons, Plus Jakarta Sans for Body & Labels */
+h1 {
+  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-weight: 800;
+}
+
+h2, h3, h4, h5, h6 {
+  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-weight: 700;
+}
+
+button, [role="button"], .font-button {
+  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-weight: 700;
+}
+
+p, span, div, input, textarea, select {
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+}
+
+label, .font-label {
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+}
+
 
 /* Custom Neobrutalist Spring Keyframes & Animations */
 @keyframes spring-pop {

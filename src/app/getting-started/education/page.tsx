@@ -1,212 +1,184 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { useTranslation } from "react-i18next";
-import { useIsMounted } from "@/hooks/useIsMounted";
-import "@/lib/i18n";
+import OnboardingProgressBar from "@/components/onboarding/OnboardingProgressBar";
 
 interface EducationOption {
   id: string;
-  titleKey: string;
-  subtitleKey: string;
+  title: string;
+  subtitle: string;
+  iconEmoji: string;
   iconBg: string;
-  emoji: string;
+  iconBorder: string;
 }
 
+const EDUCATION_OPTIONS: EducationOption[] = [
+  {
+    id: "ol",
+    title: "GCE O Level",
+    subtitle: "Secondary School",
+    iconEmoji: "📘",
+    iconBg: "bg-[#E0F2FE]",
+    iconBorder: "border-[#BAE6FD]",
+  },
+  {
+    id: "al",
+    title: "GCE A Level",
+    subtitle: "High School",
+    iconEmoji: "📙",
+    iconBg: "bg-[#FFEDD5]",
+    iconBorder: "border-[#FED7AA]",
+  },
+  {
+    id: "technical",
+    title: "Technical",
+    subtitle: "Vocational Studies",
+    iconEmoji: "🛠️",
+    iconBg: "bg-[#CCFBF1]",
+    iconBorder: "border-[#99F6E4]",
+  },
+  {
+    id: "university",
+    title: "University Student",
+    subtitle: "Undergraduate",
+    iconEmoji: "🎓",
+    iconBg: "bg-[#F3E8FF]",
+    iconBorder: "border-[#E9D5FF]",
+  },
+];
+
 export default function EducationLevelPage() {
-  const { t } = useTranslation();
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("ticha_onboarding_education") || "al";
-    }
-    return "al";
-  });
-  const isMounted = useIsMounted();
   const router = useRouter();
+  const [selectedLevel, setSelectedLevel] = useState<string>("al");
 
-  const levels: EducationOption[] = [
-    {
-      id: "ol",
-      titleKey: "education.ol.title",
-      subtitleKey: "education.ol.subtitle",
-      iconBg: "bg-[#DBEAFE]",
-      emoji: "📘",
-    },
-    {
-      id: "al",
-      titleKey: "education.al.title",
-      subtitleKey: "education.al.subtitle",
-      iconBg: "bg-[#FEF3C7]",
-      emoji: "📙",
-    },
-    {
-      id: "technical",
-      titleKey: "education.technical.title",
-      subtitleKey: "education.technical.subtitle",
-      iconBg: "bg-[#CCFBF1]",
-      emoji: "🛠️",
-    },
-    {
-      id: "university",
-      titleKey: "education.university.title",
-      subtitleKey: "education.university.subtitle",
-      iconBg: "bg-[#F3E8FF]",
-      emoji: "🎓",
-    },
-  ];
+  useEffect(() => {
+    const saved = localStorage.getItem("ticha_onboarding_education");
+    if (saved) {
+      setSelectedLevel(saved);
+    }
+  }, []);
 
-  const handleBack = () => {
-    router.push("/getting-started/goal");
+  const handleSelect = (id: string) => {
+    setSelectedLevel(id);
+    localStorage.setItem("ticha_onboarding_education", id);
   };
 
   const handleContinue = () => {
-    if (!selectedLevel) return;
     localStorage.setItem("ticha_onboarding_education", selectedLevel);
     router.push("/getting-started/struggles");
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#C8FF2A]">
-      <main className="w-full max-w-md min-h-[90vh] flex flex-col justify-between py-6 px-4 md:px-6 text-[#0A0A0F]">
-        {/* Top Navigation Bar & Progress Dots */}
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+      {/* Decorative Polka Dots (Top Right) */}
+      <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none opacity-80 z-0">
+        <Image
+          src="/images/onboarding-icons/Orange Top Pokka Dots.svg"
+          alt=""
+          width={120}
+          height={120}
+          className="w-full h-full object-contain object-top-right"
+        />
+      </div>
+
+      {/* Decorative Lime Star Sparkle */}
+      <div className="absolute top-16 right-8 pointer-events-none z-0">
+        <Image
+          src="/images/onboarding-icons/Lime Star.svg"
+          alt=""
+          width={28}
+          height={28}
+          className="animate-pulse"
+        />
+      </div>
+
+      {/* Main Container */}
+      <main className="w-full max-w-md mx-auto px-5 pt-6 pb-4 flex-1 flex flex-col justify-between relative z-10">
         <div>
-          <motion.header
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="flex items-center justify-between w-full mb-6"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBack}
-              className="w-10 h-10 bg-white border-[2.5px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
-              aria-label="Go back"
-            >
-              <svg
-                className="w-5 h-5 stroke-[3px]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-                />
-              </svg>
-            </motion.button>
+          {/* Shared Progress Bar (Step 3 of 4) */}
+          <OnboardingProgressBar currentStep={3} totalSteps={4} />
 
-            {/* 4-Step Progress Dots (Step 3 active) */}
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
-              <div className="w-7 h-2.5 rounded-full bg-[#C8FF2A] border-[1.5px] border-black" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
-            </div>
-
-            {/* Placeholder to balance header alignment */}
-            <div className="w-10 h-10" />
-          </motion.header>
-
-          {/* Heading & Subtitle */}
-          <motion.div
-            initial={{ y: 15, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="text-left mb-6"
-          >
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#0A0A0F]">
-                {isMounted ? t("education.title") : "Your Education Level"}
-              </h1>
-              <span className="text-2xl" role="img" aria-label="grad-cap">
-                🎓
+          {/* Heading */}
+          <div className="mt-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A0A0F] leading-[1.15] tracking-tight">
+              Your{" "}
+              <span className="relative inline-block text-[#84CC16]">
+                Education
+                <span className="absolute -bottom-2.5 left-0 w-full pointer-events-none">
+                  <Image
+                    src="/images/onboarding-icons/Lime Line.svg"
+                    alt=""
+                    width={140}
+                    height={25}
+                    className="w-full h-auto"
+                  />
+                </span>
               </span>
-            </div>
-            <p className="text-sm text-stone-600 font-medium mt-2 leading-relaxed">
-              {isMounted
-                ? t("education.subtitle")
-                : "Tell us where you are in your journey so Ticha AI can tailor the lessons for you."}
+              <br />
+              Level 🎓
+            </h1>
+            <p className="text-sm text-stone-600 font-medium mt-2.5 leading-snug">
+              Tell us where you are in your journey so Ticha AI can tailor the lessons for you.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Education Level Option Cards */}
-          <div className="space-y-3.5 w-full">
-            {levels.map((level, idx) => {
-              const isSelected = selectedLevel === level.id;
+          {/* 4 Education Level Option Cards */}
+          <div className="mt-5 space-y-3">
+            {EDUCATION_OPTIONS.map((option) => {
+              const isSelected = selectedLevel === option.id;
               return (
-                <motion.button
-                  key={level.id}
+                <button
+                  key={option.id}
                   type="button"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{
-                    delay: 0.12 + idx * 0.06,
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 24,
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => setSelectedLevel(level.id)}
-                  className={`w-full p-3.5 md:p-4 rounded-2xl border-[3px] border-black flex items-center gap-4 text-left transition-all ${
+                  onClick={() => handleSelect(option.id)}
+                  className={`w-full p-3.5 rounded-3xl flex items-center justify-between text-left transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#C8FF2A] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[2px] translate-y-[2px]"
-                      : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
+                      ? "bg-[#EBFFA8] border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5"
+                      : "bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
                   }`}
                 >
+                  <div className="flex items-center gap-3.5">
+                    <div className={`w-11 h-11 rounded-2xl ${option.iconBg} border ${option.iconBorder} flex items-center justify-center text-xl shadow-inner`}>
+                      {option.iconEmoji}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm md:text-base text-[#0A0A0F] leading-tight font-heading">
+                        {option.title}
+                      </div>
+                      <div className="text-xs text-stone-500 font-medium mt-0.5">
+                        {option.subtitle}
+                      </div>
+                    </div>
+                  </div>
                   <div
-                    className={`w-12 h-12 rounded-xl border-[2px] border-black flex items-center justify-center text-xl shrink-0 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] ${level.iconBg}`}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "bg-[#0A0A0F] text-white text-[10px] font-black"
+                        : "border-[1.5px] border-stone-300 bg-white"
+                    }`}
                   >
-                    <span>{level.emoji}</span>
+                    {isSelected && "✓"}
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <h2 className="font-extrabold text-base md:text-lg text-[#0A0A0F] tracking-tight">
-                      {isMounted ? t(level.titleKey) : level.titleKey}
-                    </h2>
-                    <p className="text-xs md:text-sm text-stone-600 font-medium mt-0.5 truncate">
-                      {isMounted ? t(level.subtitleKey) : level.subtitleKey}
-                    </p>
-                  </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* Footer Continue Button */}
-        <motion.footer
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
-          className="w-full mt-8"
-        >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        {/* Action Button & Bottom Doodle */}
+        <div className="mt-6">
+          <button
             onClick={handleContinue}
-            disabled={!selectedLevel}
-            className="w-full bg-[#0A0A0F] hover:bg-[#1A1A24] text-white font-bold text-base md:text-lg py-4 px-6 rounded-full flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-heading uppercase tracking-wider"
           >
-            <span>{isMounted ? t("education.continue") : "Continue"}</span>
-            <svg
-              className="w-5 h-5 stroke-[2.5px]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
+            <span>CONTINUE</span>
+            <svg className="w-5 h-5 stroke-[2.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
-          </motion.button>
-        </motion.footer>
+          </button>
+        </div>
       </main>
     </div>
   );

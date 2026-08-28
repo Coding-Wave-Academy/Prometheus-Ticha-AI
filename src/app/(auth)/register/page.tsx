@@ -1,57 +1,49 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import PasswordStrengthBar from "@/components/ui/PasswordStrengthBar";
-import ConfettiOverlay from "@/components/auth/ConfettiOverlay";
 import ToastContainer from "@/components/ui/Toast";
-import Badge from "@/components/ui/Badge";
-import Card from "@/components/ui/Card";
 import { useToast } from "@/hooks/useToast";
-import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { useIsMounted } from "@/hooks/useIsMounted";
-import { useAuth } from "@/hooks/useAuth";
+import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { registerSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
+import ConfettiBurst from "@/components/onboarding/ConfettiBurst";
 import "@/lib/i18n";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
   const isMounted = useIsMounted();
   const router = useRouter();
 
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace("/dashboard");
-    }
-  }, [user, authLoading, router]);
+  const passwordStrength = usePasswordStrength(password);
 
-  const strength = usePasswordStrength(password);
   const supabase = createClient();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const cleanName = sanitizeString(name.trim());
+    const cleanFullName = sanitizeString(fullName.trim());
     const cleanEmail = sanitizeString(email.trim());
 
     const parseResult = registerSchema.safeParse({
-      name: cleanName,
+      fullName: cleanFullName,
       email: cleanEmail,
       password,
       confirmPassword,
@@ -60,12 +52,7 @@ export default function RegisterPage() {
     if (!parseResult.success) {
       const fieldErrors = extractZodErrors(parseResult.error);
       setErrors(fieldErrors);
-      addToast("Please resolve validation errors before submitting.", "warning", "Validation Failed");
-      return;
-    }
-
-    if (strength.score < 3) {
-      addToast("Please choose a stronger password matching criteria.", "warning", "Weak Password");
+      addToast("Please fix the errors below before submitting.", "warning", "Validation Failed");
       return;
     }
 
@@ -73,263 +60,231 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // Read candidate onboarding choices
-      const goal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") || "gce" : "gce";
-      const education_level = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") || "al" : "al";
-      let struggles = ["Physics", "Pure Mathematics", "ICT"];
-      if (typeof window !== "undefined") {
-        const storedStr = localStorage.getItem("ticha_onboarding_struggles");
-        if (storedStr) {
-          try {
-            const parsed = JSON.parse(storedStr);
-            if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
-          } catch { /* ignore */ }
-        }
-      }
-      const preferred_language = typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en";
+      const storedEducation = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") : null;
+      const storedGoal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") : null;
+      const storedLang = typeof window !== "undefined" ? localStorage.getItem("ticha_lang") || "en" : "en";
 
-      // 1. Sign up user with full_name and onboarding metadata
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           data: {
-            full_name: cleanName,
-            goal,
-            education_level,
-            struggles,
-            preferred_language,
+            full_name: cleanFullName,
+            education_level: storedEducation || "ol",
+            goal: storedGoal || "gce_ol",
+            preferred_language: storedLang,
           },
+          emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
         },
       });
 
       if (error) {
-        addToast(error.message || "Registration failed.", "error", "Registration Error");
+        addToast(error.message || "Failed to create account. Please try again.", "error", "Sign Up Error");
         setIsLoading(false);
         return;
       }
 
-      localStorage.setItem("ticha_user_fullname", cleanName);
-
-      // Direct profile upsert to guarantee persistence in database
-      const userId = data.user?.id;
-      if (userId) {
-        await supabase.from("profiles").upsert({
-          id: userId,
-          full_name: cleanName,
-          goal,
-          education_level,
-          struggles,
-          preferred_language,
-          profile_completed: true,
-          updated_at: new Date().toISOString(),
-        });
-      }
-
-      // 2. Direct Signup -> Dashboard transition
       if (data.session) {
-        addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
+        addToast("Account created successfully! Welcome to Ticha AI.", "success", "Welcome!");
+        if (cleanFullName) {
+          localStorage.setItem("ticha_user_fullname", cleanFullName);
+        }
         router.push("/dashboard");
       } else {
-        // Attempt instant sign-in to bypass email confirmation step
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
-
-        if (!signInError && signInData?.user?.id) {
-          await supabase.from("profiles").upsert({
-            id: signInData.user.id,
-            full_name: cleanName,
-            goal,
-            education_level,
-            struggles,
-            preferred_language,
-            profile_completed: true,
-            updated_at: new Date().toISOString(),
-          });
-          addToast("Account created! Welcome to Ticha AI.", "success", "Welcome");
-          router.push("/dashboard");
-        } else {
-          addToast(
-            "Account registered! Welcome to Ticha AI.",
-            "success",
-            "Account Registered"
-          );
-          router.push("/dashboard");
-        }
+        addToast(
+          "Confirmation email sent! Please check your inbox and verify your email to log in.",
+          "info",
+          "Account Created"
+        );
+        router.push("/login");
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Registration service unavailable.";
+      const msg = err instanceof Error ? err.message : "Authentication service unavailable.";
       addToast(msg, "error", "Registration Error");
       setIsLoading(false);
     }
   };
 
-  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
-  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+  const handleSkip = () => {
+    router.push("/dashboard");
+  };
 
   return (
-    <main className="w-full flex flex-col justify-between px-2 text-black space-y-6 animate-page-in">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between p-4 md:p-6 text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+      <ConfettiBurst />
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
-      {/* Header Section */}
-      <header className="text-center space-y-2 mt-4 animate-spring-slide-up">
-        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none text-[#1A1A1A]">
-          {isMounted ? t("register.title") : "Create Account"}
-        </h1>
-        <p className="text-base text-stone-600 font-medium">
-          {isMounted ? t("register.subtitle") : "Now, let's save your progress."}
-        </p>
-      </header>
+      {/* Decorative Sparkle Star */}
+      <div className="absolute top-10 left-6 pointer-events-none z-0">
+        <Image
+          src="/images/onboarding-icons/Lime Star.svg"
+          alt=""
+          width={24}
+          height={24}
+          className="animate-pulse"
+        />
+      </div>
 
-      {/* Milestone Card */}
-      <Card variant="accent" className="text-center flex flex-col items-center justify-center relative overflow-hidden">
-        <ConfettiOverlay />
-        <div className="w-14 h-14 bg-white border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-3 relative z-40">
-          <svg className="w-7 h-7 text-[#965A18] fill-current" viewBox="0 0 24 24">
-            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-          </svg>
-        </div>
-        <span className="text-xs font-extrabold uppercase tracking-widest text-stone-800 opacity-90 relative z-40">
-          Milestone Reached
-        </span>
-        <h2 className="text-2xl font-black text-black mt-0.5 mb-3 relative z-40">
-          Level 1: Novice
-        </h2>
-        <Badge variant="white" className="relative z-40">
-          <svg className="w-3.5 h-3.5 fill-current text-orange-600 inline mr-1" viewBox="0 0 24 24">
-            <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.6 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.52-4.5-9.33-6.5-13.33z" />
-          </svg>
-          <span>1 Day Streak!</span>
-        </Badge>
-      </Card>
+      <main className="w-full max-w-md mx-auto flex flex-col justify-between py-2 space-y-4 relative z-10">
+        {/* Header Title */}
+        <header className="text-center space-y-1 mt-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A0A0F] tracking-tight">
+            Create <span className="text-[#84CC16]">Account</span>
+          </h1>
+          <p className="text-sm text-stone-600 font-medium">
+            {isMounted ? t("register.subtitle") : "Now, let's save your progress."}
+          </p>
+        </header>
 
-      {/* Registration Form Card */}
-      <Card variant="default">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Full Name */}
-          <Input
-            id="register-name"
-            label={isMounted ? t("register.nameLabel") : "Full Name"}
-            placeholder="John Doe"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
-            }}
-            onClear={() => setName("")}
-            error={errors.name}
-          />
+        {/* Milestone Reached Banner Card */}
+        <section className="bg-[#C8FF2A] border-[2.5px] border-black rounded-3xl p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center relative overflow-hidden">
+          <div className="space-y-1.5 relative z-10">
+            {/* Top Star Circle */}
+            <div className="w-11 h-11 rounded-full bg-white border-[2px] border-black flex items-center justify-center mx-auto shadow-sm">
+              <span className="text-amber-700 text-lg">★</span>
+            </div>
 
-          {/* Email Address */}
-          <Input
-            id="register-email"
-            type="email"
-            label={isMounted ? t("register.emailLabel") : "Email Address"}
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
-            }}
-            onClear={() => setEmail("")}
-            error={errors.email}
-          />
+            <div className="text-[10px] font-black tracking-wider uppercase text-stone-800">
+              MILESTONE REACHED
+            </div>
 
-          {/* Password with Strength Indicator */}
-          <div>
+            <div className="text-xl md:text-2xl font-black text-[#0A0A0F] font-heading">
+              Level 1: Novice
+            </div>
+
+            <div className="pt-0.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border-[1.5px] border-black text-xs font-black shadow-sm text-[#0A0A0F]">
+                🔥 1 DAY STREAK!
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Form Container Card */}
+        <section className="bg-white border-[2.5px] border-black rounded-3xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+          <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+            {/* Full Name */}
+            <Input
+              id="register-fullname"
+              type="text"
+              label={isMounted ? t("register.nameLabel") : "Full Name"}
+              placeholder="John Doe"
+              leftIcon={
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              }
+              value={fullName}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: "" }));
+              }}
+              error={errors.fullName}
+            />
+
+            {/* Email Address */}
+            <Input
+              id="register-email"
+              type="email"
+              label={isMounted ? t("register.emailLabel") : "Email Address"}
+              placeholder="you@example.com"
+              leftIcon={
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
+              }
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+              }}
+              error={errors.email}
+            />
+
+            {/* Password */}
             <PasswordInput
               id="register-password"
               label={isMounted ? t("register.passwordLabel") : "Password"}
+              placeholder="••••••••"
+              leftIcon={
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                </svg>
+              }
               value={password}
               onChange={(val) => {
                 setPassword(val);
                 if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
               }}
+              error={errors.password}
             />
-            {errors.password && (
-              <p className="text-xs font-bold text-red-600 mt-1 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 fill-current text-red-600 inline" viewBox="0 0 24 24">
-                  <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
-                </svg>
-                <span>{errors.password}</span>
-              </p>
-            )}
-            <PasswordStrengthBar strength={strength} showChecks />
-          </div>
 
-          {/* Confirm Password */}
-          <div>
+            {/* Granular 5-Segment Password Strength Meter */}
+            <PasswordStrengthBar strength={passwordStrength} />
+
+            {/* Confirm Password */}
             <PasswordInput
               id="register-confirm-password"
               label={isMounted ? t("register.confirmPasswordLabel") : "Confirm Password"}
+              placeholder="••••••••"
+              leftIcon={
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                </svg>
+              }
               value={confirmPassword}
               onChange={(val) => {
                 setConfirmPassword(val);
                 if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: "" }));
               }}
+              error={errors.confirmPassword}
             />
-            {errors.confirmPassword && (
-              <p className="text-xs font-bold text-red-600 mt-1 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 fill-current text-red-600 inline" viewBox="0 0 24 24">
-                  <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
-                </svg>
-                <span>{errors.confirmPassword}</span>
-              </p>
-            )}
-            {passwordsMatch && !errors.confirmPassword && (
-              <p className="text-xs font-bold text-green-700 mt-1.5 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 fill-current text-green-700 inline" viewBox="0 0 24 24">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                </svg>
-                <span>Passwords match</span>
-              </p>
-            )}
-            {passwordsMismatch && !errors.confirmPassword && (
-              <p className="text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 stroke-[3] text-red-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                <span>Passwords do not match</span>
-              </p>
-            )}
+
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider font-heading mt-2"
+            >
+              {isLoading ? (
+                <span>CREATING ACCOUNT...</span>
+              ) : (
+                <>
+                  <span>SIGN UP</span>
+                  <svg className="w-5 h-5 stroke-[2.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </form>
+        </section>
+
+        {/* Footer Navigation */}
+        <footer className="w-full text-center space-y-2 py-1">
+          <p className="text-stone-600 font-medium text-xs md:text-sm">
+            {isMounted ? t("register.hasAccount") : "Already have an account?"}{" "}
+            <Link
+              href="/login"
+              className="text-[#FF882E] font-extrabold underline decoration-2 underline-offset-2 hover:text-[#e07520] transition-colors"
+            >
+              {isMounted ? t("register.login") : "Log in"}
+            </Link>
+          </p>
+          <div>
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="text-xs font-black text-stone-700 hover:text-black tracking-wider transition-colors uppercase font-heading cursor-pointer"
+            >
+              SKIP FOR NOW &amp; EXPLORE DASHBOARD →
+            </button>
           </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            isLoading={isLoading}
-            className="w-full mt-2"
-          >
-            {isMounted ? t("register.submit") : "Sign Up →"}
-          </Button>
-        </form>
-      </Card>
-
-      {/* Footer Navigation */}
-      <footer className="w-full text-center py-2 space-y-2">
-        <p className="text-stone-700 font-medium text-[15px]">
-          {isMounted ? t("register.hasAccount") : "Already have an account?"}{" "}
-          <Link
-            href="/login"
-            className="text-[#965A18] font-bold underline decoration-2 underline-offset-2 hover:text-[#7A4711] transition-colors"
-          >
-            {isMounted ? t("register.login") : "Log in"}
-          </Link>
-        </p>
-
-        <div>
-          <Link
-            href="/dashboard"
-            className="text-xs font-black uppercase tracking-wider text-stone-500 hover:text-stone-800 transition-colors inline-flex items-center gap-1"
-          >
-            <span>{isMounted ? t("register.skipGuest") : "Skip for now & Explore Dashboard →"}</span>
-          </Link>
-        </div>
-      </footer>
-    </main>
+        </footer>
+      </main>
+    </div>
   );
 }

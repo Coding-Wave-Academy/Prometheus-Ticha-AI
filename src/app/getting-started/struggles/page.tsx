@@ -1,103 +1,150 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslation } from "react-i18next";
-import { useIsMounted } from "@/hooks/useIsMounted";
-import "@/lib/i18n";
+import OnboardingProgressBar from "@/components/onboarding/OnboardingProgressBar";
 
 interface SubjectStruggle {
   id: string;
-  nameKey?: string;
   name: string;
+  iconEmoji: string;
   iconBg: string;
-  icon: React.ReactNode;
+  iconBorder: string;
 }
 
 interface ApiSubject {
   id: string;
   name: string;
   iconBg?: string;
-  iconSlug?: string;
+  iconEmoji?: string;
 }
 
-function getSubjectSvgIcon(slug: string) {
+function getDefaultEmoji(slug: string): string {
   const s = slug.toLowerCase();
-  if (s.includes("math") || s.includes("calculus")) {
-    return (
-      <svg className="w-6 h-6 text-black fill-current" viewBox="0 0 24 24">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
-      </svg>
-    );
-  }
-  if (s.includes("phys")) {
-    return (
-      <svg className="w-6 h-6 text-black stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    );
-  }
-  if (s.includes("chem")) {
-    return (
-      <svg className="w-6 h-6 text-black stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6" />
-      </svg>
-    );
-  }
-  if (s.includes("cs") || s.includes("dsa") || s.includes("ict")) {
-    return (
-      <svg className="w-6 h-6 text-black fill-current" viewBox="0 0 24 24">
-        <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="w-6 h-6 text-black fill-current" viewBox="0 0 24 24">
-      <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
-    </svg>
-  );
+  if (s.includes("math") || s.includes("calculus")) return "➗";
+  if (s.includes("phys")) return "⚡";
+  if (s.includes("chem")) return "🧪";
+  if (s.includes("bio")) return "🧬";
+  if (s.includes("eng") || s.includes("lit")) return "📖";
+  if (s.includes("cs") || s.includes("ict") || s.includes("comp")) return "💻";
+  if (s.includes("french") || s.includes("fran")) return "🇫🇷";
+  if (s.includes("hist")) return "📜";
+  if (s.includes("geo")) return "🌍";
+  if (s.includes("econ")) return "📊";
+  if (s.includes("account")) return "🧮";
+  return "📚";
 }
 
-export default function StrugglesIdentificationPage() {
-  const { t } = useTranslation();
-  const isMounted = useIsMounted();
-  const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(new Set());
+function getDefaultIconBg(slug: string): { bg: string; border: string } {
+  const s = slug.toLowerCase();
+  if (s.includes("math") || s.includes("calculus"))
+    return { bg: "bg-[#DBEAFE]", border: "border-[#93C5FD]" };
+  if (s.includes("phys"))
+    return { bg: "bg-[#FEF9C3]", border: "border-[#FDE68A]" };
+  if (s.includes("chem"))
+    return { bg: "bg-[#CCFBF1]", border: "border-[#99F6E4]" };
+  if (s.includes("bio"))
+    return { bg: "bg-[#D1FAE5]", border: "border-[#A7F3D0]" };
+  if (s.includes("eng") || s.includes("lit"))
+    return { bg: "bg-[#FFE4E6]", border: "border-[#FECDD3]" };
+  if (s.includes("cs") || s.includes("ict") || s.includes("comp"))
+    return { bg: "bg-[#F3E8FF]", border: "border-[#E9D5FF]" };
+  return { bg: "bg-[#FFF7ED]", border: "border-[#FED7AA]" };
+}
+
+const FALLBACK_SUBJECTS: SubjectStruggle[] = [
+  {
+    id: "math",
+    name: "Pure Mathematics",
+    iconEmoji: "➗",
+    iconBg: "bg-[#DBEAFE]",
+    iconBorder: "border-[#93C5FD]",
+  },
+  {
+    id: "physics",
+    name: "Advanced Physics",
+    iconEmoji: "⚡",
+    iconBg: "bg-[#FEF9C3]",
+    iconBorder: "border-[#FDE68A]",
+  },
+  {
+    id: "chemistry",
+    name: "Chemistry",
+    iconEmoji: "🧪",
+    iconBg: "bg-[#CCFBF1]",
+    iconBorder: "border-[#99F6E4]",
+  },
+  {
+    id: "biology",
+    name: "Biology",
+    iconEmoji: "🧬",
+    iconBg: "bg-[#D1FAE5]",
+    iconBorder: "border-[#A7F3D0]",
+  },
+  {
+    id: "english",
+    name: "English Language",
+    iconEmoji: "📖",
+    iconBg: "bg-[#FFE4E6]",
+    iconBorder: "border-[#FECDD3]",
+  },
+  {
+    id: "further_math",
+    name: "Further Mathematics",
+    iconEmoji: "🔢",
+    iconBg: "bg-[#F3E8FF]",
+    iconBorder: "border-[#E9D5FF]",
+  },
+];
+
+export default function StrugglesPage() {
+  const router = useRouter();
+  const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(
+    new Set()
+  );
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [customSubjects, setCustomSubjects] = useState<SubjectStruggle[]>([]);
   const [aiSubjects, setAiSubjects] = useState<SubjectStruggle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchStruggles = async () => {
       try {
-        const goal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") || "gce" : "gce";
-        const education = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") || "al" : "al";
-        
+        const goal =
+          typeof window !== "undefined"
+            ? localStorage.getItem("ticha_onboarding_goal") || "gce"
+            : "gce";
+        const education =
+          typeof window !== "undefined"
+            ? localStorage.getItem("ticha_onboarding_education") || "al"
+            : "al";
+
         const res = await fetch("/api/ai/struggles", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ goal, education }),
         });
         if (!res.ok) throw new Error("API call failed");
-        
+
         const data = await res.json();
-        const mapped: SubjectStruggle[] = (data.subjects || []).slice(0, 3).map((sub: ApiSubject) => ({
-          id: sub.id,
-          name: sub.name,
-          iconBg: sub.iconBg || "bg-[#B6FF00]",
-          icon: getSubjectSvgIcon(sub.iconSlug || sub.id),
-        }));
-        setAiSubjects(mapped);
-      } catch (err) {
-        console.error("Failed to load struggles subjects from AI", err);
-        setAiSubjects([
-          { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", icon: getSubjectSvgIcon("math") },
-          { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", icon: getSubjectSvgIcon("physics") },
-          { id: "furtherMath", name: "Further Mathematics", iconBg: "bg-[#FFD9E0]", icon: getSubjectSvgIcon("math") },
-        ]);
+        const mapped: SubjectStruggle[] = (data.subjects || [])
+          .slice(0, 6)
+          .map((sub: ApiSubject) => {
+            const colors = getDefaultIconBg(sub.id);
+            return {
+              id: sub.id,
+              name: sub.name,
+              iconEmoji: sub.iconEmoji || getDefaultEmoji(sub.id),
+              iconBg: colors.bg,
+              iconBorder: colors.border,
+            };
+          });
+        setAiSubjects(mapped.length > 0 ? mapped : FALLBACK_SUBJECTS);
+      } catch {
+        setAiSubjects(FALLBACK_SUBJECTS);
       } finally {
         setIsLoading(false);
       }
@@ -108,7 +155,7 @@ export default function StrugglesIdentificationPage() {
 
   const subjects = [...aiSubjects, ...customSubjects];
 
-  const handleToggleSubject = (id: string) => {
+  const toggleSubject = (id: string) => {
     setSelectedSubjects((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -118,10 +165,6 @@ export default function StrugglesIdentificationPage() {
       }
       return next;
     });
-  };
-
-  const handleBack = () => {
-    router.push("/getting-started/education");
   };
 
   const handleSaveCustom = () => {
@@ -143,11 +186,13 @@ export default function StrugglesIdentificationPage() {
     }
 
     const newId = `custom-${trimmed.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+    const colors = getDefaultIconBg(trimmed);
     const newSubject: SubjectStruggle = {
       id: newId,
       name: trimmed,
-      iconBg: "bg-white",
-      icon: getSubjectSvgIcon("custom"),
+      iconEmoji: getDefaultEmoji(trimmed),
+      iconBg: colors.bg,
+      iconBorder: colors.border,
     };
 
     setCustomSubjects((prev) => [...prev, newSubject]);
@@ -163,7 +208,7 @@ export default function StrugglesIdentificationPage() {
 
   const handleContinue = () => {
     if (selectedSubjects.size === 0) return;
-    
+
     const chosenNames = Array.from(
       new Set(
         Array.from(selectedSubjects).map((id) => {
@@ -173,219 +218,210 @@ export default function StrugglesIdentificationPage() {
       )
     );
 
-    localStorage.setItem("ticha_onboarding_struggles", JSON.stringify(chosenNames));
-    router.push("/getting-started/intel");
+    localStorage.setItem(
+      "ticha_onboarding_struggles",
+      JSON.stringify(chosenNames)
+    );
+    router.push("/register");
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black items-center">
-        {/* Animated Header & Progress */}
-        <motion.header
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center gap-4 w-full"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleBack}
-            className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px transition-all shrink-0"
-            aria-label="Go back"
-          >
-            <svg
-              className="w-6 h-6 stroke-[3.5px]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-              />
-            </svg>
-          </motion.button>
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+      {/* Decorative Polka Dots (Top Right) */}
+      <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none opacity-80 z-0">
+        <Image
+          src="/images/onboarding-icons/Orange Top Pokka Dots.svg"
+          alt=""
+          width={120}
+          height={120}
+          className="w-full h-full object-contain object-top-right"
+        />
+      </div>
 
-          <div className="flex gap-1.5 w-full items-center">
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
-            <div className="h-2 bg-transparent border-[1.5px] border-black rounded-full flex-1" />
-          </div>
-        </motion.header>
+      {/* Decorative Orange Star */}
+      <div className="absolute top-16 right-8 pointer-events-none z-0">
+        <Image
+          src="/images/onboarding-icons/Orange Star.svg"
+          alt=""
+          width={28}
+          height={28}
+          className="animate-pulse"
+        />
+      </div>
 
-        {/* Title Area */}
-        <motion.div
-          initial={{ y: 15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-          className="text-left w-full space-y-2.5 mt-8 mb-4 px-2"
-        >
-          <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
-            {isMounted ? t("struggles.title") : "Where do you need the most help?"}
-          </h1>
-          <p className="text-[15px] text-stone-600 font-medium leading-tight">
-            {isMounted
-              ? t("struggles.subtitle")
-              : "Tell Ticha AI what's tough so we can tailor your insights."}
-          </p>
-        </motion.div>
+      {/* Main Container */}
+      <main className="w-full max-w-md mx-auto px-5 pt-6 pb-4 flex-1 flex flex-col justify-between relative z-10">
+        <div>
+          {/* Shared Progress Bar (Step 4 of 4) */}
+          <OnboardingProgressBar currentStep={4} totalSteps={4} />
 
-        {/* Animated Struggle Cards Area */}
-        <div className="space-y-4 my-auto w-full">
-          {isLoading ? (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center text-center space-y-3"
-            >
-              <div className="w-10 h-10 border-[4.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
-              <p className="text-sm font-black uppercase tracking-wider text-black">
-                {isMounted ? t("struggles.loadingText") : "Consulting Ticha AI for top challenge areas..."}
-              </p>
-            </motion.div>
-          ) : (
-            subjects.map((subject, idx) => {
-              const isSelected = selectedSubjects.has(subject.id);
-              return (
-                <motion.button
-                  key={subject.id}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{
-                    delay: 0.1 + idx * 0.08,
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 24,
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleToggleSubject(subject.id)}
-                  className={`w-full p-4 rounded-xl border-[3.5px] border-black flex items-center transition-all bg-white group ${
-                    isSelected
-                      ? "shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] translate-x-[2px] translate-y-[2px]"
-                      : "shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
-                  }`}
-                >
-                  <div
-                    className={`w-12 h-12 ${subject.iconBg} border-[2.5px] border-black rounded-lg flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}
-                  >
-                    {subject.icon}
-                  </div>
-
-                  <h2 className="font-bold text-base md:text-lg text-[#1A1A1A] tracking-tight flex-1 ml-4 text-left">
-                    {subject.name}
-                  </h2>
-
-                  <div
-                    className={`w-6 h-6 rounded-full border-[2.5px] border-black flex items-center justify-center transition-colors ${
-                      isSelected
-                        ? "bg-black"
-                        : "bg-transparent group-hover:border-black/40"
-                    }`}
-                  >
-                    <svg
-                      className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-stone-300"} transition-colors`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4.5"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 12.75l6 6 9-13.5"
-                      />
-                    </svg>
-                  </div>
-                </motion.button>
-              );
-            })
-          )}
-
-          {!isLoading && (
-            <AnimatePresence>
-              {isAddingCustom ? (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="w-full p-4 rounded-xl border-[3.5px] border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3 overflow-hidden"
-                >
-                  <input
-                    type="text"
-                    placeholder={isMounted ? t("struggles.customPlaceholder") : "Subject name..."}
-                    value={customInput}
-                    onChange={(e) => setCustomInput(e.target.value)}
-                    className="w-full bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-bold outline-none"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveCustom();
-                    }}
+          {/* Heading */}
+          <div className="mt-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A0A0F] leading-[1.15] tracking-tight">
+              What{" "}
+              <span className="relative inline-block text-[#FF882E]">
+                subjects
+                <span className="absolute -bottom-2.5 left-0 w-full pointer-events-none">
+                  <Image
+                    src="/images/onboarding-icons/Orange line.svg"
+                    alt=""
+                    width={140}
+                    height={25}
+                    className="w-full h-auto"
                   />
-                  <div className="flex justify-end gap-2.5 w-full">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAddingCustom(false);
-                        setCustomInput("");
-                      }}
-                      className="bg-stone-200 border-[2.5px] border-black rounded-lg px-4 py-2 font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none"
+                </span>
+              </span>
+              <br />
+              challenge you?
+            </h1>
+            <p className="text-sm text-stone-600 font-medium mt-2 leading-snug">
+              Select subjects that are tough — Ticha AI will build a
+              personalized daily learning plan for you.
+            </p>
+          </div>
+
+          {/* Subject Struggle Cards */}
+          <div className="mt-5 space-y-3">
+            {isLoading ? (
+              <div className="w-full bg-white border-[2px] border-black rounded-3xl p-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center text-center space-y-3">
+                <div className="w-8 h-8 border-[3px] border-black border-t-[#C8FF2A] rounded-full animate-spin" />
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-600">
+                  Finding your challenge areas...
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Subject Cards — 2-column grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {subjects.map((subject, idx) => {
+                    const isSelected = selectedSubjects.has(subject.id);
+                    return (
+                      <motion.button
+                        key={subject.id}
+                        type="button"
+                        initial={{ y: 15, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{
+                          delay: 0.05 + idx * 0.05,
+                          duration: 0.25,
+                        }}
+                        onClick={() => toggleSubject(subject.id)}
+                        className={`p-3.5 rounded-3xl flex flex-col justify-between text-left transition-all cursor-pointer relative min-h-[100px] ${
+                          isSelected
+                            ? "bg-[#EBFFA8] border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5"
+                            : "bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between w-full">
+                          <div
+                            className={`w-10 h-10 rounded-2xl ${subject.iconBg} border ${subject.iconBorder} flex items-center justify-center text-xl shadow-inner`}
+                          >
+                            {subject.iconEmoji}
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                              isSelected
+                                ? "bg-[#0A0A0F] text-white text-[10px] font-black"
+                                : "border-[1.5px] border-stone-300 bg-white"
+                            }`}
+                          >
+                            {isSelected && "✓"}
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="font-bold text-sm text-[#0A0A0F] leading-tight font-heading">
+                            {subject.name}
+                          </div>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {/* Add Custom Subject */}
+                <AnimatePresence>
+                  {isAddingCustom ? (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="w-full p-3.5 rounded-3xl border-[2px] border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3 overflow-hidden"
                     >
-                      {isMounted ? t("struggles.cancel") : "Cancel"}
-                    </button>
-                    <button
+                      <input
+                        type="text"
+                        placeholder="Subject name..."
+                        value={customInput}
+                        onChange={(e) => setCustomInput(e.target.value)}
+                        className="w-full bg-white border-[2px] border-black rounded-xl p-2.5 text-sm font-bold outline-none focus:border-[#FF882E]"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveCustom();
+                        }}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingCustom(false);
+                            setCustomInput("");
+                          }}
+                          className="bg-stone-200 border-[2px] border-black rounded-xl px-4 py-2 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveCustom}
+                          className="bg-[#C8FF2A] border-[2px] border-black rounded-xl px-4 py-2 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.button
                       type="button"
-                      onClick={handleSaveCustom}
-                      className="bg-[#B6FF00] border-[2.5px] border-black rounded-lg px-4 py-2 font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none"
+                      onClick={() => setIsAddingCustom(true)}
+                      className="w-full p-3 rounded-3xl border-[2px] border-dashed border-black/40 flex items-center justify-center gap-2 text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer"
                     >
-                      {isMounted ? t("struggles.save") : "Save"}
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => setIsAddingCustom(true)}
-                  className="w-full p-4 rounded-xl border-[3px] border-black border-dashed flex items-center justify-center text-center group active:translate-x-px active:translate-y-px active:bg-stone-50 transition-transform"
-                >
-                  <svg className="w-5 h-5 fill-current text-black mr-2" viewBox="0 0 24 24">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                  </svg>
-                  <span className="font-bold text-base text-[#1A1A1A]">
-                    {isMounted ? t("struggles.addAnother") : "Add another subject"}
-                  </span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          )}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4.5v15m7.5-7.5h-15"
+                        />
+                      </svg>
+                      <span className="font-bold text-sm">
+                        Add another subject
+                      </span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Footer Continue Button */}
-        <motion.footer
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
-          className="w-full mt-6"
-        >
-          <motion.button
-            whileHover={selectedSubjects.size > 0 && !isLoading ? { scale: 1.02 } : {}}
-            whileTap={selectedSubjects.size > 0 && !isLoading ? { scale: 0.97 } : {}}
+        {/* Action Button */}
+        <div className="mt-5">
+          <button
             onClick={handleContinue}
             disabled={selectedSubjects.size === 0 || isLoading}
-            className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-heading uppercase tracking-wider ${
               selectedSubjects.size > 0 && !isLoading
-                ? "bg-[#FFB040] hover:bg-[#ffa326] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-                : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
+                ? "bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] cursor-pointer"
+                : "bg-stone-200 text-stone-400 cursor-not-allowed opacity-70"
             }`}
           >
-            <span>{isMounted ? t("struggles.continue") : "Continue"}</span>
+            <span>CONTINUE</span>
             <svg
-              className="w-5 h-5 stroke-[3.5px]"
+              className="w-5 h-5 stroke-[2.5px]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -396,8 +432,8 @@ export default function StrugglesIdentificationPage() {
                 d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
               />
             </svg>
-          </motion.button>
-        </motion.footer>
+          </button>
+        </div>
       </main>
     </div>
   );
