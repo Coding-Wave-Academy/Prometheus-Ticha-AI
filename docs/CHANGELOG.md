@@ -2,7 +2,36 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
-## [2026-08-28] - Onboarding & Authentication UI Redesign
+## [2026-09-01] - Web & Tablet Dashboard Implementation
+
+### Added
+- **Web/Tablet Dashboard Layout (`src/app/dashboard/page.tsx`)**:
+  - Implemented responsive dual-layout switching at `md` breakpoint (`>=768px`) for Web/Tablet view while keeping mobile view (`<768px`) intact.
+  - Two-column dashboard grid layout matching design mockup (`design/Ticha AI Web View - Dashboard.png`).
+- **Dashboard Sidebar Navigation (`src/components/layout/DashboardSidebar.tsx`)**:
+  - Left navigation sidebar with Ticha AI 1% logo, routing items (Dashboard, Explore, AI Tutor, Video Library, Past Papers, Progress, Settings), and interactive Logout button wired to Supabase `signOut`.
+- **Web Dashboard Header (`src/components/dashboard/DashboardHeaderWeb.tsx`)**:
+  - Greeting header ("Hello, {Name} 👋") with live user name from `useProfile()`, streak counter pill (`#C8FF2A`), and user avatar/initial.
+- **Daily Lesson Card (`src/components/dashboard/DailyLessonCardWeb.tsx`)**:
+  - Lime-green feature card rendering today's subject and topic based on user struggles and daily curriculum rotation engine (`@/lib/dailyTopic`). Includes custom book SVG illustration and "Start Lesson →" action.
+- **Web Streak Widget (`src/components/dashboard/StreakCardWeb.tsx`)**:
+  - Streak summary card displaying fire icon, motivational message, 7-day weekly tracker (S/M/T/W/TH/F/S), and integration with interactive `StreakModal`.
+- **Web Quick Actions (`src/components/dashboard/QuickActionsWeb.tsx`)**:
+  - 4 circular action buttons: Daily Quiz (`#FFB040` with notification badge), Summaries (`#C8FF2A`), Past Papers (white/bordered), and Practice (`#FFD6E7`).
+- **Custom 404 & Web/Desktop Route Gating (`src/components/layout/DeviceGate.tsx`, `src/app/not-found.tsx`)**:
+  - Configured intelligent device gating: on desktop/laptop screens (`>=768px`), any route that does not yet have a dedicated web design displays the custom 404 screen instead of stretching or exposing the mobile interface.
+  - **Web/Tablet 404**: 2-column layout with 3D 404 badge, contextual syllabus copy, quick-jump hub cards (Dashboard, AI Tutor, Past Papers, Summaries), and action buttons.
+  - **Mobile 404**: Centered mobile-first card with 1% badge, error chip, animated compass illustration, and direct return actions.
+  - Mobile viewports (`<768px`) continue rendering all mobile-first screens and routes seamlessly.
+- **Bottom Navbar Web/Tablet Visibility Fix (`src/components/layout/BottomNav.tsx`)**:
+  - Added strict `md:hidden` rule to ensure `BottomNav` is never rendered on web or tablet screen sizes across any route.
+
+### Changed
+- **DeviceGate (`src/components/layout/DeviceGate.tsx`)**:
+  - Removed desktop-only overlay blocker to enable seamless native rendering on web and tablet screen sizes.
+- **Dashboard Layout (`src/app/dashboard/layout.tsx`)**:
+  - Integrated `DashboardSidebar` for `md+` viewports alongside main content area.
+
 
 ### Added
 - **Typography System (Baloo 2 + Plus Jakarta Sans)**:
