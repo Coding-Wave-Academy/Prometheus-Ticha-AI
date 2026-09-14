@@ -20,6 +20,8 @@ html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  overflow-x: hidden;
+  max-width: 100vw;
   height: 100%;
 }
 
@@ -29,6 +31,7 @@ body {
   font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
   font-weight: 400;
   overflow-x: hidden;
+  max-width: 100vw;
   -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
   min-height: 100dvh;
@@ -167,10 +170,12 @@ label, .font-label {
 }
 
 /* Hide scrollbar while preserving scrolling */
-.scrollbar-hidden::-webkit-scrollbar {
+.scrollbar-hidden::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hidden {
+.scrollbar-hidden,
+.no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

@@ -22,15 +22,20 @@ export async function POST(req: NextRequest) {
     // Top 3 most challenging/disturbing subjects per education level in the Cameroonian curriculum
     const defaultMocks: Record<string, StruggleSubject[]> = {
       ol: [
-        { id: "math", name: "O-Level Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
-        { id: "physics", name: "O-Level Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
-        { id: "chemistry", name: "O-Level Chemistry", iconBg: "bg-[#FFD9E0]", iconSlug: "chemistry" },
+        { id: "math_ol", name: "Mathematics (O-Level)", iconBg: "bg-[#DBEAFE]", iconSlug: "math" },
+        { id: "physics", name: "Physics", iconBg: "bg-[#FEF9C3]", iconSlug: "physics" },
+        { id: "chemistry", name: "Chemistry", iconBg: "bg-[#CCFBF1]", iconSlug: "chemistry" },
       ],
       al: [
-        { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
-        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
-        { id: "furtherMath", name: "Further Mathematics", iconBg: "bg-[#FFD9E0]", iconSlug: "math" },
-      ]
+        { id: "pure_math_al", name: "Pure Mathematics with Statistics", iconBg: "bg-[#DBEAFE]", iconSlug: "math" },
+        { id: "physics", name: "Physics", iconBg: "bg-[#FEF9C3]", iconSlug: "physics" },
+        { id: "further_math", name: "Further Mathematics", iconBg: "bg-[#F3E8FF]", iconSlug: "math" },
+      ],
+      university: [
+        { id: "calculus", name: "Advanced Calculus & Analysis", iconBg: "bg-[#DBEAFE]", iconSlug: "calculus" },
+        { id: "data_structures", name: "Data Structures & Algorithms", iconBg: "bg-[#E0F2FE]", iconSlug: "cs" },
+        { id: "general_physics", name: "General University Physics", iconBg: "bg-[#FEF9C3]", iconSlug: "physics" },
+      ],
     };
 
     const levelMocks = defaultMocks[education] || defaultMocks["al"];

@@ -134,8 +134,12 @@ export default function WelcomePage() {
         {/* Top Header & Branding */}
         <div>
           <div className="flex items-center justify-between">
-            {/* Logo: App Icon + Typography */}
-            <div className="flex items-center gap-2">
+            {/* Logo: App Icon + Typography (Clickable) */}
+            <Link
+              href="/"
+              aria-label="Ticha AI Home"
+              className="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
+            >
               <Image
                 src="/images/Ticha AI - App Icon White.png"
                 alt="1% Ticha AI"
@@ -157,7 +161,7 @@ export default function WelcomePage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Sparkle Star */}
             <div className="mr-2">

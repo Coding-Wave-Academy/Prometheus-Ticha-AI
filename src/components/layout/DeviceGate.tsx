@@ -38,8 +38,17 @@ export default function DeviceGate({ children }: DeviceGateProps) {
   // Check if current route has an authorized web/desktop version
   const cleanPath = pathname.replace(/\/$/, "");
   const isWebSupportedRoute =
+    cleanPath === "" ||
+    cleanPath === "/" ||
     cleanPath === "/dashboard" ||
+    cleanPath.startsWith("/dashboard/") ||
+    cleanPath === "/explore" ||
+    cleanPath.startsWith("/explore/") ||
+    cleanPath === "/login" ||
+    cleanPath === "/register" ||
+    cleanPath.startsWith("/getting-started") ||
     cleanPath.startsWith("/auth") ||
+    cleanPath.startsWith("/oauth") ||
     cleanPath.startsWith("/api");
 
   if (!isMounted) {

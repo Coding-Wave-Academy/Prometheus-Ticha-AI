@@ -41,7 +41,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const cleanEmail = sanitizeString(email.trim());
+    const cleanEmail = email.trim().toLowerCase();
     const parseResult = loginSchema.safeParse({ email: cleanEmail, password });
 
     if (!parseResult.success) {

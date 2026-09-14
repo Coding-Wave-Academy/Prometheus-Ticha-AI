@@ -80,18 +80,16 @@ export default function HelpCenterModal({ isOpen, onClose }: HelpCenterModalProp
           </p>
           <div className="grid grid-cols-2 gap-2 pt-1">
             <a
-              href="mailto:support@ticha.ai"
-              className="bg-[#D3E2FF] border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block"
+              href="mailto:support@ticha.ai?subject=Ticha%20AI%20Student%20Support"
+              className="bg-[#D3E2FF] border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block hover:bg-[#c2d7ff] transition-colors"
             >
               ✉️ Email Support
             </a>
             <a
-              href="https://wa.me/237600000000"
-              target="_blank"
-              rel="noreferrer"
-              className="bg-[#B6FF00] border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block"
+              href="mailto:contact@ticha.ai?subject=Ticha%20AI%20GCE%20Academic%20Help"
+              className="bg-[#B6FF00] border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block hover:bg-[#a5e600] transition-colors"
             >
-              💬 WhatsApp Line
+              💬 Academic Help
             </a>
           </div>
         </div>

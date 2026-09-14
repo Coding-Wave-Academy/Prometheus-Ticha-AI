@@ -121,8 +121,8 @@ export default function GoalSelectionPage() {
       {/* Main Container */}
       <main className="w-full max-w-md mx-auto px-5 pt-6 pb-4 flex-1 flex flex-col justify-between relative z-10">
         <div>
-          {/* Shared Progress Bar (Step 2 of 4) */}
-          <OnboardingProgressBar currentStep={2} totalSteps={4} />
+          {/* Shared Progress Bar (Step 2 of 5) */}
+          <OnboardingProgressBar currentStep={2} totalSteps={5} />
 
           {/* Heading */}
           <div className="mt-2">

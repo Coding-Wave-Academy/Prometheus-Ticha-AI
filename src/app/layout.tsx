@@ -20,8 +20,22 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Ticha AI - 1% Better Everyday",
-  description: "Improving 1% every day with AI tutoring.",
+  title: {
+    default: "Ticha AI - 1% Better Everyday | Cameroon GCE Exam Prep",
+    template: "%s | Ticha AI",
+  },
+  description:
+    "Offline-first AI study companion for Cameroon GCE Ordinary and Advanced Level students. Master subjects, solve past questions, and build daily consistency.",
+  keywords: [
+    "Cameroon GCE",
+    "GCE Ordinary Level",
+    "GCE Advanced Level",
+    "Ticha AI",
+    "Past Questions",
+    "Cameroon Education",
+    "AI Tutor",
+    "Revision",
+  ],
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -31,7 +45,12 @@ export const metadata: Metadata = {
     apple: [
       { url: "/images/Ticha AI - App Icon White.png", sizes: "180x180", type: "image/png" },
     ],
-
+  },
+  openGraph: {
+    title: "Ticha AI - 1% Better Everyday",
+    description:
+      "Cameroon GCE exam preparation assistant with localized AI tutoring and offline-first revision.",
+    type: "website",
   },
 };
 
@@ -44,9 +63,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${baloo2.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative selection:bg-[#C8FF2A] font-sans">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col relative selection:bg-[#C8FF2A] font-sans"
+      >
         <DeviceGate>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </DeviceGate>

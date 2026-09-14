@@ -30,13 +30,16 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies (Drop before create for idempotency)
 DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can delete their own profile" ON public.profiles;
 
-CREATE POLICY "Public profiles are viewable by authenticated users"
+-- Strict student privacy: Users can only read and delete their own profile
+CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
   TO authenticated
-  USING (true);
+  USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert their own profile"
   ON public.profiles FOR INSERT
@@ -49,7 +52,13 @@ CREATE POLICY "Users can update their own profile"
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+CREATE POLICY "Users can delete their own profile"
+  ON public.profiles FOR DELETE
+  TO authenticated
+  USING (auth.uid() = id);
+
 -- Trigger to automatically create a profile entry when a new user signs up (Email or OAuth)
+-- Uses SECURITY DEFINER with fixed search_path to prevent privilege escalation
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -78,7 +87,7 @@ BEGIN
     preferred_language = COALESCE(EXCLUDED.preferred_language, public.profiles.preferred_language);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

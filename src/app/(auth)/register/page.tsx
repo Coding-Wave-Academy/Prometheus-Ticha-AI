@@ -16,6 +16,8 @@ import { registerSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
 import ConfettiBurst from "@/components/onboarding/ConfettiBurst";
+import { fireSuccessCelebration } from "@/lib/confetti";
+import { hapticSuccess } from "@/lib/haptics";
 import "@/lib/i18n";
 
 export default function RegisterPage() {
@@ -40,7 +42,7 @@ export default function RegisterPage() {
     e.preventDefault();
 
     const cleanFullName = sanitizeString(fullName.trim());
-    const cleanEmail = sanitizeString(email.trim());
+    const cleanEmail = email.trim().toLowerCase();
 
     const parseResult = registerSchema.safeParse({
       fullName: cleanFullName,
@@ -87,11 +89,15 @@ export default function RegisterPage() {
       }
 
       if (data.session) {
+        hapticSuccess();
+        fireSuccessCelebration();
         addToast("Account created successfully! Welcome to Ticha AI.", "success", "Welcome!");
         if (cleanFullName) {
           localStorage.setItem("ticha_user_fullname", cleanFullName);
         }
-        router.push("/dashboard");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 800);
       } else {
         addToast(
           "Confirmation email sent! Please check your inbox and verify your email to log in.",
@@ -280,7 +286,7 @@ export default function RegisterPage() {
               onClick={handleSkip}
               className="text-xs font-black text-stone-700 hover:text-black tracking-wider transition-colors uppercase font-heading cursor-pointer"
             >
-              SKIP FOR NOW &amp; EXPLORE DASHBOARD →
+              SKIP FOR NOW & EXPLORE DASHBOARD →
             </button>
           </div>
         </footer>

@@ -75,6 +75,13 @@ export default function SitemapPage() {
           badgeBg: "bg-[#B6FF00]",
         },
         {
+          name: "Make a Commitment",
+          path: "/getting-started/commitment",
+          description: "Pledge commitment with hold-to-commit biometric fingerprint.",
+          badge: "New",
+          badgeBg: "bg-[#C8FF2A]",
+        },
+        {
           name: "Personalized Exam Intel",
           path: "/getting-started/intel",
           description: "Bespoke subject insights preview.",

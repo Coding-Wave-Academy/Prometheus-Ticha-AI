@@ -2,6 +2,93 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-09-14] - Subject Catalog Separation, Fingerprint Polish & System Hardening
+
+### Added
+- **Separated GCE O/L and A/L Subject Catalogs (`src/data/gceSubjects.ts`)**:
+  - Distinct typed exports `GCE_OL_SUBJECTS` and `GCE_AL_SUBJECTS` with full official Cameroon GCE Board subject lists and subject codes.
+  - Added selector utility `getGceSubjectsForLevel(level)`.
+  - Added active exam track indicator pill in `struggles/page.tsx` showing exact subject count and current exam tier.
+- **Architecture Documentation**:
+  - `docs/AI_ARCHITECTURE.md`: Technical documentation of curriculum grounding, LLM provider routing, rate limiting, and prompt strategies.
+  - `docs/PWA_ARCHITECTURE.md`: Documentation of offline-first service worker, caching policies, and mobile viewport controls.
+- **SEO & Social Metadata**:
+  - Enriched root layout metadata with keywords, openGraph tags, and title template.
+  - Added metadata to `src/app/getting-started/layout.tsx` and `src/app/(auth)/layout.tsx`.
+
+### Changed
+- **Fingerprint Commitment Screen Polish (`src/app/getting-started/commitment/page.tsx`)**:
+  - Integrated authentic biometric fingerprint vector graphic.
+  - Removed progress percentage text in favor of Apple-like contextual prompts ("Touch and hold to commit" -> "Keep holding to seal...").
+  - Streamlined pointer capture handlers with `setPointerCapture` and eliminated duplicate mouse/touch listener conflicts.
+  - Enabled instant 0-latency rAF progress ring drawing without transition lag during active press.
+- **Form Validation & Authentication Hardening (`src/app/(auth)/register/page.tsx` & `src/lib/validation.ts`)**:
+  - Fixed Zod schema field key mismatch (`fullName` in `registerSchema`).
+  - Corrected email handling in register and login forms to use `email.trim().toLowerCase()` without HTML entity corruption.
+  - Fixed literal `&amp;` display bug in registration skip button.
+- **CSS & Mobile Overflow Protection (`src/app/globals.css`)**:
+  - Added `overflow-x: hidden` and `max-width: 100vw` to `html` and `body`.
+  - Added `.no-scrollbar` utility definition.
+- **Hydration & Device Routing (`src/app/layout.tsx`, `DeviceGate.tsx`)**:
+  - Added `suppressHydrationWarning` to `<html>` and `<body>`.
+  - Added `/login`, `/register`, and `/getting-started` to authorized desktop routes in `DeviceGate.tsx`.
+- **Branding Navigation (`src/app/getting-started/page.tsx`)**:
+  - Wrapped header logo in Next.js `<Link href="/">` for easy navigation back home.
+- **Database & Security Hardening (`supabase/schema.sql`)**:
+  - Restricted `profiles` table SELECT policy to `auth.uid() = id` for student privacy.
+  - Added profile DELETE policy.
+  - Added `SET search_path = public` to `handle_new_user()` `SECURITY DEFINER` function.
+- **Cleaned Up Placeholders**:
+  - Replaced dummy WhatsApp number in `HelpCenterModal.tsx` with direct academic help channel.
+  - Removed TODO comment in `getting-started/layout.tsx`.
+
+## [2026-09-14] - Ticha AI Commitment Screen & Cameroon GCE Subjects Catalog
+
+### Added
+- **Commitment Screen (`src/app/getting-started/commitment/page.tsx`)**:
+  - Implemented the Commitment screen directly from `design/Ticha AI Commitment screen.png`.
+  - 5-segment neobrutalist progress bar at top (Segments 1–4 filled in `#C8FF2A`, Segment 5 outline dynamically filling during hold).
+  - Circular back button navigating to `/getting-started/struggles`.
+  - "Make a Commitment" header with hand-drawn organic pink accent underline beneath "Commitment".
+  - Neobrutalist "My Commitment" card (`bg-[#FFF0F3]`, `border-[2.5px] border-black`, `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`) with 3 pink bullet pledges and motivational quote.
+  - Interactive Fingerprint Hold-to-Commit mechanism:
+    - 4 viewfinder corner framing brackets.
+    - Concentric halo rings with custom pink fingerprint SVG vector.
+    - Cross-platform hold gesture handling (mouse, touch, pointer, and spacebar/enter keyboard keys) with race-condition prevention.
+    - Fluid circular SVG progress stroke and dynamic haptic vibration pulses (`navigator.vibrate`) at intervals.
+    - Smooth spring decay back to 0 on early release.
+    - 100% completion celebration: `fireConfettiBurst`, success haptic pattern, Apple-like bottom-to-top brand color fill overlay (`#C8FF2A` with `cubic-bezier(0.32, 0.72, 0, 1)` easing), and transition to `/register`.
+- **Cameroon GCE Subjects Catalog (`src/data/gceSubjects.ts`)**:
+  - Created shared comprehensive catalog covering all official Cameroon GCE Board subjects across Ordinary Level (O-Level) and Advanced Level (A-Level) in Sciences & Mathematics, Commercial & Social Sciences, and Arts & Humanities.
+
+### Changed
+- **Subject/Struggle Selection Screen (`src/app/getting-started/struggles/page.tsx`)**:
+  - Expanded default subjects to include all current Cameroon GCE subjects.
+  - Added category filter pills ("All Subjects", "🔬 Sciences & Math", "📊 Commercial & Social", "📚 Arts & Languages").
+  - Added instant search input with clear button.
+  - Sticky bottom action bar ensuring "CONTINUE" CTA is always accessible during scrolling.
+  - Updated "CONTINUE" button to route directly to `/getting-started/commitment`.
+- **Onboarding Progress Synchronization (`OnboardingProgressBar.tsx`)**:
+  - Standardized `totalSteps={5}` across `language`, `goal`, `education`, `struggles`, and `commitment`.
+- **AI Struggles Fallback (`src/app/api/ai/struggles/route.ts`)**:
+  - Enriched fallback mocks with level-specific Cameroon GCE subjects for `ol`, `al`, and `university`.
+- **Sitemap (`src/app/sitemap/page.tsx`)**:
+  - Added `/getting-started/commitment` to the Onboarding & Auth flow index.
+
+
+### Added
+- **Web/Tablet Explore Hub Layout (`src/app/explore/page.tsx`)**:
+  - Implemented responsive dual-layout for the Explore Hub matching `design/Ticha AI Web View - Explore.png` on `md+` viewports (`>=768px`).
+  - **Top Header**: User avatar + "Hello, {Name} 👋" greeting + live streak counter pill + notification bell with unread badge count.
+  - **Neobrutalist Search Bar**: Search input with `#965A18` "SEARCH" CTA and real-time card filtering across all modules.
+  - **Core Learning Hub**: 3 large cards with icons and circular arrow buttons: Summaries (`#D3E2FF`), Past Papers (`#FFE7D6`), and Daily Quiz (`#C8FF2A`).
+  - **Flashcards & Study Tools**: 4 action cards: Flashcards (`#FFB040`), Upload Materials (`#C8FF2A`), Practice Drills (`#FFD6E7`), and AI Practice Bot (`#D3E2FF`).
+  - **Social & Competition**: Full-width Leaderboard banner (`#FFB040`) with trophy icon, rankings subtitle, watermark graphic, and action arrow.
+- **Sidebar Motivational Card (`src/components/layout/DashboardSidebar.tsx`)**:
+  - Added bottom motivation widget ("Better Every Day, Stronger Tomorrow." with studying student & 1% calendar desk graphic) and active state indicator for `/explore`.
+- **DeviceGate (`src/components/layout/DeviceGate.tsx`)**:
+  - Enabled `/explore` on desktop/tablet viewports so users can explore study hubs on larger screens without 404 gating.
+
 ## [2026-09-01] - Web & Tablet Dashboard Implementation
 
 ### Added
