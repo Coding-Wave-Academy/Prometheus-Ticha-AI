@@ -20,10 +20,15 @@ import { useNavItems } from "@/hooks/useNavItems";
 import { useProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardHeaderWeb from "@/components/dashboard/DashboardHeaderWeb";
 import StreakCalendar from "@/components/dashboard/StreakCalendar";
 import QuickActions from "@/components/dashboard/QuickActions";
 import FeaturedSubjects from "@/components/dashboard/FeaturedSubjects";
 import UpgradeCard from "@/components/dashboard/UpgradeCard";
+import DailyLessonCardWeb from "@/components/dashboard/DailyLessonCardWeb";
+import StreakCardWeb from "@/components/dashboard/StreakCardWeb";
+import QuickActionsWeb from "@/components/dashboard/QuickActionsWeb";
+import ProgressCardWeb from "@/components/dashboard/ProgressCardWeb";
 import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import PWAInstaller from "@/components/layout/PWAInstaller";
@@ -306,76 +311,145 @@ function StudentDashboardPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center"
-      >
-        <motion.div variants={itemVariants} className="w-full">
-          <PWAInstaller />
-          <DashboardHeader
-            userName={userName}
-            avatarUrl={avatarUrl}
-            streakCount={streakCount}
-            notificationCount={unreadCount}
-            onNotificationClick={() => router.push("/dashboard/notifications")}
-          />
-        </motion.div>
+    <>
+      {/* ═══════════════════════════════════════════════════════════════════
+          WEB / TABLET LAYOUT (md+ : ≥768px)
+          Two-column grid with Daily Lesson, Streak, Quick Actions, Progress
+          Sidebar is rendered by the dashboard layout.tsx
+       ═══════════════════════════════════════════════════════════════════ */}
+      <div className="hidden md:block min-h-screen bg-[#FAF7EC] text-black antialiased font-sans">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-5xl mx-auto px-6 lg:px-10 py-8"
+        >
+          {/* Web Header */}
+          <motion.div variants={itemVariants}>
+            <DashboardHeaderWeb
+              userName={userName}
+              avatarUrl={avatarUrl}
+              streakCount={streakCount}
+            />
+          </motion.div>
 
-        <motion.div variants={itemVariants} className="w-full">
-          <StreakCalendar />
-        </motion.div>
+          {/* Section Label: Daily Lesson */}
+          <motion.div variants={itemVariants} className="mb-4">
+            <h2 className="text-xl font-black tracking-tight text-[#1A1A1A]">
+              Daily Lesson
+            </h2>
+          </motion.div>
 
-        <motion.div variants={itemVariants} className="w-full">
-          <QuickActions
-            actions={quickActions}
-            onAction={(name) => {
-              if (name === "Daily Lessons") {
-                router.push("/dashboard/daily-lessons");
-              } else if (name === "Summaries") {
-                router.push("/summaries");
-              } else if (name === "Past Papers") {
-                router.push("/past-papers");
-              } else {
-                router.push("/practice");
-              }
-            }}
-          />
-        </motion.div>
+          {/* Two-Column Grid: Daily Lesson Card + Streak Card */}
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8"
+          >
+            {/* Left: Daily Lesson — takes 3/5 on lg */}
+            <div className="lg:col-span-3">
+              <DailyLessonCardWeb />
+            </div>
 
-        <motion.div variants={itemVariants} className="w-full">
-          <FeaturedSubjects
-            subjects={dynamicFeaturedSubjects}
-            currentLevel={currentLevel}
-            onSubjectClick={(id) => {
-              const slugMap: Record<string, string> = {
-                phys: "physics",
-                math: "math",
-                ict: "ict",
-                chem: "chemistry",
-                bio: "biology",
-                eng: "english",
-                fr: "french",
-              };
-              router.push(`/dashboard/subjects/${slugMap[id] || id}`);
-            }}
-            onSeeMore={() => router.push("/dashboard/subjects")}
-          />
-        </motion.div>
+            {/* Right: Streak — takes 2/5 on lg */}
+            <div className="lg:col-span-2">
+              <StreakCardWeb />
+            </div>
+          </motion.div>
 
-        <motion.div variants={itemVariants} className="w-full">
-          <UpgradeCard onUpgradeClick={() => router.push("/coming-soon")} />
-        </motion.div>
-      </motion.main>
+          {/* Two-Column Grid: Quick Actions + Progress */}
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+          >
+            {/* Left: Quick Actions */}
+            <div className="lg:col-span-3">
+              <QuickActionsWeb />
+            </div>
 
+            {/* Right: Progress */}
+            <div className="lg:col-span-2">
+              <ProgressCardWeb />
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          MOBILE LAYOUT (<768px)
+          Original single-column mobile-first design, fully preserved.
+       ═══════════════════════════════════════════════════════════════════ */}
+      <div className="md:hidden min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
+        <motion.main
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col items-center"
+        >
+          <motion.div variants={itemVariants} className="w-full">
+            <PWAInstaller />
+            <DashboardHeader
+              userName={userName}
+              avatarUrl={avatarUrl}
+              streakCount={streakCount}
+              notificationCount={unreadCount}
+              onNotificationClick={() => router.push("/dashboard/notifications")}
+            />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="w-full">
+            <StreakCalendar />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="w-full">
+            <QuickActions
+              actions={quickActions}
+              onAction={(name) => {
+                if (name === "Daily Lessons") {
+                  router.push("/dashboard/daily-lessons");
+                } else if (name === "Summaries") {
+                  router.push("/summaries");
+                } else if (name === "Past Papers") {
+                  router.push("/past-papers");
+                } else {
+                  router.push("/practice");
+                }
+              }}
+            />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="w-full">
+            <FeaturedSubjects
+              subjects={dynamicFeaturedSubjects}
+              currentLevel={currentLevel}
+              onSubjectClick={(id) => {
+                const slugMap: Record<string, string> = {
+                  phys: "physics",
+                  math: "math",
+                  ict: "ict",
+                  chem: "chemistry",
+                  bio: "biology",
+                  eng: "english",
+                  fr: "french",
+                };
+                router.push(`/dashboard/subjects/${slugMap[id] || id}`);
+              }}
+              onSeeMore={() => router.push("/dashboard/subjects")}
+            />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="w-full">
+            <UpgradeCard onUpgradeClick={() => router.push("/coming-soon")} />
+          </motion.div>
+        </motion.main>
+
+        <BottomNav items={navItems} />
+      </div>
+
+      {/* Setup Modal — shared between layouts */}
       <FinishSetupModal
         isOpen={isSetupModalOpen}
         onClose={handleCloseSetupModal}
       />
-
-      <BottomNav items={navItems} />
-    </div>
+    </>
   );
 }

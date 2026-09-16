@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fireSideCannons } from "@/lib/confetti";
+import { fireStreakCelebration } from "@/lib/confetti";
 import { hapticSuccess } from "@/lib/haptics";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -95,7 +95,7 @@ export function useStreak() {
     }
 
     hapticSuccess();
-    fireSideCannons();
+    fireStreakCelebration();
 
     const currentCount = profile?.streak_count ?? streakCount ?? 0;
     const newStreak = currentCount + 1; // 0 -> 1 on first claim!

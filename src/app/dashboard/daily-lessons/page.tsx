@@ -23,7 +23,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { useNavItems } from "@/hooks/useNavItems";
 import { useStreak } from "@/hooks/useStreak";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
-import { fireSideCannons } from "@/lib/confetti";
+import { fireSuccessCelebration, fireConfettiBurst } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 import { setStoredDailyTopic } from "@/lib/dailyTopic";
@@ -294,7 +294,7 @@ function DailyLessonsContent() {
       setAffirmation(randomAff);
       setShowAffirmation(true);
 
-      fireSideCannons();
+      fireSuccessCelebration();
       hapticSuccess();
     }
   };
@@ -302,6 +302,7 @@ function DailyLessonsContent() {
   const handleAffirmationClose = () => {
     setShowAffirmation(false);
     setStep("complete");
+    fireConfettiBurst();
   };
 
   const accentColor = lesson ? (subjectColors[lesson.subject] || "#FFB040") : "#FFB040";
