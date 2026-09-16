@@ -1,4 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Account Authentication | Ticha AI",
+  description:
+    "Sign in or create your Ticha AI account to save your GCE exam preparation progress, daily streaks, and personalized study roadmaps.",
+};
 
 export default function AuthLayout({
   children,
@@ -13,4 +20,3 @@ export default function AuthLayout({
     </div>
   );
 }
-

@@ -9,6 +9,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string;
   onClear?: () => void;
   containerClassName?: string;
+  leftIcon?: React.ReactNode;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -21,6 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       onClear,
       containerClassName = "",
       className = "",
+      leftIcon,
       onChange,
       value,
       type = "text",
@@ -41,41 +43,49 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-extrabold uppercase tracking-widest text-stone-800 flex items-center justify-between"
+            className="text-xs font-extrabold uppercase tracking-widest text-[#0A0A0F] flex items-center justify-between"
           >
             <span>{label}</span>
           </label>
         )}
 
-        <div className="relative w-full">
-          <input
-            id={inputId}
-            ref={ref}
-            type={type}
-            value={value}
-            onChange={handleChange}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
-            className={`w-full bg-white border-[3.5px] border-black rounded-xl p-3.5 text-[15px] font-medium outline-none placeholder-stone-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all ${
-              error ? "border-[#FF9494] bg-red-50/20" : ""
-            } ${onClear && value ? "pr-12" : ""} ${className}`}
-            {...props}
-          />
-
-          {/* Optional Clear Button */}
-          {onClear && value && String(value).length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                hapticWarning();
-                onClear();
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-stone-500 hover:text-black font-black text-sm z-10"
-              aria-label="Clear field"
-            >
-              ✕
-            </button>
+        <div className="flex items-center gap-2.5 w-full">
+          {leftIcon && (
+            <div className="w-12 h-12 rounded-xl border-[2.5px] border-black bg-[#EBFFA8] flex items-center justify-center text-[#0A0A0F] shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              {leftIcon}
+            </div>
           )}
+
+          <div className="relative flex-1">
+            <input
+              id={inputId}
+              ref={ref}
+              type={type}
+              value={value}
+              onChange={handleChange}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
+              className={`w-full bg-white border-[2.5px] border-black rounded-xl p-3 md:p-3.5 text-[15px] font-medium text-[#0A0A0F] outline-none placeholder:text-stone-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:translate-x-[-1px] focus:translate-y-[-1px] focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                error ? "border-[#EF4444] bg-red-50/20" : ""
+              } ${onClear && value ? "pr-10" : ""} ${className}`}
+              {...props}
+            />
+
+            {/* Optional Clear Button */}
+            {onClear && value && String(value).length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  hapticWarning();
+                  onClear();
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-stone-400 hover:text-black font-black text-sm z-10"
+                aria-label="Clear field"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Error message with SVG Icon */}
@@ -83,9 +93,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <div
             id={`${inputId}-error`}
             role="alert"
-            className="bg-[#FF9494] border-[2.5px] border-black rounded-xl p-2.5 font-bold text-xs text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-spring-slide-up flex items-center gap-1.5"
+            className="bg-[#FFE4E4] border-[2px] border-[#EF4444] rounded-xl p-2.5 font-bold text-xs text-[#EF4444] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-spring-slide-up flex items-center gap-1.5"
           >
-            <svg className="w-4 h-4 text-black shrink-0 fill-current" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#EF4444] shrink-0 fill-current" viewBox="0 0 24 24">
               <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
             </svg>
             <span>{error}</span>
@@ -106,3 +116,4 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export default Input;
+

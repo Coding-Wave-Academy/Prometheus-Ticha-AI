@@ -18,7 +18,7 @@ import { useNavItems } from "@/hooks/useNavItems";
 import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
-import { fireSideCannons } from "@/lib/confetti";
+import { fireSuccessCelebration, fireConfettiBurst } from "@/lib/confetti";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
@@ -85,8 +85,11 @@ function DailyQuizContent() {
     claimDailyStreak().catch(() => {});
 
     if (computedScore >= passThreshold) {
-      fireSideCannons();
+      fireSuccessCelebration();
       hapticSuccess();
+    } else {
+      fireConfettiBurst();
+      hapticTap();
     }
 
     // Save quiz result to localStorage

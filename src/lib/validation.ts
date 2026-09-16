@@ -20,7 +20,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const registerSchema = z
   .object({
-    name: z
+    fullName: z
       .string()
       .min(1, { message: "Full name is required" })
       .min(2, { message: "Name must be at least 2 characters" })
