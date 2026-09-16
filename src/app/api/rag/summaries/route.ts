@@ -4,6 +4,7 @@
 // the summary is grounded in verified content. Otherwise falls back to Gemini.
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth, validateFieldLength, INPUT_LIMITS } from '@/lib/apiAuth';
 import { retrieveContext } from '@/lib/rag/retriever';
 import { injectContextIntoPrompt } from '@/lib/rag/promptBuilder';
 
@@ -11,7 +12,17 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const { subject, topic, educationLevel } = await req.json();
+
+    // ── Input validation ──────────────────────────────────────────────
+    const subjectCheck = validateFieldLength(subject, "subject", INPUT_LIMITS.FIELD);
+    if (subjectCheck) return subjectCheck;
+    const topicCheck = validateFieldLength(topic, "topic", INPUT_LIMITS.FIELD);
+    if (topicCheck) return topicCheck;
 
     if (!subject || !topic) {
       return NextResponse.json(

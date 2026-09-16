@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, validateFieldLength, validateArrayLength, INPUT_LIMITS } from "@/lib/apiAuth";
 import { formatAIText } from "@/lib/formatAIText";
 import {
   findVideoForTopic,
@@ -115,6 +116,10 @@ export interface DailyLessonV2 {
 /* ── POST handler ─────────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const body = await req.json().catch(() => ({}));
     const {
       struggles,
@@ -122,6 +127,17 @@ export async function POST(req: NextRequest) {
       subject: explicitSubject,
       topic: explicitTopic,
     } = body;
+
+    // ── Input validation ──────────────────────────────────────────────
+    const subjectCheck = validateFieldLength(explicitSubject, "subject", INPUT_LIMITS.FIELD);
+    if (subjectCheck) return subjectCheck;
+    const topicCheck = validateFieldLength(explicitTopic, "topic", INPUT_LIMITS.FIELD);
+    if (topicCheck) return topicCheck;
+    const educationCheck = validateFieldLength(education, "education", INPUT_LIMITS.FIELD);
+    if (educationCheck) return educationCheck;
+    const strugglesCheck = validateArrayLength(struggles, "struggles", 20);
+    if (strugglesCheck) return strugglesCheck;
+
     const apiKey =
       process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 

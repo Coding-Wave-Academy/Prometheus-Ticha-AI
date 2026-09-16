@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, validateFieldLength, INPUT_LIMITS } from "@/lib/apiAuth";
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const { text } = await req.json();
+
+    // ── Input validation ──────────────────────────────────────────────
+    const textCheck = validateFieldLength(text, "text", INPUT_LIMITS.TTS_TEXT);
+    if (textCheck) return textCheck;
 
     if (!process.env.ELEVENLABS_API_KEY) {
       return NextResponse.json(

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, validateFieldLength, validateArrayLength, INPUT_LIMITS } from "@/lib/apiAuth";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { buildGroundedPrompt } from "@/lib/rag/promptBuilder";
 
@@ -24,7 +25,21 @@ Structure your responses using these exact markers (include the brackets):
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const { message, subject, educationLevel, performanceScore, history } = await req.json();
+
+    // ── Input validation ──────────────────────────────────────────────
+    const messageCheck = validateFieldLength(message, "message", INPUT_LIMITS.MESSAGE);
+    if (messageCheck) return messageCheck;
+    const subjectCheck = validateFieldLength(subject, "subject", INPUT_LIMITS.FIELD);
+    if (subjectCheck) return subjectCheck;
+    const levelCheck = validateFieldLength(educationLevel, "educationLevel", INPUT_LIMITS.FIELD);
+    if (levelCheck) return levelCheck;
+    const historyCheck = validateArrayLength(history, "history", INPUT_LIMITS.HISTORY_ITEMS);
+    if (historyCheck) return historyCheck;
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 

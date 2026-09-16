@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/apiAuth";
 
 /**
  * POST /api/elevenlabs/signed-url
@@ -7,6 +8,10 @@ import { NextResponse } from "next/server";
  * Gracefully returns { hasAgent: false } if Agent ID or API key is not present.
  */
 export async function POST() {
+  // ── Auth gate ─────────────────────────────────────────────────────
+  const { errorResponse } = await requireAuth();
+  if (errorResponse) return errorResponse;
+
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, validateFieldLength, INPUT_LIMITS } from "@/lib/apiAuth";
 import { formatAIText } from "@/lib/formatAIText";
 
 export const dynamic = "force-dynamic";
@@ -134,7 +135,18 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const { subject, topic } = await req.json();
+
+    // ── Input validation ──────────────────────────────────────────────
+    const subjectCheck = validateFieldLength(subject, "subject", INPUT_LIMITS.FIELD);
+    if (subjectCheck) return subjectCheck;
+    const topicCheck = validateFieldLength(topic, "topic", INPUT_LIMITS.FIELD);
+    if (topicCheck) return topicCheck;
+
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     const subKey = (subject || "physics").toLowerCase();

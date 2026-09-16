@@ -28,7 +28,8 @@ export const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://*.supabase.co https://cdn.jsdelivr.net",
+      // TODO: Replace 'unsafe-inline' with nonce-based CSP (requires Next.js CSP nonce integration)
+    "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://*.supabase.co https://cdn.jsdelivr.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://*.supabase.co https://images.unsplash.com",
       "font-src 'self' data: https://fonts.gstatic.com",

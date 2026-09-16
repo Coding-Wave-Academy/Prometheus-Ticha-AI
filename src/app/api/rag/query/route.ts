@@ -4,6 +4,7 @@
 // Pipeline: Query → Embed → Vector Search → Grounded Gemini Generation → Stream
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth, validateFieldLength, INPUT_LIMITS } from '@/lib/apiAuth';
 import { retrieveContext } from '@/lib/rag/retriever';
 import { buildGroundedPrompt } from '@/lib/rag/promptBuilder';
 
@@ -17,7 +18,17 @@ Always be encouraging — education is a journey, not a race.`;
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth gate ─────────────────────────────────────────────────────
+    const { errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
     const { query, subject, educationLevel, topK } = await req.json();
+
+    // ── Input validation ──────────────────────────────────────────────
+    const queryCheck = validateFieldLength(query, "query", INPUT_LIMITS.MESSAGE);
+    if (queryCheck) return queryCheck;
+    const subjectCheck = validateFieldLength(subject, "subject", INPUT_LIMITS.FIELD);
+    if (subjectCheck) return subjectCheck;
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(

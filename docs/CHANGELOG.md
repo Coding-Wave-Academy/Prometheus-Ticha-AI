@@ -2,6 +2,33 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-09-16] - OWASP Top 10 (2025) Security Hardening & API Protection
+
+### Added
+- **Unified API Authentication & Validation Guard (`src/lib/apiAuth.ts`)**:
+  - `requireAuth()` server utility that verifies Supabase user authentication before processing requests.
+  - Safe payload parsing (`safeJson()`) with 400 Bad Request error handling.
+  - `validateFieldLength()` and `validateArrayLength()` with central `INPUT_LIMITS` definitions.
+- **Root Middleware Activation (`src/middleware.ts`)**:
+  - Activated rate limiting (`@/lib/rateLimit`) per IP/user across API endpoints.
+  - Activated CSRF origin/referer validation (`@/lib/csrfProtection`) on mutation requests (`POST`, `PUT`, `DELETE`, `PATCH`).
+  - Activated Supabase session refreshing and auth redirection for protected dashboard routes.
+  - Activated dynamic Content Security Policy (CSP) with per-request nonces.
+
+### Security & Hardening (OWASP Top 10: 2025)
+- **A01: Broken Access Control**:
+  - Gated all 9 previously unauthenticated public AI, tutor, RAG, and voice API routes behind `requireAuth()` (`/api/ai/daily-lesson`, `/api/ai/quiz`, `/api/ai/flashcards`, `/api/ai/video`, `/api/tutor/chat`, `/api/tutor/tts`, `/api/rag/query`, `/api/rag/summaries`, `/api/elevenlabs/signed-url`).
+  - Fixed Open Redirect vulnerability in `src/app/auth/callback/route.ts` by strictly enforcing relative destination paths or matching application origin.
+  - Removed deprecated unreferenced `src/proxy.ts` file that previously bypassed Next.js middleware execution.
+- **A02: Cryptographic Failures**:
+  - Implemented `crypto.timingSafeEqual` in `src/app/api/rag/ingest/route.ts` to prevent side-channel timing attacks on the `ADMIN_SECRET_KEY` check.
+- **A05: Security Misconfiguration**:
+  - Hardened `src/lib/securityHeaders.ts` by removing `'unsafe-eval'` from the Content-Security-Policy header.
+- **A07: Identification & Authentication Failures**:
+  - Protected API routes against unauthenticated LLM token depletion and billing abuse.
+- **A10: Server-Side Request Forgery (SSRF) & Denial of Service**:
+  - Enforced strict payload size limits (`INPUT_LIMITS`) across message queries, context arrays, and TTS strings to prevent memory exhaustion and DoS.
+
 ## [2026-09-14] - Subject Catalog Separation, Fingerprint Polish & System Hardening
 
 ### Added

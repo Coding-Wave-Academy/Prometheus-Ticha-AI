@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { timingSafeEqual } from 'crypto';
 import { convertToMarkdown, isSupportedMimeType } from '@/lib/rag/converter';
 import { chunkMarkdown } from '@/lib/rag/chunker';
 import { embedBatch } from '@/lib/rag/embeddings';
@@ -28,7 +29,7 @@ function getServiceClient() {
   });
 }
 
-/** Validate the admin authorization header. */
+/** Validate the admin authorization header using timing-safe comparison. */
 function isAuthorized(req: NextRequest): boolean {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) return false;
@@ -36,7 +37,15 @@ function isAuthorized(req: NextRequest): boolean {
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
   const secretKey = process.env.SUPABASE_SECRET_KEY;
 
-  return !!secretKey && token === secretKey;
+  // Reject early if no secret key or obvious length mismatch
+  if (!secretKey || token.length !== secretKey.length) return false;
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return timingSafeEqual(Buffer.from(token), Buffer.from(secretKey));
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -205,11 +214,9 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     console.error('[RAG/ingest] Ingestion failed:', error);
+    // Log details server-side only; return generic message to client
     return NextResponse.json(
-      {
-        error: 'Ingestion failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Ingestion failed. Please check server logs for details.' },
       { status: 500 }
     );
   }
