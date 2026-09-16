@@ -38,7 +38,7 @@ export default function BottomNav({ items }: BottomNavProps) {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#FAF7EC] border-t-[3.5px] border-black px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#FAF7EC] border-t-[3.5px] border-black px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-4px_0px_0px_rgba(0,0,0,1)] z-50">
       {items.map((item) => (
         <button
           key={item.id}

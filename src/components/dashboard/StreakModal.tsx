@@ -4,6 +4,8 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FireIcon, Shield01Icon, CheckmarkCircle01Icon } from "hugeicons-react";
 import { StreakDayItem } from "@/hooks/useStreak";
+import { fireStreakCelebration } from "@/lib/confetti";
+import { hapticTap } from "@/lib/haptics";
 
 interface StreakModalProps {
   isOpen: boolean;
@@ -125,18 +127,20 @@ export default function StreakModal({
 
           {/* Claim Action Button */}
           <button
-            onClick={onClaim}
-            disabled={isTodayClaimed}
-            className={`w-full py-3.5 px-4 rounded-xl border-[3.5px] border-black font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2 ${
-              isTodayClaimed
-                ? "bg-stone-200 text-stone-500 shadow-none cursor-not-allowed border-stone-400"
-                : "bg-[#FFB040] hover:bg-[#ffa326] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-            }`}
+            onClick={() => {
+              hapticTap();
+              if (isTodayClaimed) {
+                fireStreakCelebration();
+              } else {
+                onClaim();
+              }
+            }}
+            className="w-full py-3.5 px-4 rounded-xl border-[3.5px] border-black font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2 bg-[#FFB040] hover:bg-[#ffa326] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
             {isTodayClaimed ? (
               <>
-                <CheckmarkCircle01Icon size={18} className="text-stone-600" />
-                <span>Today&apos;s Streak Claimed!</span>
+                <CheckmarkCircle01Icon size={18} className="text-black" />
+                <span>Streak Claimed! Tap for Celebration 🎉</span>
               </>
             ) : (
               <>

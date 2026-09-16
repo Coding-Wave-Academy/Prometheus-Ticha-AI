@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useStreak } from '@/hooks/useStreak';
 
@@ -86,7 +86,7 @@ export function useTutor() {
               if (data.candidates && data.candidates[0].content.parts[0].text) {
                 onChunk(data.candidates[0].content.parts[0].text);
               }
-            } catch (e) {
+            } catch {
               // Ignore incomplete JSON
             }
           }

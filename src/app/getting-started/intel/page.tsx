@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
 
 interface IntelData {
@@ -16,6 +19,8 @@ interface IntelData {
 }
 
 export default function ExamIntelPage() {
+  const { t } = useTranslation();
+  const isMounted = useIsMounted();
   const router = useRouter();
   const [intel, setIntel] = useState<IntelData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,10 +28,14 @@ export default function ExamIntelPage() {
   useEffect(() => {
     const fetchIntel = async () => {
       try {
-        const goal = localStorage.getItem("ticha_onboarding_goal") || "gce";
-        const education = localStorage.getItem("ticha_onboarding_education") || "al";
-        const strugglesStr = localStorage.getItem("ticha_onboarding_struggles") || "[]";
-        const struggles = JSON.parse(strugglesStr);
+        const goal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") || "gce" : "gce";
+        const education = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") || "al" : "al";
+        const strugglesStr = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_struggles") || "[]" : "[]";
+        let struggles = ["Physics", "Pure Mathematics", "ICT"];
+        try {
+          const parsed = JSON.parse(strugglesStr);
+          if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
+        } catch { /* ignore */ }
 
         const res = await fetch("/api/ai/intel", {
           method: "POST",
@@ -75,10 +84,14 @@ export default function ExamIntelPage() {
   };
 
   const handleContinue = () => {
-    const goal = localStorage.getItem("ticha_onboarding_goal") || "gce";
-    const education = localStorage.getItem("ticha_onboarding_education") || "al";
-    const strugglesStr = localStorage.getItem("ticha_onboarding_struggles") || "[]";
-    const struggles = JSON.parse(strugglesStr);
+    const goal = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_goal") || "gce" : "gce";
+    const education = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_education") || "al" : "al";
+    const strugglesStr = typeof window !== "undefined" ? localStorage.getItem("ticha_onboarding_struggles") || "[]" : "[]";
+    let struggles = ["Physics", "Pure Mathematics", "ICT"];
+    try {
+      const parsed = JSON.parse(strugglesStr);
+      if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
+    } catch { /* ignore */ }
 
     const vectorData = {
       goal,
@@ -88,18 +101,28 @@ export default function ExamIntelPage() {
       timestamp: new Date().toISOString(),
     };
 
-    localStorage.setItem("ticha_user_profile_vector", JSON.stringify(vectorData));
-    localStorage.setItem("ticha_profile_completed", "true");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ticha_user_profile_vector", JSON.stringify(vectorData));
+      localStorage.setItem("ticha_profile_completed", "true");
+    }
 
     router.push("/register");
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#B6FF00]">
-      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black items-center space-y-6 animate-page-in">
+      <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black items-center space-y-6">
         
-        <header className="flex items-center gap-4 w-full">
-          <button
+        {/* Animated Header & Progress */}
+        <motion.header
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-4 w-full"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleBack}
             className="w-11 h-11 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px transition-all shrink-0"
             aria-label="Go back"
@@ -107,43 +130,61 @@ export default function ExamIntelPage() {
             <svg className="w-6 h-6 stroke-[3.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
-          </button>
+          </motion.button>
 
           <div className="flex gap-1.5 w-full items-center">
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
-            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1"></div>
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
+            <div className="h-2 bg-[#4A6700] border-[1.5px] border-black rounded-full flex-1" />
           </div>
-        </header>
+        </motion.header>
 
-        <div className="text-left w-full space-y-2 px-1">
+        {/* Title Area */}
+        <motion.div
+          initial={{ y: 15, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="text-left w-full space-y-2 px-1"
+        >
           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#1A1A1A]">
-            Your Personalized Exam Intel
+            {isMounted ? t("intel.title") : "Your Personalized Exam Intel"}
           </h1>
           <p className="text-[14px] text-stone-600 font-bold leading-tight">
-            Based on your goals and challenges, here&apos;s what the data says.
+            {isMounted
+              ? t("intel.subtitle")
+              : "Based on your goals and challenges, here's what the curriculum data says."}
           </p>
-        </div>
+        </motion.div>
 
+        {/* Intel Cards List */}
         <div className="space-y-6 w-full">
           {isLoading || !intel ? (
-            <div className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center text-center space-y-3">
-              <div className="w-10 h-10 border-[4.5px] border-black border-t-[#FFB040] rounded-full animate-spin"></div>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center text-center space-y-3"
+            >
+              <div className="w-10 h-10 border-[4.5px] border-black border-t-[#FFB040] rounded-full animate-spin" />
               <p className="text-sm font-black uppercase tracking-wider text-black">
-                Synthesizing Custom Intel...
+                {isMounted ? t("intel.synthesizing") : "Synthesizing Custom Intel..."}
               </p>
-            </div>
+            </motion.div>
           ) : (
             <>
               {/* Card 1: THE BIG IDEA */}
-              <section className="bg-[#FFD9E0] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col gap-4">
+              <motion.section
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 280, damping: 22 }}
+                className="bg-[#FFD9E0] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col gap-4"
+              >
                 <div className="flex items-center gap-1.5 font-black text-sm uppercase text-black">
                   <svg className="w-4 h-4 fill-current text-black" viewBox="0 0 24 24">
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                   </svg>
-                  <span>The Big Idea</span>
+                  <span>{isMounted ? t("intel.bigIdea") : "The Big Idea"}</span>
                 </div>
 
                 <div className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-left">
@@ -173,15 +214,20 @@ export default function ExamIntelPage() {
                     </svg>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Card 2: THE STORY */}
-              <section className="bg-[#D3E2FF] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4">
+              <motion.section
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.18, type: "spring", stiffness: 280, damping: 22 }}
+                className="bg-[#D3E2FF] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4"
+              >
                 <div className="flex items-center gap-1.5 font-black text-sm uppercase text-black">
                   <svg className="w-4 h-4 fill-current text-black" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                  <span>The Story</span>
+                  <span>{isMounted ? t("intel.story") : "The Story"}</span>
                 </div>
 
                 <div className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-left">
@@ -202,15 +248,20 @@ export default function ExamIntelPage() {
                     <text x="100" y="50" fontSize="5" fontWeight="bold" textAnchor="middle" fill="red">Classic Stop</text>
                   </svg>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Card 3: THE REALITY */}
-              <section className="bg-[#E5E5FF] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4">
+              <motion.section
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25, type: "spring", stiffness: 280, damping: 22 }}
+                className="bg-[#E5E5FF] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4"
+              >
                 <div className="flex items-center gap-1.5 font-black text-sm uppercase text-black">
                   <svg className="w-4 h-4 fill-current text-black" viewBox="0 0 24 24">
                     <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span>The Reality (Quantum)</span>
+                  <span>{isMounted ? t("intel.reality") : "The Reality (Quantum)"}</span>
                 </div>
 
                 <div className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] h-32 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 flex items-center justify-center relative overflow-hidden">
@@ -234,15 +285,20 @@ export default function ExamIntelPage() {
                     {intel.reality.text}
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Card 4: WHY IT MATTERS */}
-              <section className="bg-[#9EEAD8] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4">
+              <motion.section
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.32, type: "spring", stiffness: 280, damping: 22 }}
+                className="bg-[#9EEAD8] border-[3.5px] border-black rounded-2xl p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4"
+              >
                 <div className="flex items-center gap-1.5 font-black text-sm uppercase text-black">
                   <svg className="w-4 h-4 fill-current text-black" viewBox="0 0 24 24">
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                   </svg>
-                  <span>Why It Matters</span>
+                  <span>{isMounted ? t("intel.whyItMatters") : "Why It Matters"}</span>
                 </div>
 
                 <div className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-left space-y-3">
@@ -261,48 +317,61 @@ export default function ExamIntelPage() {
                     <svg className="w-3.5 h-3.5 fill-current text-[#965A18]" viewBox="0 0 24 24">
                       <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
                     </svg>
-                    <span>Aha Moment</span>
+                    <span>{isMounted ? t("intel.ahaMoment") : "Aha Moment"}</span>
                   </div>
                   <p className="text-sm font-black text-[#1A1A1A] leading-snug">
                     {intel.whyItMatters.ahaMoment}
                   </p>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Card 5: PRO TIP */}
-              <section className="bg-white border-[3px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 text-left">
+              <motion.section
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.38, type: "spring", stiffness: 280, damping: 22 }}
+                className="bg-white border-[3px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 text-left"
+              >
                 <svg className="w-5 h-5 text-red-600 fill-current shrink-0 mt-0.5" viewBox="0 0 24 24">
                   <path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z" />
                 </svg>
                 <div className="space-y-1">
                   <span className="text-[10px] font-black uppercase text-red-600 tracking-wider block">
-                    Pro Tip
+                    {isMounted ? t("intel.proTip") : "Pro Tip"}
                   </span>
                   <p className="text-xs font-bold text-stone-700 leading-snug">
                     {intel.proTip.text}
                   </p>
                 </div>
-              </section>
+              </motion.section>
             </>
           )}
         </div>
 
-        <footer className="w-full mt-8">
-          <button
+        {/* Footer Action Button */}
+        <motion.footer
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.45, duration: 0.3 }}
+          className="w-full mt-8"
+        >
+          <motion.button
+            whileHover={!isLoading && intel ? { scale: 1.02 } : {}}
+            whileTap={!isLoading && intel ? { scale: 0.97 } : {}}
             onClick={handleContinue}
             disabled={isLoading || !intel}
-            className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider transition-all shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2 ${
+            className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
               isLoading || !intel
                 ? "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
-                : "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                : "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
             }`}
           >
-            <span>Continue to Dashboard</span>
+            <span>{isMounted ? t("intel.continue") : "Continue to Dashboard"}</span>
             <svg className="w-5 h-5 stroke-[3.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
-          </button>
-        </footer>
+          </motion.button>
+        </motion.footer>
 
       </main>
     </div>

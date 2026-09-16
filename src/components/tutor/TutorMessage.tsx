@@ -18,13 +18,13 @@ export default function TutorMessage({ message, onPlayAudio, onSubmitAnswer }: T
   const isUser = message.role === 'user';
   
   // Clean up markers and format AI text
-  let rawText = message.content
+  const rawText = message.content
     .replace(/\[LESSON\]/g, '')
     .replace(/\[EXERCISE\]/g, '')
     .replace(/\[FEEDBACK\]/g, '')
     .trim();
 
-  let displayText = isUser ? rawText : formatAIText(rawText);
+  const displayText = isUser ? rawText : formatAIText(rawText);
 
   return (
     <motion.div

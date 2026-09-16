@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fireSideCannons } from "@/lib/confetti";
+import { fireStreakCelebration } from "@/lib/confetti";
 import { hapticSuccess } from "@/lib/haptics";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -74,9 +74,10 @@ export function useStreak() {
             status = "active";
           } else if (claimedDates.includes(dateStr)) {
             status = "active";
-          } else if (idx < todayIndex && userStreak > 0 && idx === 2) {
-            // Example freeze logic for past missed days if streak active
-            status = "frozen";
+          } else if (idx < todayIndex) {
+            // Past day without activity: check if user had a freeze or missed
+            const isFrozenDate = typeof window !== "undefined" && localStorage.getItem(`ticha_frozen_${dateStr}`) === "true";
+            status = isFrozenDate ? "frozen" : "upcoming";
           }
 
           return { ...d, status };
@@ -94,7 +95,7 @@ export function useStreak() {
     }
 
     hapticSuccess();
-    fireSideCannons();
+    fireStreakCelebration();
 
     const currentCount = profile?.streak_count ?? streakCount ?? 0;
     const newStreak = currentCount + 1; // 0 -> 1 on first claim!

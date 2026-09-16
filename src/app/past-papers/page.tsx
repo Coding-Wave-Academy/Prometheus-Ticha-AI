@@ -12,8 +12,8 @@ export default function PastPapersPage() {
     <div className="min-h-screen bg-[#FAF7EC] flex flex-col justify-between pb-28">
       <main className="flex-1 flex items-center justify-center p-4">
         <ComingSoon
-          title="GCE Past Papers Vault Coming Soon"
-          description="Access past GCE O/L & A/L question papers with official marking guides. Our team is actively uploading subject archives!"
+          title="Past Papers Vault Coming Soon"
+          description="Access official GCE O/L, A/L & University examination archives with marking guides and AI-powered explanations."
           showBackHome={true}
         />
       </main>

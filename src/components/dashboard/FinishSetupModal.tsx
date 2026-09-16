@@ -44,12 +44,28 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
 
   useEffect(() => {
     if (isOpen) {
-      setFullName(profile?.full_name || "");
-      setSchoolName(profile?.school_name || "");
-      setRegion(profile?.region || "littoral");
-      setEducationLevel(profile?.education_level || "al");
-      setPreferredLanguage(profile?.preferred_language || i18n.language || "en");
-      setIsSaved(profile?.profile_completed || false);
+      let localName = "";
+      let localSchool = "";
+      let localRegion = "littoral";
+      let localEdu = "al";
+      let localLang = i18n.language || "en";
+      let localCompleted = false;
+
+      if (typeof window !== "undefined") {
+        localName = localStorage.getItem("ticha_user_fullname") || "";
+        localSchool = localStorage.getItem("ticha_user_school") || "";
+        localRegion = localStorage.getItem("ticha_user_region") || "littoral";
+        localEdu = localStorage.getItem("ticha_onboarding_education") || "al";
+        localLang = localStorage.getItem("ticha_lang") || i18n.language || "en";
+        localCompleted = localStorage.getItem("ticha_profile_completed") === "true";
+      }
+
+      setFullName(profile?.full_name || localName || "");
+      setSchoolName(profile?.school_name || localSchool || "");
+      setRegion(profile?.region || localRegion || "littoral");
+      setEducationLevel(profile?.education_level || localEdu || "al");
+      setPreferredLanguage(profile?.preferred_language || localLang || "en");
+      setIsSaved(profile?.profile_completed || localCompleted || false);
     }
   }, [isOpen, profile]);
 
@@ -68,12 +84,53 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.tips && Array.isArray(data.tips)) {
+        if (data.tips && Array.isArray(data.tips) && data.tips.length > 0) {
           setAiTips(data.tips);
+          return;
         }
       }
+      // Fallback tips
+      setAiTips([
+        {
+          id: "1",
+          icon: "🎯",
+          title: "GCE Scoring Focus",
+          description: "Focus on Paper 1 multiple choice speed (under 1.8 mins/question) and structured Paper 2 explanations.",
+          tag: "EXAM TECHNIQUE",
+        },
+        {
+          id: "2",
+          icon: "⚡",
+          title: "Daily 1% Consistency",
+          description: "One daily concept video and 15-question quiz every day compounds to top-percentile results.",
+          tag: "HABIT",
+        },
+        {
+          id: "3",
+          icon: "💡",
+          title: "Active Flashcard Recall",
+          description: "Test yourself with flashcards before reviewing answers to build durable exam memory.",
+          tag: "REVISION",
+        },
+      ]);
     } catch (err) {
       console.error("Failed to fetch AI onboarding tips:", err);
+      setAiTips([
+        {
+          id: "1",
+          icon: "🎯",
+          title: "GCE Scoring Focus",
+          description: "Focus on Paper 1 multiple choice speed and structured Paper 2 steps.",
+          tag: "EXAM TECHNIQUE",
+        },
+        {
+          id: "2",
+          icon: "⚡",
+          title: "Daily 1% Consistency",
+          description: "One daily concept video and quiz every day compounds to mastery.",
+          tag: "HABIT",
+        },
+      ]);
     } finally {
       setIsLoadingTips(false);
     }

@@ -43,12 +43,11 @@ export default function DashboardHeader({
             </div>
           )}
         </div>
-        <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight flex items-center gap-1.5">
-          <span>{t("dashboard.hello")} {userName}</span>
-          <svg className="w-5 h-5 fill-current text-amber-600 inline shrink-0" viewBox="0 0 24 24">
-            <path d="M22 14c0 1.1-.9 2-2 2h-1v-4h1c1.1 0 2 .9 2 2zm-4-7c0-1.1-.9-2-2-2h-3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h3c1.1 0 2-.9 2-2V7zm-8 4c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h3c1.1 0 2-.9 2-2v-6z" />
-          </svg>
-        </h1>
+        <div>
+          <h1 className="text-xl md:text-2xl font-black text-[#1A1A1A] leading-tight">
+            {t("dashboard.hello")} {userName} 👋
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

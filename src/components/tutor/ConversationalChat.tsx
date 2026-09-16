@@ -6,10 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic01Icon,
   SparklesIcon,
-  VolumeHighIcon,
   Wifi01Icon,
-  WifiDisconnected01Icon,
-  CheckmarkCircle02Icon,
 } from "hugeicons-react";
 import { useProfile } from "@/hooks/useProfile";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
@@ -25,10 +22,43 @@ interface TranscriptEntry {
   id: string;
 }
 
+interface ISpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface ISpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: ISpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop?: () => void;
+}
+
+interface IWindowWithSpeech {
+  SpeechRecognition?: new () => ISpeechRecognition;
+  webkitSpeechRecognition?: new () => ISpeechRecognition;
+}
+
+interface ConversationSession {
+  endSession: () => void;
+  setVolume?: (options: { volume: number }) => void;
+}
+
 export default function ConversationalChat() {
   const { profile } = useProfile();
   const { claimDailyStreak } = useStreak();
   const firstName = profile?.full_name?.split(" ")[0] || "Scholar";
+  const educationLevel = profile?.education_level || "ol";
+  const preferredLanguage = profile?.preferred_language || "en";
 
   const [status, setStatus] = useState<ConnectionStatus>("idle");
   const [agentMode, setAgentMode] = useState<AgentMode>("idle");
@@ -36,8 +66,8 @@ export default function ConversationalChat() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState<number[]>(Array(5).fill(0.3));
 
-  const conversationRef = useRef<any>(null);
-  const recognitionRef = useRef<any>(null);
+  const conversationRef = useRef<ConversationSession | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const volumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
@@ -127,7 +157,7 @@ export default function ConversationalChat() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             struggles: [userQuestion],
-            education: profile?.education_level || "ol",
+            education: educationLevel,
           }),
         });
 
@@ -161,14 +191,15 @@ export default function ConversationalChat() {
         setAgentMode("idle");
       }
     },
-    [claimDailyStreak, profile?.education_level, speakText]
+    [claimDailyStreak, educationLevel, speakText]
   );
 
   const startListeningFallback = useCallback(() => {
     if (typeof window === "undefined") return;
 
+    const win = window as unknown as IWindowWithSpeech;
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert("Speech recognition is not supported in this browser mode. Tap starter prompts below!");
@@ -179,11 +210,11 @@ export default function ConversationalChat() {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = profile?.preferred_language === "fr" ? "fr-FR" : "en-US";
+      recognition.lang = preferredLanguage === "fr" ? "fr-FR" : "en-US";
 
       setAgentMode("listening");
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: ISpeechRecognitionEvent) => {
         const text = event.results[0][0].transcript;
         if (text?.trim()) {
           processFallbackVoiceInput(text);
@@ -203,7 +234,7 @@ export default function ConversationalChat() {
     } catch {
       setAgentMode("idle");
     }
-  }, [agentMode, processFallbackVoiceInput, profile?.preferred_language]);
+  }, [agentMode, preferredLanguage, processFallbackVoiceInput]);
 
   const startConversation = useCallback(async () => {
     setStatus("connecting");
