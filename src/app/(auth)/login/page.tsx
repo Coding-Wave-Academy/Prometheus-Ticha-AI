@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
@@ -18,11 +18,20 @@ import { createClient } from "@/utils/supabase/client";
 import "@/lib/i18n";
 
 export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#FAF7EC]" />}>
+      <LoginPageContent />
+    </React.Suspense>
+  );
+}
+
+function LoginPageContent() {
   const { t } = useTranslation();
   const { toasts, addToast, removeToast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
   const isMounted = useIsMounted();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,11 +39,24 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
 
+  // Safely extract target redirect destination, guarding against open redirects and self-redirects
+  const rawRedirect = searchParams.get("redirect") || searchParams.get("next");
+  const targetDestination =
+    rawRedirect &&
+    rawRedirect.startsWith("/") &&
+    !rawRedirect.startsWith("//") &&
+    !rawRedirect.includes("://") &&
+    !rawRedirect.includes("\\") &&
+    !rawRedirect.startsWith("/login") &&
+    !rawRedirect.startsWith("/register")
+      ? rawRedirect
+      : "/dashboard";
+
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace("/dashboard");
+      router.replace(targetDestination);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, targetDestination]);
 
   const supabase = createClient();
 
@@ -80,7 +102,7 @@ export default function LoginPage() {
       if (data.user?.user_metadata?.full_name) {
         localStorage.setItem("ticha_user_fullname", data.user.user_metadata.full_name);
       }
-      router.push("/dashboard");
+      router.push(targetDestination);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Authentication service unavailable.";
       addToast(msg, "error", "Login Error");
@@ -113,7 +135,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(targetDestination)}`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",

@@ -2,6 +2,21 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-09-19] - Production Redirect Loop & Chunked Auth Cookie Synchronization Fix
+
+### Fixed
+- **Resolved `net::ERR_TOO_MANY_REDIRECTS` on `/dashboard`**:
+  - Eliminated dual-source-of-truth conflict between `src/middleware.ts` and `src/utils/supabase/middleware.ts`.
+  - Fixed false unauthenticated classification caused by `c.name.endsWith("-auth-token")` failing on `@supabase/ssr` chunked session cookies (`sb-<project-ref>-auth-token.0`, `.1`).
+  - Updated cookie regex matching to `/auth-token(\.\d+)?$/` for protected API routes and delegated page-level route protection to `updateSession()`.
+- **Preserved Refreshed Session Cookies on Redirects**:
+  - Updated `createRedirectWithCookies()` in `src/utils/supabase/middleware.ts` to clone all refreshed session cookies and headers from `supabaseResponse` into any `NextResponse.redirect()` response, preventing session drops.
+- **Sanitized Redirect Query Parameters**:
+  - Stripped recursive `?redirect=...` query parameters upon redirecting authenticated users from `/login` to `/dashboard`.
+  - Added safe destination parsing in `src/app/(auth)/login/page.tsx` with `<React.Suspense>` boundary to preserve client navigation while preventing open redirects.
+- **Fixed Next.js RSC Payload Fetching Failure**:
+  - Resolved `Failed to fetch RSC payload for /dashboard` caused by client router falling back after receiving infinite 307 redirects.
+
 ## [2026-09-16] - OWASP Top 10 (2025) Security Hardening & API Protection
 
 ### Added

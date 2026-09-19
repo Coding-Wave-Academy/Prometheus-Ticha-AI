@@ -170,7 +170,7 @@ export async function middleware(request: NextRequest) {
       // via requireAuth() — this middleware gate prevents obviously
       // unauthenticated requests from reaching handlers at all.
       const hasAuthCookie = request.cookies.getAll().some(
-        (c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token")
+        (c) => c.name.startsWith("sb-") && /auth-token(\.\d+)?$/.test(c.name)
       );
       if (!hasAuthCookie) {
         return new NextResponse(
@@ -184,34 +184,10 @@ export async function middleware(request: NextRequest) {
     return await updateSession(request);
   }
 
-  // ── 2. Page Route Protection ──────────────────────────────────────────────
-
-  // Allow public pages and auth routes
-  const isPublicPage = PUBLIC_PAGE_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(path + "/")
-  );
-
-  if (!isPublicPage) {
-    // Check if this is a protected page that requires auth
-    const isProtectedPage = PROTECTED_PAGE_PREFIXES.some((prefix) =>
-      pathname.startsWith(prefix)
-    );
-
-    if (isProtectedPage) {
-      const hasAuthCookie = request.cookies.getAll().some(
-        (c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token")
-      );
-
-      if (!hasAuthCookie) {
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = "/login";
-        loginUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(loginUrl);
-      }
-    }
-  }
-
-  // ── 3. Supabase Session Refresh ───────────────────────────────────────────
+  // ── 2. Page Route Protection & Supabase Session Refresh ───────────────────
+  // Handled authoritatively by updateSession using supabase.auth.getUser().
+  // This verifies real session validity (including chunked cookies) and
+  // eliminates conflicting redirects between middleware and SSR session helpers.
   return await updateSession(request);
 }
 
