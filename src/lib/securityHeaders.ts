@@ -29,13 +29,15 @@ export const securityHeaders = [
     value: [
       "default-src 'self'",
       // TODO: Replace 'unsafe-inline' with nonce-based CSP (requires Next.js CSP nonce integration)
-    "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://*.supabase.co https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://*.supabase.co https://cdn.jsdelivr.net https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://*.supabase.co https://images.unsplash.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com https://*.supabase.co",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.groq.com https://api.elevenlabs.io wss://api.elevenlabs.io https://www.googleapis.com https://www.youtube.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.groq.com https://api.elevenlabs.io wss://api.elevenlabs.io https://www.googleapis.com https://www.youtube.com https://vitals.vercel-insights.com",
       "media-src 'self' blob: data: https://*.supabase.co https://api.elevenlabs.io",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

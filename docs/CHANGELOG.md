@@ -14,6 +14,9 @@ All notable changes to the Ticha AI platform will be documented in this file.
 - **Sanitized Redirect Query Parameters**:
   - Stripped recursive `?redirect=...` query parameters upon redirecting authenticated users from `/login` to `/dashboard`.
   - Added safe destination parsing in `src/app/(auth)/login/page.tsx` with `<React.Suspense>` boundary to preserve client navigation while preventing open redirects.
+- **Fixed Content Security Policy for Web Workers & Analytics**:
+  - Added `worker-src 'self' blob:` and `child-src 'self' blob:` directives to `src/lib/securityHeaders.ts` to allow audio workers (ElevenLabs), confetti, and canvas workers generated from `blob:` URLs.
+  - Whitelisted `https://va.vercel-scripts.com` in `script-src` and `https://vitals.vercel-insights.com` in `connect-src` for Vercel analytics.
 - **Fixed Next.js RSC Payload Fetching Failure**:
   - Resolved `Failed to fetch RSC payload for /dashboard` caused by client router falling back after receiving infinite 307 redirects.
 
