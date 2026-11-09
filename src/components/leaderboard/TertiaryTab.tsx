@@ -54,8 +54,8 @@ export default function TertiaryTab() {
   return (
     <div className="w-full">
       {/* Hero Banner */}
-      <section className="bg-[#B6FF00] p-6 rounded-2xl border-[3.5px] border-black mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-        <span className="bg-black text-[#B6FF00] text-[10px] font-black tracking-widest px-3 py-1 rounded-full border-[2px] border-black mb-3.5 inline-block shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] uppercase">
+      <section className="bg-primary p-6 rounded-2xl border-[3.5px] border-black mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+        <span className="bg-black text-primary text-[10px] font-black tracking-widest px-3 py-1 rounded-full border-[2px] border-black mb-3.5 inline-block shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] uppercase">
           Mission: The Bridge
         </span>
         <h2 className="text-2xl md:text-3xl font-black text-stone-950 uppercase tracking-tight leading-none mb-3">

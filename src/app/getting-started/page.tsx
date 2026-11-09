@@ -38,7 +38,7 @@ const SLIDES: SlideData[] = [
     starIcon: "/images/onboarding-icons/Lime Star.svg",
     dotsIcon: "/images/onboarding-icons/Orange Top Pokka Dots.svg",
     characterSvg: "/images/onboarding-icons/Character 1.svg",
-    buttonBg: "bg-[#C8FF2A] hover:bg-[#b8f01c]",
+    buttonBg: "bg-primary hover:bg-[#b8f01c]",
     buttonText: "text-[#0A0A0F]",
     linkColor: "#84CC16",
     waveBg: "bg-[#F2FAD4]",
@@ -109,7 +109,7 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
       {/* Decorative Pokka Dots (Top Right) */}

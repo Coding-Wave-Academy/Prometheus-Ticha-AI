@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ interface StruggleSubject {
  * based on selected onboarding goal and education level, falling back to top 3 level-specific subjects.
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { goal, education } = await req.json();
 
@@ -54,11 +58,11 @@ export async function POST(req: NextRequest) {
       Return the result strictly as a raw JSON object with this structure:
       {
         "subjects": [
-          { "id": "slug", "name": "Subject Name", "iconBg": "bg-[#B6FF00]", "iconSlug": "math|physics|chemistry|cs|calculus" }
+          { "id": "slug", "name": "Subject Name", "iconBg": "bg-primary", "iconSlug": "math|physics|chemistry|cs|calculus" }
         ]
       }
 
-      Valid iconBg classes to cycle through: "bg-[#A6B7CE]", "bg-[#B6FF00]", "bg-[#FFD9E0]", "bg-[#D3E2FF]", "bg-[#FFE5C4]"
+      Valid iconBg classes to cycle through: "bg-[#A6B7CE]", "bg-primary", "bg-[#FFD9E0]", "bg-[#D3E2FF]", "bg-[#FFE5C4]"
       Do not include markdown backticks. Return exactly 3 items.
     `;
 
@@ -94,7 +98,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       subjects: [
         { id: "math", name: "Pure Mathematics", iconBg: "bg-[#A6B7CE]", iconSlug: "math" },
-        { id: "physics", name: "Advanced Physics", iconBg: "bg-[#B6FF00]", iconSlug: "physics" },
+        { id: "physics", name: "Advanced Physics", iconBg: "bg-primary", iconSlug: "physics" },
         { id: "furtherMath", name: "Further Mathematics", iconBg: "bg-[#FFD9E0]", iconSlug: "math" },
       ]
     });

@@ -12,7 +12,7 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
   if (toasts.length === 0) return null;
 
   const bgClasses: Record<ToastMessage["type"], string> = {
-    success: "bg-[#B6FF00] text-black",
+    success: "bg-primary text-black",
     error: "bg-[#FF9494] text-black",
     warning: "bg-amber-300 text-black",
     info: "bg-white text-black",

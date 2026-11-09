@@ -80,7 +80,7 @@ export default function SummaryViewer({
 
       {/* Key Concepts */}
       {summary.keyConcepts && summary.keyConcepts.length > 0 && (
-        <div className="p-5 rounded-2xl border-[3.5px] border-black bg-[#B6FF00] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 rounded-2xl border-[3.5px] border-black bg-primary shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-black mb-3">
             {t("summaries.keyConcepts", "Key Concepts")}
           </h3>
@@ -151,7 +151,7 @@ export default function SummaryViewer({
                 key={idx}
                 className="flex items-start gap-2 text-[14px] font-medium text-stone-700"
               >
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border-[2px] border-black bg-[#B6FF00] text-[10px] font-black flex-shrink-0 mt-0.5">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border-[2px] border-black bg-primary text-[10px] font-black flex-shrink-0 mt-0.5">
                   {idx + 1}
                 </span>
                 <span>{tip}</span>

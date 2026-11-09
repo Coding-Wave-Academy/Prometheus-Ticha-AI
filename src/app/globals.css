@@ -1,19 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #FFF8F1;
-  --foreground: #0A0A0F;
-  --accent-primary: #C8FF2A;
-  --accent-warm: #FF882E;
-  --accent-pink: #FFD6E7;
-  --border-color: #0A0A0F;
+/*
+ * Design tokens — source: design/Ticha design system.png, with surface colours
+ * measured from design/Ticha AI Web View - Dashboard.png and - Explore.png.
+ * Use these classes (bg-primary, text-ink, shadow-brutal-md, …) instead of
+ * arbitrary hex values.
+ */
+@theme {
+  /* Typography: Plus Jakarta Sans everywhere (design system H1–Caption) */
+  --font-sans: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+  /* Legacy alias: headings used Baloo 2; it now resolves to Jakarta. */
+  --font-baloo: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+
+  /* Brand */
+  --color-primary: #C8FF2A;        /* Lime Green — primary */
+  --color-primary-soft: #E4F785;   /* Daily lesson card fill (dashboard design) */
+  --color-primary-line: #B9D45A;   /* Soft border on primary-soft surfaces */
+  --color-primary-deep: #BFE000;   /* Lime for text on cream ("AI" wordmark) */
+  --color-olive: #586C00;          /* "Start Lesson" text on primary-soft */
+  --color-olive-line: #7A8A12;     /* Daily lesson card border */
+  --color-streak-line: #605E5C;    /* Streak card outline */
+  --color-streak-bg: #FCF7F0;      /* Streak card surface */
+  --color-progress-label: #7C91B5; /* Category label on progress card */
+  --color-secondary: #FF8B2E;      /* Ticha Orange */
+  --color-ink: #0A0A0F;            /* Deep Black — text & strong borders */
+  --color-cream: #FAF7EC;          /* App background (matches both desktop designs) */
+  --color-sidebar: #FDFAF4;        /* Desktop sidebar surface */
+  --color-divider: #E8E7E3;        /* Hairline between sidebar and content */
+  --color-accent-pink: #FFD6E7;    /* Soft Pink — accent */
+
+  /* Card tints (Explore / Dashboard designs) */
+  --color-card-sky: #D3E2FF;
+  --color-card-sky-soft: #DAE6FC;
+  --color-card-peach: #FFE7D6;
+  --color-card-orange: #FFB040;
+  --color-card-pink: #FFD6E7;
+  --color-card-lilac: #FECAFD;     /* Practice quick action (dashboard design) */
+  --color-card-promo: #F7F7E4;
+  --color-brown: #965A18;          /* Search button */
+  --color-muted: #6B6B70;          /* Secondary text */
+
+  /* Semantic */
+  --color-success: #22C55E;
+  --color-warning: #FACC15;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+  --color-progress: #4077FE;
+  --color-progress-track: #C9D9F8;
+
+  /* Neo-brutalist hard shadows */
+  --shadow-brutal-xs: 1.5px 1.5px 0 0 var(--color-ink);
+  --shadow-brutal-sm: 2px 2px 0 0 var(--color-ink);
+  --shadow-brutal-md: 4px 4px 0 0 var(--color-ink);
+  --shadow-brutal-lg: 6px 6px 0 0 var(--color-ink);
+  /* Design system soft shadows */
+  --shadow-soft-sm: 0 1px 2px 0 rgb(10 10 15 / 0.10);
+  --shadow-soft-md: 0 4px 12px 0 rgb(10 10 15 / 0.10);
+  --shadow-soft-lg: 0 8px 24px 0 rgb(10 10 15 / 0.15);
+
+  /* Type scale (design system: size / line-height) */
+  --text-h1: 2rem;      --text-h1--line-height: 1.2;
+  --text-h2: 1.5rem;    --text-h2--line-height: 1.2;
+  --text-h3: 1.25rem;   --text-h3--line-height: 1.2;
+  --text-h4: 1rem;      --text-h4--line-height: 1.2;
+  --text-body: 0.875rem; --text-body--line-height: 1.5;
+  --text-caption: 0.75rem; --text-caption--line-height: 1.5;
 }
 
-
-@theme {
-  --font-baloo: var(--font-baloo-2), cursive, sans-serif;
-  --font-body: var(--font-plus-jakarta), sans-serif;
-  --font-sans: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+:root {
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+  --accent-primary: var(--color-primary);
+  --accent-warm: #FF882E;
+  --accent-pink: var(--color-accent-pink);
+  --border-color: var(--color-ink);
 }
 
 html {
@@ -40,19 +101,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography Rules: Baloo 2 for Headings & Buttons, Plus Jakarta Sans for Body & Labels */
+/* Typography: Plus Jakarta Sans for everything (design system). Headings bold. */
 h1 {
-  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
   font-weight: 800;
 }
 
 h2, h3, h4, h5, h6 {
-  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
   font-weight: 700;
 }
 
 button, [role="button"], .font-button {
-  font-family: var(--font-baloo-2), cursive, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
   font-weight: 700;
 }
 

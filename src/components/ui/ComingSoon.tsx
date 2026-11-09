@@ -19,7 +19,7 @@ export default function ComingSoon({
     <div className="min-h-[80vh] flex flex-col justify-between items-center px-4 py-8 text-black antialiased font-sans max-w-md mx-auto w-full">
       {/* Hero Badge & Vector Illustration */}
       <div className="w-full text-center space-y-6 my-auto">
-        <div className="relative w-28 h-28 bg-[#B6FF00] border-[3.5px] border-black rounded-3xl flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mx-auto rotate-[-3deg] animate-spring-pop">
+        <div className="relative w-28 h-28 bg-primary border-[3.5px] border-black rounded-3xl flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mx-auto rotate-[-3deg] animate-spring-pop">
           <svg className="w-14 h-14 text-black fill-current" viewBox="0 0 24 24">
             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
           </svg>

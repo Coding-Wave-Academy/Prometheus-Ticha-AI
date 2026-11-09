@@ -23,6 +23,7 @@ import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
 import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
+import { apiFetch } from "@/lib/api";
 
 interface FlashCard {
   id: string;
@@ -36,7 +37,7 @@ export default function FlashcardsPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-          <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
         </div>
       }
     >
@@ -175,7 +176,7 @@ function FlashcardsContent() {
 
     // Fetch from AI endpoint if no cached deck exists
     try {
-      const res = await fetch("/api/ai/flashcards", {
+      const res = await apiFetch("/api/ai/flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject: curSub, topic: curTop }),
@@ -235,7 +236,7 @@ function FlashcardsContent() {
   const currentCard = cards[currentIdx];
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -260,7 +261,7 @@ function FlashcardsContent() {
           <button
             onClick={() => loadTopicAndCards(subject, topic)}
             aria-label="Reload cards"
-            className="w-10 h-10 bg-[#B6FF00] border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform"
+            className="w-10 h-10 bg-primary border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform"
           >
             <RefreshIcon size={18} className="text-black" />
           </button>
@@ -269,7 +270,7 @@ function FlashcardsContent() {
         {/* Loading State */}
         {isLoading ? (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-            <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
+            <div className="w-12 h-12 border-[4px] border-black border-t-primary rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
               Loading Daily Topic Flashcards...
             </h3>
@@ -279,7 +280,7 @@ function FlashcardsContent() {
           </div>
         ) : isFinished ? (
           /* ============ COMPLETION SCREEN ============ */
-          <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
+          <div className="bg-primary border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
             <div className="w-16 h-16 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
               <Award01Icon size={36} className="text-black" />
             </div>
@@ -321,7 +322,7 @@ function FlashcardsContent() {
                 Card {currentIdx + 1} of {cards.length}
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black bg-[#B6FF00] border border-black rounded-full px-2.5 py-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                <span className="text-xs font-black bg-primary border border-black rounded-full px-2.5 py-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                   {masteredCount} Mastered
                 </span>
               </div>
@@ -398,7 +399,7 @@ function FlashcardsContent() {
 
               <button
                 onClick={() => handleAnswer(true)}
-                className="flex-1 bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black flex items-center justify-center gap-1.5"
+                className="flex-1 bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black flex items-center justify-center gap-1.5"
               >
                 <CheckmarkCircle02Icon size={16} />
                 <span>Got It! ✓</span>

@@ -30,7 +30,7 @@ export default function Card({
 
   const variantClasses: Record<CardVariant, string> = {
     default: "bg-white text-black",
-    accent: "bg-[#B6FF00] text-black",
+    accent: "bg-primary text-black",
     warm: "bg-[#FAF7EC] text-black",
     dark: "bg-[#1A1A1A] text-white",
   };

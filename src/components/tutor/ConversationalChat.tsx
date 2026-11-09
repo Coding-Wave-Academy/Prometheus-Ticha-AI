@@ -12,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
+import { apiFetch } from "@/lib/api";
 
 type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 type AgentMode = "listening" | "speaking" | "thinking" | "idle";
@@ -152,7 +153,7 @@ export default function ConversationalChat() {
       ]);
 
       try {
-        const res = await fetch("/api/ai/daily-lesson", {
+        const res = await apiFetch("/api/ai/daily-lesson", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -242,7 +243,7 @@ export default function ConversationalChat() {
 
     try {
       // 1. Check signed URL backend API
-      const res = await fetch("/api/elevenlabs/signed-url", {
+      const res = await apiFetch("/api/elevenlabs/signed-url", {
         method: "POST",
       });
 
@@ -392,7 +393,7 @@ export default function ConversationalChat() {
                 agentMode === "listening"
                   ? "bg-red-500"
                   : agentMode === "speaking"
-                  ? "bg-[#B6FF00]"
+                  ? "bg-primary"
                   : "bg-stone-400"
               }`}
             />
@@ -442,7 +443,7 @@ export default function ConversationalChat() {
                 <div
                   className={`max-w-[85%] p-3.5 border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-left ${
                     entry.role === "user"
-                      ? "bg-[#B6FF00] rounded-br-sm"
+                      ? "bg-primary rounded-br-sm"
                       : "bg-white rounded-bl-sm"
                   }`}
                 >
@@ -547,7 +548,7 @@ export default function ConversationalChat() {
               ? "bg-red-500 text-white shadow-none translate-x-[2px] translate-y-[2px]"
               : agentMode === "speaking"
               ? "bg-[#FFB040] text-black"
-              : "bg-[#B6FF00] text-black hover:bg-[#a3e600]"
+              : "bg-primary text-black hover:bg-[#a3e600]"
           }`}
           aria-label="Tap to speak with Voice AI"
         >

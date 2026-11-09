@@ -44,49 +44,49 @@ export default function SitemapPage() {
           path: "/getting-started",
           description: "First step onboarding with achievement showcase.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Language Selection",
           path: "/getting-started/language",
           description: "Select between English and French with progress bar.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Goal Selection",
           path: "/getting-started/goal",
           description: "Choose primary educational motivation.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Education Level",
           path: "/getting-started/education",
           description: "Select between O/L, A/L, or University academic targets.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Struggles Identification",
           path: "/getting-started/struggles",
           description: "Select subjects where help is needed.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Make a Commitment",
           path: "/getting-started/commitment",
           description: "Pledge commitment with hold-to-commit biometric fingerprint.",
           badge: "New",
-          badgeBg: "bg-[#C8FF2A]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Personalized Exam Intel",
           path: "/getting-started/intel",
           description: "Bespoke subject insights preview.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Log In",
@@ -117,21 +117,21 @@ export default function SitemapPage() {
           path: "/explore",
           description: "Core learning, practice tools, and social rankings.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Revision Flashcards",
           path: "/dashboard/flashcards",
           description: "Interactive AI flashcards with tap-to-flip cards and spaced repetition.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "National & School Leaderboards",
           path: "/leaderboard",
           description: "Podium, daily rankings, level toggle and context filters.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
       ],
     },
@@ -148,14 +148,14 @@ export default function SitemapPage() {
           path: "/dashboard",
           description: "Student overview: streak, quick actions, subjects & regional updates.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Daily Quiz (Paper 1 Exam)",
           path: "/dashboard/daily-quiz",
           description: "GCE Paper 1 Exam environment connected to daily lesson topics.",
           badge: "Exam",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "AI Quiz Generator",
@@ -169,14 +169,14 @@ export default function SitemapPage() {
           path: "/coming-soon",
           description: "Screen for unreleased features with notification form.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
         {
           name: "Profile Settings",
           path: "/dashboard/profile",
           description: "Personal settings with checklist indicator.",
           badge: "New",
-          badgeBg: "bg-[#B6FF00]",
+          badgeBg: "bg-primary",
         },
       ],
     },
@@ -216,7 +216,7 @@ export default function SitemapPage() {
             <svg className="w-6 h-6 fill-current text-black" viewBox="0 0 24 24">
               <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
             </svg>
-            <span className="text-xs font-black uppercase tracking-widest bg-[#B6FF00] border-[2.5px] border-black rounded-full px-3.5 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="text-xs font-black uppercase tracking-widest bg-primary border-[2.5px] border-black rounded-full px-3.5 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               Developer Directory
             </span>
           </div>
@@ -251,7 +251,7 @@ export default function SitemapPage() {
                 type="text"
                 value={testCourseId}
                 onChange={(e) => setTestCourseId(e.target.value)}
-                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#B6FF00]"
+                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="flex flex-col space-y-1">
@@ -262,7 +262,7 @@ export default function SitemapPage() {
                 type="text"
                 value={testLessonId}
                 onChange={(e) => setTestLessonId(e.target.value)}
-                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#B6FF00]"
+                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="flex flex-col space-y-1">
@@ -273,7 +273,7 @@ export default function SitemapPage() {
                 type="text"
                 value={testQuizId}
                 onChange={(e) => setTestQuizId(e.target.value)}
-                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#B6FF00]"
+                className="bg-white border-[2.5px] border-black rounded-lg p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function SitemapPage() {
                       >
                         Course Overview
                       </Link>
-                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-[#B6FF00] shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-primary shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         Dynamic
                       </span>
                     </div>
@@ -393,7 +393,7 @@ export default function SitemapPage() {
                       >
                         Lesson Player View
                       </Link>
-                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-[#B6FF00] shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-primary shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         Dynamic
                       </span>
                     </div>
@@ -413,7 +413,7 @@ export default function SitemapPage() {
                       >
                         Interactive Assessment Quiz
                       </Link>
-                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-[#B6FF00] shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="text-[9px] font-black uppercase tracking-widest border-[1.5px] border-black rounded-full px-2 py-0.5 bg-primary shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         Dynamic
                       </span>
                     </div>

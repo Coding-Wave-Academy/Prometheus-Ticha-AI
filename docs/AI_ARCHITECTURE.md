@@ -29,9 +29,37 @@ AI prompts inject subject syllabus context:
 
 ---
 
-## 4. Rate Limiting & Abuse Prevention
+## 4. Authentication, Limits & Abuse Prevention
 
-To ensure equitable access on mobile connections:
-1. **Per-Device & Per-User Throttling**: Limits requests per minute to prevent runaway consumption.
-2. **Input Sanitization**: User inputs are trimmed and validated before processing, preventing injection attacks.
-3. **Structured Fallback Data**: In offline or degraded network conditions, endpoints fall back gracefully to pre-cached curriculum summaries and study drills.
+### Every AI route requires a signed-in user
+AI calls cost money per request, so every route that calls Gemini, ElevenLabs or YouTube starts with:
+
+```ts
+import { requireUser } from "@/lib/auth/requireUser";
+
+export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response; // 401 { error: "unauthenticated" }
+  // auth.user / auth.supabase are available from here
+}
+```
+
+`requireUser()` uses `supabase.auth.getUser()`, which validates the token with Supabase Auth. Don't use `getSession()` for authorisation: it only decodes the cookie.
+
+**When adding a new AI route, add `requireUser()` first.** The only intentional exception is `/api/ai/intel`, which runs during onboarding before the student has an account. It accepts only allow-listed values and caches results per combination (see the route's header comment), so it can't be used as a general-purpose Gemini proxy.
+
+On the client, call our API with `apiFetch()` from `@/lib/api` instead of `fetch()`. It redirects to login on 401 and reports network failures as `ApiError` with `kind: "offline"`.
+
+### Input validation
+Request bodies for the tutor routes are validated with zod schemas in `src/lib/apiSchemas.ts`:
+- Tutor message: up to 2,000 characters. TTS text: up to 1,500 characters.
+- Subjects must be a known GCE subject (`normalizeSubject`), and education levels are normalised to `ol | al | university`.
+- Conversation history is trimmed to the last 20 turns (4,000 characters each) rather than rejected.
+
+New routes that accept free text should add a schema there.
+
+### Rate limiting (current state)
+`src/proxy.ts` applies a coarse limit of 60 requests a minute per IP to `/api/*`. It is held in memory, so on serverless hosting it is per instance and resets on cold start. It is a backstop, not a quota. Per-user daily limits for AI routes (which will also enforce the free plan) are planned.
+
+### Fallbacks
+When Gemini is unavailable, several routes return built-in fallback content instead of an error (for example the onboarding intel card).

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useStreak } from '@/hooks/useStreak';
+import { apiFetch } from '@/lib/api';
 
 export type ContentType = 'text' | 'micro_lesson' | 'exercise' | 'feedback';
 
@@ -112,12 +113,13 @@ export function useTutor() {
     setIsStreaming(true);
 
     try {
-      const history = messages.map(m => ({
+      // The server only uses the last 20 turns; sending more just costs the student data.
+      const history = messages.slice(-20).map(m => ({
         role: m.role,
         parts: [{ text: m.content }]
       }));
 
-      const res = await fetch('/api/tutor/chat', {
+      const res = await apiFetch('/api/tutor/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +184,7 @@ export function useTutor() {
 
   const playAudio = async (text: string) => {
     try {
-      const res = await fetch('/api/tutor/tts', {
+      const res = await apiFetch('/api/tutor/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })

@@ -27,6 +27,7 @@ import { fireSuccessCelebration, fireConfettiBurst } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 import { setStoredDailyTopic } from "@/lib/dailyTopic";
+import { apiFetch } from "@/lib/api";
 
 /* ── Types ────────────────────────────────────────────────────────────── */
 interface QuizQuestion {
@@ -80,7 +81,7 @@ function AffirmationIcon({ name, size = 40 }: { name: string; size?: number }) {
 /* ── Subject color map ────────────────────────────────────────────────── */
 const subjectColors: Record<string, string> = {
   Physics: "#FFB040",
-  "Pure Mathematics": "#B6FF00",
+  "Pure Mathematics": "#C8FF2A",
   "Further Mathematics": "#D3E2FF",
   ICT: "#FFDF9E",
   Chemistry: "#FFD9E0",
@@ -94,7 +95,7 @@ export default function DailyLessonsPage() {
     <React.Suspense
       fallback={
         <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-          <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
         </div>
       }
     >
@@ -149,7 +150,7 @@ function DailyLessonsContent() {
       if (targetSub) payload.subject = targetSub;
       if (targetTop) payload.topic = targetTop;
 
-      const res = await fetch("/api/ai/daily-lesson", {
+      const res = await apiFetch("/api/ai/daily-lesson", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -308,7 +309,7 @@ function DailyLessonsContent() {
   const accentColor = lesson ? (subjectColors[lesson.subject] || "#FFB040") : "#FFB040";
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -330,7 +331,7 @@ function DailyLessonsContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[#B6FF00] border-[2.5px] border-black rounded-full px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center gap-1.5 bg-primary border-[2.5px] border-black rounded-full px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <FireIcon size={16} className="text-orange-600 animate-pulse" />
             <span>{streakCount} STREAK</span>
           </div>
@@ -339,7 +340,7 @@ function DailyLessonsContent() {
         {/* Loading State */}
         {isLoading && (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-            <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
+            <div className="w-12 h-12 border-[4px] border-black border-t-primary rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
               Preparing Your Lesson...
             </h3>
@@ -356,7 +357,7 @@ function DailyLessonsContent() {
             <h3 className="font-black text-base uppercase">No Lesson Available</h3>
             <button
               onClick={() => fetchLesson()}
-              className="bg-[#B6FF00] border-[3px] border-black rounded-xl px-6 py-3 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
+              className="bg-primary border-[3px] border-black rounded-xl px-6 py-3 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
             >
               Retry
             </button>
@@ -377,7 +378,7 @@ function DailyLessonsContent() {
 
                 return (
                   <div key={s} className="flex-1 flex flex-col items-center gap-1">
-                    <div className={`h-2 w-full rounded-full border border-black ${isDone ? "bg-[#B6FF00]" : isActive ? "bg-[#FFB040]" : "bg-stone-200"}`} />
+                    <div className={`h-2 w-full rounded-full border border-black ${isDone ? "bg-primary" : isActive ? "bg-[#FFB040]" : "bg-stone-200"}`} />
                     <span className={`text-[9px] font-black uppercase tracking-wider ${isActive ? "text-black" : "text-stone-400"}`}>
                       {labels[i]}
                     </span>
@@ -469,7 +470,7 @@ function DailyLessonsContent() {
                   {/* Mark as Watched CTA */}
                   <button
                     onClick={handleVideoWatched}
-                    className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
+                    className="w-full bg-primary border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <CheckmarkCircle02Icon size={18} />
                     <span>I&apos;ve Watched This</span>
@@ -567,7 +568,7 @@ function DailyLessonsContent() {
                       {lesson.quizQuestions.map((_, i) => (
                         <div
                           key={i}
-                          className={`h-2 flex-1 rounded-full border border-black ${i < quizIdx ? "bg-[#B6FF00]" : i === quizIdx ? "bg-[#FFB040]" : "bg-stone-200"}`}
+                          className={`h-2 flex-1 rounded-full border border-black ${i < quizIdx ? "bg-primary" : i === quizIdx ? "bg-[#FFB040]" : "bg-stone-200"}`}
                         />
                       ))}
                     </div>
@@ -585,7 +586,7 @@ function DailyLessonsContent() {
                         let style = "bg-white border-black hover:bg-stone-50";
                         if (isSelected && !isAnswered) style = "bg-[#D3E2FF] border-black";
                         if (isAnswered) {
-                          if (isCorrect) style = "bg-[#B6FF00] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
+                          if (isCorrect) style = "bg-primary border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
                           else if (isSelected) style = "bg-[#FF9494] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
                           else style = "bg-white border-stone-300 text-stone-400";
                         }
@@ -628,7 +629,7 @@ function DailyLessonsContent() {
                           disabled={selectedOpt === null}
                           className={`w-full border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
                             selectedOpt !== null
-                              ? "bg-[#B6FF00] text-black active:translate-x-px active:translate-y-px active:shadow-none"
+                              ? "bg-primary text-black active:translate-x-px active:translate-y-px active:shadow-none"
                               : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed shadow-none border-stone-400"
                           }`}
                         >
@@ -701,7 +702,7 @@ function DailyLessonsContent() {
                 <div className="space-y-3">
                   <button
                     onClick={() => router.push(`/dashboard/daily-quiz?subject=${encodeURIComponent(lesson.subject)}&topic=${encodeURIComponent(lesson.topic)}`)}
-                    className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
+                    className="w-full bg-primary border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
                   >
                     <Target02Icon size={18} className="text-black" />
                     <span>Take 15-Question Exam Quiz</span>
@@ -753,7 +754,7 @@ function DailyLessonsContent() {
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-sm bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-4"
             >
-              <div className="w-20 h-20 bg-[#B6FF00] border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
+              <div className="w-20 h-20 bg-primary border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
                 <AffirmationIcon name={affirmation.icon} size={40} />
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tight text-black">
@@ -764,7 +765,7 @@ function DailyLessonsContent() {
               </p>
 
               <div className="flex items-center justify-center gap-2 pt-2">
-                <div className="flex items-center gap-1 bg-[#B6FF00] border-[2px] border-black rounded-full px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center gap-1 bg-primary border-[2px] border-black rounded-full px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   <FireIcon size={14} className="text-orange-600" />
                   <span>{streakCount} Day Streak</span>
                 </div>
@@ -776,7 +777,7 @@ function DailyLessonsContent() {
 
               <button
                 onClick={handleAffirmationClose}
-                className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black mt-2"
+                className="w-full bg-primary border-[3px] border-black rounded-xl py-3 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black mt-2"
               >
                 Continue
               </button>

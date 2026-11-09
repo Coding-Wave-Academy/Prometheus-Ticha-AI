@@ -27,7 +27,7 @@ export default function DashboardHeader({
     <header className="flex items-center justify-between w-full mb-6 relative">
       <div className="flex items-center gap-3">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 bg-[#B6FF00]">
+        <div className="w-12 h-12 rounded-full border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 bg-primary">
           {avatarUrl ? (
             <Image
               src={avatarUrl}

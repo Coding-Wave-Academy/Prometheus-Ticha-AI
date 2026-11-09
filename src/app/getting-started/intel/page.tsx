@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
+import { apiFetch } from "@/lib/api";
 
 interface IntelData {
   bigIdea: { text: string; label: string };
@@ -37,7 +38,7 @@ export default function ExamIntelPage() {
           if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
         } catch { /* ignore */ }
 
-        const res = await fetch("/api/ai/intel", {
+        const res = await apiFetch("/api/ai/intel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ goal, education, struggles }),
@@ -110,7 +111,7 @@ export default function ExamIntelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center p-4 antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md min-h-[85vh] flex flex-col justify-between py-6 px-6 text-black items-center space-y-6">
         
         {/* Animated Header & Progress */}
@@ -194,7 +195,7 @@ export default function ExamIntelPage() {
                 </div>
 
                 <div className="bg-white border-[2.5px] border-black rounded-xl p-4 relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="absolute top-2 right-2 bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-[1.5px_1.5px_0px_0px_#B6FF00]">
+                  <div className="absolute top-2 right-2 bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow-[1.5px_1.5px_0px_0px_#C8FF2A]">
                     {intel.bigIdea.label}
                   </div>
 
@@ -268,14 +269,14 @@ export default function ExamIntelPage() {
                   <svg className="w-full h-full" viewBox="0 0 200 80">
                     <defs>
                       <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#B6FF00" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#B6FF00" stopOpacity="0" />
+                        <stop offset="0%" stopColor="#C8FF2A" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="#C8FF2A" stopOpacity="0" />
                       </radialGradient>
                     </defs>
                     <circle cx="100" cy="40" r="30" fill="url(#glow)" />
                     <rect x="95" y="10" width="10" height="60" fill="#FFB040" stroke="black" strokeWidth="1.5" />
-                    <path d="M 20 40 Q 40 10 60 40 T 95 40" fill="none" stroke="#B6FF00" strokeWidth="2.5" />
-                    <path d="M 105 40 Q 120 30 135 40 T 180 40" fill="none" stroke="#B6FF00" strokeWidth="1.5" opacity="0.6" />
+                    <path d="M 20 40 Q 40 10 60 40 T 95 40" fill="none" stroke="#C8FF2A" strokeWidth="2.5" />
+                    <path d="M 105 40 Q 120 30 135 40 T 180 40" fill="none" stroke="#C8FF2A" strokeWidth="1.5" opacity="0.6" />
                     <text x="100" y="55" fontSize="5" fontWeight="black" fill="white" textAnchor="middle">Barrier</text>
                   </svg>
                 </div>
@@ -363,7 +364,7 @@ export default function ExamIntelPage() {
             className={`w-full border-[3.5px] border-black rounded-xl py-4 px-4 font-black text-lg uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
               isLoading || !intel
                 ? "bg-[#E8E6DA] text-stone-400 cursor-not-allowed opacity-80 shadow-none border-stone-400"
-                : "bg-[#B6FF00] hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                : "bg-primary hover:bg-[#a3e600] text-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
             }`}
           >
             <span>{isMounted ? t("intel.continue") : "Continue to Dashboard"}</span>

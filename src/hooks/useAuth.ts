@@ -3,6 +3,24 @@
 import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+import { resetStreakStore } from "@/lib/streakStore";
+
+/**
+ * Streak data used to live in unscoped localStorage keys, so it leaked to the
+ * next student on a shared phone. The server owns it now; remove the old keys.
+ */
+function clearLegacyStreakKeys(): void {
+  if (typeof window === "undefined") return;
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key === "ticha_streak_dates" || key.startsWith("ticha_frozen_")) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Storage unavailable: nothing to clean.
+  }
+}
 
 export interface UserProfile {
   id: string;
@@ -111,6 +129,8 @@ export function useAuth() {
     const supabase = createClient();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    resetStreakStore();
+    clearLegacyStreakKeys();
     setUser(null);
     setSession(null);
     setProfile(null);

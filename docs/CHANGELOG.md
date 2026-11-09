@@ -2,6 +2,67 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-11-09] - Desktop Views, Phase 1: Design Tokens, App Shell, Dashboard & Explore
+
+### Added
+- **Design tokens (`src/app/globals.css` `@theme`)**: brand, surface, card-tint and semantic colours; neo-brutalist and soft shadows; the design-system type scale. Use `bg-primary`, `text-ink`, `bg-card-sky`, `shadow-brutal-md`, etc. instead of hex values.
+- **`AppShell` / `DesktopPage` / `DesktopColumn` (`src/components/layout/AppShell.tsx`)**: one desktop frame for signed-in pages (sidebar + 38px gutter + content column).
+- **`AppHeader`**: desktop header in the two variants from the designs (`inline` for Explore, `large` for Dashboard).
+- **`HubCard` (`src/components/ui/HubCard.tsx`)**: the Explore hub card in three sizes, as a keyboard-accessible link.
+- **`TichaLogo`**: badge + wordmark drawn as SVG.
+- **`navSections.ts`**: route → sidebar section map.
+
+### Changed
+- **Typography**: Plus Jakarta Sans for headings and buttons (design system). Baloo 2 is no longer loaded, so there is one less font to download.
+- **Primary lime**: `#B6FF00` → `#C8FF2A` (design system) across the app, mobile included.
+- **Desktop sidebar** rebuilt to the Explore design: 305px wide with a 1px divider, 52px items, promo card. It uses links instead of buttons, and highlights the right section on study pages (flashcards, quizzes and subjects → Explore; daily lessons and notifications → Dashboard).
+- **Dashboard and Explore desktop views** rebuilt to their designs. Measured at the design canvas sizes, every element is within 4px of the design (except the progress bar fill, which depends on the student's data). Below 1280px the dashboard stacks to one column, and card contents scale with their container, so nothing overflows from 768px to 1920px.
+- Arbitrary hex colour classes in `src/`: 774 → 547.
+
+## [2026-11-09] - Server-Owned Streaks
+
+### Added
+- **Streak functions (`supabase/migrations/20261109_01_streak_functions.sql`)**: `sync_streak()` and `claim_daily_streak(p_day)` apply the streak rules on the server, using Cameroon (Africa/Douala) dates:
+  - one claim per day adds 1;
+  - a missed day uses a freeze; with no freeze left the streak resets to 0 (the next claim starts at 1);
+  - freezes refill to 2 every Monday;
+  - a claim may be for today or yesterday, so studying offline and syncing the next morning keeps the streak.
+- **`streak_days` table**: one row per active or frozen day, so the weekly calendar is the same on every device.
+- **`src/lib/streakStore.ts`**: one shared streak state for every component; the last known state is cached per student for offline display; claims made offline are queued and sent when the connection returns.
+
+### Changed
+- `useStreak` reads from the shared store; the dashboard, Explore and profile pages show the same streak value.
+- `ProfileUpdate` no longer accepts `streak_count`, `freezes_remaining` or `last_active_date`.
+- Sign-out clears the streak store and the old unscoped `ticha_streak_dates` / `ticha_frozen_*` keys.
+- New profiles start with `streak_count = 0`.
+
+### Database: profile columns (`supabase/migrations/20261109_02_lock_profile_columns.sql`)
+- Students can update and insert only their own descriptive profile fields. Streak, freeze and points fields are written only by server functions. The profile DELETE policy is removed (account deletion cascades from `auth.users`).
+
+### Deploy order
+1. Run `20261109_01_streak_functions.sql` in the Supabase SQL editor (additive; the live app keeps working).
+2. Deploy this app version.
+3. Run `20261109_02_lock_profile_columns.sql`.
+
+## [2026-11-09] - API Authentication & Dependency Upgrades
+
+### Added
+- **`requireUser()` (`src/lib/auth/requireUser.ts`)**: server helper that validates the Supabase session with `auth.getUser()` and returns a 401 when there is none. Used by all AI, tutor, voice and RAG routes.
+- **`apiFetch()` (`src/lib/api.ts`)**: `fetch` wrapper for client calls to our API. On 401 it sends the student to `/login?next=<current page>`; on network failure it throws `ApiError` with `kind: "offline"` instead of logging the student out.
+- **`safeNextPath()` (`src/lib/safeRedirect.ts`)**: validates post-login redirect targets (same-origin paths only).
+- **Request schemas (`src/lib/apiSchemas.ts`)**: zod schemas and normalisers for tutor chat and TTS (length limits, subject allow-list, education-level normalisation, history trimming).
+
+### Changed
+- AI, tutor, voice and RAG API routes now require a signed-in user. Past-paper routes and `/api/ai/intel` (used during onboarding, before registration) stay public.
+- `/api/ai/intel` only sends allow-listed level, goal and GCE subject values to Gemini, and caches results per combination for 7 days.
+- `/dashboard/*` redirects signed-out visitors to `/login?next=…`; login, the OAuth callback and the OAuth consent page return the student to that page afterwards.
+- `useTutor` sends only the last 20 conversation turns.
+- Service worker: cache bumped to `ticha-pwa-v4`; redirected navigation responses are no longer cached.
+- Upgraded `next` and `eslint-config-next` to 16.4.5; `npm audit fix` applied.
+
+### Removed
+- Unused `firebase` dependency.
+
 ## [2026-09-14] - Subject Catalog Separation, Fingerprint Polish & System Hardening
 
 ### Added

@@ -45,7 +45,7 @@ export default function PaperDetailModal({
         {/* Title & Subject Header */}
         <div className="pr-10 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-3 py-1 bg-[#B6FF00] border-[2.5px] border-black rounded-full font-extrabold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="px-3 py-1 bg-primary border-[2.5px] border-black rounded-full font-extrabold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {paper.subject.name}
             </span>
             <span className="px-2.5 py-0.5 bg-stone-100 border-[2px] border-black rounded-full font-black text-xs text-black">
@@ -101,7 +101,7 @@ export default function PaperDetailModal({
             type="button"
             onClick={() => onDownload(paper.id)}
             disabled={isDownloading}
-            className={`w-full min-h-[48px] px-5 py-3 bg-[#B6FF00] text-black border-[3.5px] border-black rounded-xl font-extrabold text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer ${
+            className={`w-full min-h-[48px] px-5 py-3 bg-primary text-black border-[3.5px] border-black rounded-xl font-extrabold text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer ${
               isDownloading ? "opacity-75 cursor-not-allowed" : "hover:bg-[#a6ee00]"
             }`}
           >

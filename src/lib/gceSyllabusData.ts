@@ -62,7 +62,7 @@ export const GCE_SYLLABUS_DATA: Record<string, SubjectSyllabus> = {
     code: "PMA775",
     category: "Mathematics",
     level: "al",
-    bgColor: "bg-[#B6FF00]",
+    bgColor: "bg-primary",
     categories: [
       {
         categoryName: "Module 1: Algebra & Trigonometry",
@@ -215,7 +215,7 @@ export const GCE_SYLLABUS_DATA: Record<string, SubjectSyllabus> = {
 // All available subjects by education level for adding subjects
 export const ALL_AVAILABLE_SUBJECTS = [
   { id: "physics", name: "Physics", category: "Sciences", level: "al", bgColor: "bg-[#FFB040]" },
-  { id: "math", name: "Pure Mathematics", category: "Mathematics", level: "al", bgColor: "bg-[#B6FF00]" },
+  { id: "math", name: "Pure Mathematics", category: "Mathematics", level: "al", bgColor: "bg-primary" },
   { id: "ict", name: "ICT & Computing", category: "Technology", level: "al", bgColor: "bg-[#FFDF9E]" },
   { id: "chemistry", name: "Chemistry", category: "Sciences", level: "al", bgColor: "bg-[#FFD9E0]" },
   { id: "biology", name: "Biology", category: "Sciences", level: "al", bgColor: "bg-[#C8F7C5]" },

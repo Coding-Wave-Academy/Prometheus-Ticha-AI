@@ -34,7 +34,7 @@ export default function ExerciseBlock({ question, onSubmit }: ExerciseBlockProps
         <button
           type="submit"
           disabled={!answer.trim() || submitted}
-          className="bg-[#B6FF00] border-[2.5px] border-black rounded-lg px-4 py-2 font-bold text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:active:translate-x-0 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform"
+          className="bg-primary border-[2.5px] border-black rounded-lg px-4 py-2 font-bold text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:active:translate-x-0 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform"
         >
           Submit
         </button>

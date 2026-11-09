@@ -33,7 +33,7 @@ export default function LanguageSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary">
       {/* Decorative Sparkle Star */}
       <div className="absolute top-14 right-6 pointer-events-none z-0">
         <Image
@@ -104,7 +104,7 @@ export default function LanguageSelectionPage() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-[#C8FF2A] border-[1.5px] border-black flex items-center justify-center text-xs">
+                <div className="w-7 h-7 rounded-full bg-primary border-[1.5px] border-black flex items-center justify-center text-xs">
                   🌐
                 </div>
                 <span className="font-extrabold text-sm md:text-base text-[#0A0A0F] tracking-wide">
@@ -155,7 +155,7 @@ export default function LanguageSelectionPage() {
           {/* Continue Button */}
           <button
             onClick={handleContinue}
-            className="w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-heading uppercase tracking-wider"
+            className="w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black bg-primary hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-heading uppercase tracking-wider"
           >
             <span>CONTINUE</span>
             <svg

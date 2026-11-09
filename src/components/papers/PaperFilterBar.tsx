@@ -88,7 +88,7 @@ export default function PaperFilterBar({
                 onClick={() => onSubjectChange(sub.code)}
                 className={`min-h-[40px] px-3.5 py-1.5 rounded-full border-[2.5px] border-black font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#B6FF00] text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-extrabold"
+                    ? "bg-primary text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-extrabold"
                     : "bg-white text-stone-800 hover:bg-stone-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
               >

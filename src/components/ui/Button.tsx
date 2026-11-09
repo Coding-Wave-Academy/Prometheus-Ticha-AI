@@ -41,7 +41,7 @@ export default function Button({
   // Variant mappings
   const variantClasses: Record<ButtonVariant, string> = {
     primary:
-      "bg-[#B6FF00] text-black border-[3.5px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-[#a3e600] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+      "bg-primary text-black border-[3.5px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-[#a3e600] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
     secondary:
       "bg-white text-black border-[3.5px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
     danger:

@@ -48,7 +48,7 @@ export default function HelpCenterModal({ isOpen, onClose }: HelpCenterModalProp
         {/* Header */}
         <div className="flex items-center justify-between border-b-[3px] border-black pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-[#B6FF00] border-[3px] border-black rounded-2xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <div className="w-11 h-11 bg-primary border-[3px] border-black rounded-2xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               <QuestionIcon size={24} className="text-black" />
             </div>
             <div>
@@ -87,7 +87,7 @@ export default function HelpCenterModal({ isOpen, onClose }: HelpCenterModalProp
             </a>
             <a
               href="mailto:contact@ticha.ai?subject=Ticha%20AI%20GCE%20Academic%20Help"
-              className="bg-[#B6FF00] border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block hover:bg-[#a5e600] transition-colors"
+              className="bg-primary border-[2.5px] border-black rounded-xl p-2.5 text-center font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none block hover:bg-[#a5e600] transition-colors"
             >
               💬 Academic Help
             </a>
@@ -134,7 +134,7 @@ export default function HelpCenterModal({ isOpen, onClose }: HelpCenterModalProp
 
         <button
           onClick={onClose}
-          className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
+          className="w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
         >
           Got it
         </button>

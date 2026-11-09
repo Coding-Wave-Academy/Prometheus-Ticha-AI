@@ -153,6 +153,8 @@ const resources = {
         practice: "Practice",
         nav: {
           home: "Home",
+          dashboard: "Dashboard",
+          videoLibrary: "Video Library",
           explore: "Explore",
           chat: "Chat",
           video: "Video",
@@ -369,6 +371,8 @@ const resources = {
         practice: "Pratique",
         nav: {
           home: "Accueil",
+          dashboard: "Tableau de bord",
+          videoLibrary: "Vidéothèque",
           explore: "Explorer",
           chat: "Chat",
           video: "Vidéo",

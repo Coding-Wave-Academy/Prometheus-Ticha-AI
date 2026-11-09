@@ -126,7 +126,7 @@ export default function CommitmentPage() {
   const strokeDashoffset = circumference - progress * circumference;
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A] select-none">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary select-none">
       {/* Decorative Polka Dots (Top Right) */}
       <div className="absolute top-0 right-0 w-36 h-36 pointer-events-none opacity-80 z-0">
         <Image
@@ -180,14 +180,14 @@ export default function CommitmentPage() {
               {[1, 2, 3, 4].map((step) => (
                 <div
                   key={step}
-                  className="flex-1 h-2 rounded-full border-[1.5px] border-black bg-[#C8FF2A]"
+                  className="flex-1 h-2 rounded-full border-[1.5px] border-black bg-primary"
                 />
               ))}
 
               {/* Segment 5: Outlined + dynamic fill as user holds */}
               <div className="flex-1 h-2 rounded-full border-[1.5px] border-black bg-transparent overflow-hidden relative">
                 <div
-                  className="h-full bg-[#C8FF2A] transition-all duration-75"
+                  className="h-full bg-primary transition-all duration-75"
                   style={{ width: `${topBarStep5Width}%` }}
                 />
               </div>
@@ -413,7 +413,7 @@ export default function CommitmentPage() {
               duration: 0.65,
               ease: [0.32, 0.72, 0, 1], // Apple-style smooth cubic bezier
             }}
-            className="fixed inset-0 z-50 bg-[#C8FF2A] border-t-[4px] border-black flex flex-col items-center justify-center p-6 text-[#0A0A0F]"
+            className="fixed inset-0 z-50 bg-primary border-t-[4px] border-black flex flex-col items-center justify-center p-6 text-[#0A0A0F]"
           >
             {/* Morphing Completion Animation */}
             <motion.div

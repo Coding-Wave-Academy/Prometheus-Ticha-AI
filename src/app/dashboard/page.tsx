@@ -20,7 +20,8 @@ import { useNavItems } from "@/hooks/useNavItems";
 import { useProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardHeaderWeb from "@/components/dashboard/DashboardHeaderWeb";
+import AppHeader from "@/components/layout/AppHeader";
+import { DesktopPage, DesktopColumn } from "@/components/layout/AppShell";
 import StreakCalendar from "@/components/dashboard/StreakCalendar";
 import QuickActions from "@/components/dashboard/QuickActions";
 import FeaturedSubjects from "@/components/dashboard/FeaturedSubjects";
@@ -33,7 +34,9 @@ import BottomNav from "@/components/layout/BottomNav";
 import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import PWAInstaller from "@/components/layout/PWAInstaller";
 import { SubjectData, QuickAction } from "@/types";
+import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
+import { useStreak } from "@/hooks/useStreak";
 
 const quickActions: QuickAction[] = [
   {
@@ -45,7 +48,7 @@ const quickActions: QuickAction[] = [
   {
     name: "Summaries",
     icon: <Book01Icon size={24} className="text-black" />,
-    bgColor: "bg-[#B6FF00]",
+    bgColor: "bg-primary",
   },
   {
     name: "Past Papers",
@@ -93,6 +96,7 @@ export default function StudentDashboardPage() {
 
 function StudentDashboardPageContent() {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const navItems = useNavItems();
   const { profile, isLoading } = useProfile();
@@ -160,7 +164,7 @@ function StudentDashboardPageContent() {
       title: "Pure Maths",
       subtitle: "Algebra, Calculus & Vectors",
       progress: getProgress("pure mathematics"),
-      bgColor: "bg-[#B6FF00]",
+      bgColor: "bg-primary",
       icon: <SquareIcon size={24} className="text-black" />,
     };
 
@@ -299,13 +303,13 @@ function StudentDashboardPageContent() {
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count ?? 0; // 0 for new users
+  const { streakCount } = useStreak();
   const currentLevel = profile?.education_level === "ol" ? "GCE O-Level" : "GCE A-Level";
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-        <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -317,68 +321,38 @@ function StudentDashboardPageContent() {
           Two-column grid with Daily Lesson, Streak, Quick Actions, Progress
           Sidebar is rendered by the dashboard layout.tsx
        ═══════════════════════════════════════════════════════════════════ */}
-      <div className="hidden md:block min-h-screen bg-[#FAF7EC] text-black antialiased font-sans">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="w-full max-w-5xl mx-auto px-6 lg:px-10 py-8"
-        >
-          {/* Web Header */}
-          <motion.div variants={itemVariants}>
-            <DashboardHeaderWeb
-              userName={userName}
-              avatarUrl={avatarUrl}
-              streakCount={streakCount}
-            />
-          </motion.div>
+      <DesktopPage>
+        <DesktopColumn className="relative" width={1134}>
+          {/* Measured from design/Ticha AI Web View - Dashboard.png (content column 1134px) */}
+          <div className="-mr-[6px]">
+            <AppHeader variant="large" userName={userName} avatarUrl={avatarUrl} streakCount={streakCount} />
+          </div>
 
-          {/* Section Label: Daily Lesson */}
-          <motion.div variants={itemVariants} className="mb-4">
-            <h2 className="text-xl font-black tracking-tight text-[#1A1A1A]">
-              Daily Lesson
-            </h2>
-          </motion.div>
+          <div className="pl-[16px] mt-[8px]">
+            <h1 className="text-[42px] leading-none font-bold text-ink tracking-[-0.01em]">
+              {t("dashboard.hello")} {userName} <span aria-hidden="true">👋</span>
+            </h1>
+            <p className="mt-[17px] text-[18.5px] leading-none font-medium text-ink">1% Daily Improvements!</p>
+            <h2 className="mt-[59px] text-[30px] leading-none font-bold text-ink">Daily Lesson</h2>
+          </div>
 
-          {/* Two-Column Grid: Daily Lesson Card + Streak Card */}
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8"
-          >
-            {/* Left: Daily Lesson — takes 3/5 on lg */}
-            <div className="lg:col-span-3">
-              <DailyLessonCardWeb />
-            </div>
+          <div className="mt-[31px] grid grid-cols-1 xl:grid-cols-[477fr_638fr] gap-[19px] items-start">
+            <DailyLessonCardWeb />
+            <StreakCardWeb />
+          </div>
 
-            {/* Right: Streak — takes 2/5 on lg */}
-            <div className="lg:col-span-2">
-              <StreakCardWeb />
-            </div>
-          </motion.div>
-
-          {/* Two-Column Grid: Quick Actions + Progress */}
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-1 lg:grid-cols-5 gap-6"
-          >
-            {/* Left: Quick Actions */}
-            <div className="lg:col-span-3">
-              <QuickActionsWeb />
-            </div>
-
-            {/* Right: Progress */}
-            <div className="lg:col-span-2">
-              <ProgressCardWeb />
-            </div>
-          </motion.div>
-        </motion.div>
-      </div>
+          <div className="mt-[49px] grid grid-cols-1 xl:grid-cols-[535fr_580fr] gap-x-[19px] gap-y-[40px] items-start">
+            <QuickActionsWeb />
+            <ProgressCardWeb />
+          </div>
+        </DesktopColumn>
+      </DesktopPage>
 
       {/* ═══════════════════════════════════════════════════════════════════
           MOBILE LAYOUT (<768px)
           Original single-column mobile-first design, fully preserved.
        ═══════════════════════════════════════════════════════════════════ */}
-      <div className="md:hidden min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
+      <div className="md:hidden min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-primary">
         <motion.main
           variants={containerVariants}
           initial="hidden"

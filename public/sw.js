@@ -1,4 +1,6 @@
-const CACHE_NAME = "ticha-pwa-v3";
+// v4: v3 could hold a login page cached under a protected URL; bumping the
+// name makes the activate handler delete it.
+const CACHE_NAME = "ticha-pwa-v4";
 
 // Minimal static assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -86,7 +88,15 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+          // Never cache a redirected response: a logged-out visit to /dashboard
+          // ends on /login, and caching that under /dashboard would show a
+          // login screen offline.
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            !networkResponse.redirected &&
+            networkResponse.type === "basic"
+          ) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
