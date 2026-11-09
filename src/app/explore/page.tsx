@@ -30,6 +30,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { hapticTap } from "@/lib/haptics";
 import { HubCard } from "@/types";
 import "@/lib/i18n";
+import { useStreak } from "@/hooks/useStreak";
 
 interface WebHubCard {
   id: string;
@@ -67,7 +68,7 @@ export default function ExploreHubPage() {
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count ?? 0;
+  const { streakCount } = useStreak();
 
   // Web Core Learning Cards (3 columns)
   const webCoreCards: WebHubCard[] = [
