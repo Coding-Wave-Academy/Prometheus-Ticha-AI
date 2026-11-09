@@ -15,7 +15,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { loginSchema, extractZodErrors } from "@/lib/validation";
 import { sanitizeString } from "@/lib/security";
 import { createClient } from "@/utils/supabase/client";
+import { safeNextPath } from "@/lib/safeRedirect";
 import "@/lib/i18n";
+
+/**
+ * Where to go after signing in: the validated `?next=` set by the proxy when a
+ * logged-out student opened a protected page, otherwise the dashboard. Read
+ * from `window.location` at call time so the page can stay statically rendered
+ * without a Suspense boundary for `useSearchParams`.
+ */
+function getNextPath(): string {
+  if (typeof window === "undefined") return "/dashboard";
+  return safeNextPath(new URLSearchParams(window.location.search).get("next"));
+}
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -32,7 +44,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace("/dashboard");
+      router.replace(getNextPath());
     }
   }, [user, authLoading, router]);
 
@@ -80,7 +92,7 @@ export default function LoginPage() {
       if (data.user?.user_metadata?.full_name) {
         localStorage.setItem("ticha_user_fullname", data.user.user_metadata.full_name);
       }
-      router.push("/dashboard");
+      router.push(getNextPath());
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Authentication service unavailable.";
       addToast(msg, "error", "Login Error");
@@ -113,7 +125,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(getNextPath())}`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",

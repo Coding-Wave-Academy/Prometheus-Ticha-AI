@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import "@/lib/i18n";
+import { apiFetch } from "@/lib/api";
 
 interface IntelData {
   bigIdea: { text: string; label: string };
@@ -37,7 +38,7 @@ export default function ExamIntelPage() {
           if (Array.isArray(parsed) && parsed.length > 0) struggles = parsed;
         } catch { /* ignore */ }
 
-        const res = await fetch("/api/ai/intel", {
+        const res = await apiFetch("/api/ai/intel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ goal, education, struggles }),

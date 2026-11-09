@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeNextPath } from "@/lib/safeRedirect";
 import {
   ShieldKeyIcon,
   CheckmarkCircle02Icon,
@@ -30,13 +31,10 @@ function OAuthConsentContent() {
   const handleApprove = () => {
     setIsAuthorizing(true);
     setTimeout(() => {
-      if (redirectUri.startsWith("http") || redirectUri.startsWith("/")) {
-        const separator = redirectUri.includes("?") ? "&" : "?";
-        const finalUrl = state ? `${redirectUri}${separator}state=${encodeURIComponent(state)}` : redirectUri;
-        router.push(finalUrl);
-      } else {
-        router.push("/dashboard");
-      }
+      // Only same-origin paths are allowed; external redirect targets are dropped.
+      const target = safeNextPath(redirectUri);
+      const separator = target.includes("?") ? "&" : "?";
+      router.push(state ? `${target}${separator}state=${encodeURIComponent(state)}` : target);
     }, 800);
   };
 

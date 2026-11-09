@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ interface StruggleSubject {
  * based on selected onboarding goal and education level, falling back to top 3 level-specific subjects.
  */
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { goal, education } = await req.json();
 

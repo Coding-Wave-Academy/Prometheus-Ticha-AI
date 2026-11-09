@@ -23,6 +23,7 @@ import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { fireSideCannons } from "@/lib/confetti";
 import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
+import { apiFetch } from "@/lib/api";
 
 interface FlashCard {
   id: string;
@@ -175,7 +176,7 @@ function FlashcardsContent() {
 
     // Fetch from AI endpoint if no cached deck exists
     try {
-      const res = await fetch("/api/ai/flashcards", {
+      const res = await apiFetch("/api/ai/flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject: curSub, topic: curTop }),
