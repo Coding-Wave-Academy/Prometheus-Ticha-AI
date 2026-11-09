@@ -28,7 +28,7 @@ export const SUBJECTS: SubjectItem[] = [
     id: "maths",
     name: "Pure Mathematics",
     category: "Maths",
-    color: "bg-[#B6FF00]",
+    color: "bg-primary",
     icon: <SquareIcon size={28} className="text-black" />,
   },
   {

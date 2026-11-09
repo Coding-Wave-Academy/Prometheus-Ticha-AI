@@ -41,7 +41,7 @@ export default function SubjectSelector({ selectedSubject, onSelect }: SubjectSe
                 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
                 ${
                   isSelected
-                    ? "bg-[#B6FF00] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    ? "bg-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                     : `${subject.bgColor} shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:bg-stone-50`
                 }
               `}
@@ -57,7 +57,7 @@ export default function SubjectSelector({ selectedSubject, onSelect }: SubjectSe
                 <span className="absolute top-2 right-2">
                   <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
                     <circle cx="10" cy="10" r="8" fill="black" />
-                    <path d="M6 10L9 13L14 7" stroke="#B6FF00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M6 10L9 13L14 7" stroke="#C8FF2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
               )}

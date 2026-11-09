@@ -45,7 +45,7 @@ function OAuthConsentContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-        <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -55,13 +55,13 @@ function OAuthConsentContent() {
   const userAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] text-black font-sans flex items-center justify-center p-4 selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] text-black font-sans flex items-center justify-center p-4 selection:bg-primary">
       <main className="w-full max-w-md bg-white border-[4px] border-black rounded-3xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col space-y-6">
         
         {/* Top Header branding */}
         <div className="flex items-center justify-between border-b-[3px] border-black pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#B6FF00] border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-primary border-[3px] border-black overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
               <Image
                 src="/images/madame-ticha.png"
                 alt="Ticha AI Logo"
@@ -87,7 +87,7 @@ function OAuthConsentContent() {
         {/* Logged in User Card */}
         <div className="bg-[#FAF7EC] border-[3px] border-black rounded-2xl p-3.5 flex items-center justify-between shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#B6FF00] border-[2px] border-black overflow-hidden flex items-center justify-center font-black text-sm text-black shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary border-[2px] border-black overflow-hidden flex items-center justify-center font-black text-sm text-black shrink-0">
               {userAvatar ? (
                 <Image src={userAvatar} alt="User avatar" width={40} height={40} className="object-cover w-full h-full" unoptimized />
               ) : (
@@ -99,7 +99,7 @@ function OAuthConsentContent() {
               <p className="text-[11px] font-bold text-stone-600 truncate">{userEmail}</p>
             </div>
           </div>
-          <span className="text-[10px] font-black uppercase bg-[#B6FF00] border-[1.5px] border-black px-2 py-0.5 rounded-full shrink-0">
+          <span className="text-[10px] font-black uppercase bg-primary border-[1.5px] border-black px-2 py-0.5 rounded-full shrink-0">
             Active User
           </span>
         </div>
@@ -163,7 +163,7 @@ function OAuthConsentContent() {
           <button
             onClick={handleApprove}
             disabled={isAuthorizing}
-            className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 text-black disabled:opacity-50"
+            className="w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 text-black disabled:opacity-50"
           >
             {isAuthorizing ? (
               <span className="flex items-center gap-2">

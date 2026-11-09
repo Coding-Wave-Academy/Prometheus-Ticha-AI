@@ -164,7 +164,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between p-4 md:p-6 text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between p-4 md:p-6 text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
       {/* Decorative Polka Dots (Top Right) */}
@@ -285,7 +285,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider font-heading mt-2"
+              className="w-full bg-primary hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider font-heading mt-2"
             >
               {isLoading ? (
                 <span>LOGGING IN...</span>

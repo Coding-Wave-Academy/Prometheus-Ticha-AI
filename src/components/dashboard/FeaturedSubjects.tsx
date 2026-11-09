@@ -74,7 +74,7 @@ export default function FeaturedSubjects({
 
             {/* Progress + Navigate */}
             <div className="flex flex-col items-end gap-3 flex-shrink-0">
-              <div className="bg-[#1A1A1A] text-[#B6FF00] rounded-full py-1 px-3.5 font-bold text-xs tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+              <div className="bg-[#1A1A1A] text-primary rounded-full py-1 px-3.5 font-bold text-xs tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                 {subject.progress}%
               </div>
               <div

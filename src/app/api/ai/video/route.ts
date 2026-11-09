@@ -38,7 +38,7 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
         headline: "Induced Electromotive Force (EMF)",
         subtext: "The changing magnetic flux pushes free electrons inside the wire to create a voltage difference.",
         visualType: "wave",
-        color: "#B6FF00",
+        color: "#C8FF2A",
       },
       {
         timestamp: "0:15",
@@ -52,7 +52,7 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
         headline: "Exam Formula Rule",
         subtext: "EMF is directly proportional to rate of change of magnetic flux linkage.",
         visualType: "particles",
-        color: "#B6FF00",
+        color: "#C8FF2A",
       },
     ],
     keyTakeaway: "Changing magnetic flux linkages induce an EMF proportional to rate of change.",
@@ -68,7 +68,7 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
         headline: "Curved Functions at Macro Scale",
         subtext: "A smooth continuous curve looks non-linear when viewed across a wide domain.",
         visualType: "graph",
-        color: "#B6FF00",
+        color: "#C8FF2A",
       },
       {
         timestamp: "0:10",
@@ -89,7 +89,7 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
         headline: "Derivative Definition",
         subtext: "The derivative dy/dx measures instantaneous slope via limit processes.",
         visualType: "particles",
-        color: "#B6FF00",
+        color: "#C8FF2A",
       },
     ],
     keyTakeaway: "Limits calculate instantaneous slope by examining local linearity at a single point.",
@@ -112,7 +112,7 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
         headline: "First Normal Form (1NF)",
         subtext: "Ensures every table column contains atomic, indivisible values with unique primary keys.",
         visualType: "table",
-        color: "#B6FF00",
+        color: "#C8FF2A",
       },
       {
         timestamp: "0:15",
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
             "headline": "Scene 1 Headline",
             "subtext": "Scene 1 short explanation.",
             "visualType": "particles",
-            "color": "#B6FF00"
+            "color": "#C8FF2A"
           }
         ],
         "keyTakeaway": "1-sentence core exam takeaway."

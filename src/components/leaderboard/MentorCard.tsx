@@ -46,7 +46,7 @@ export default function MentorCard({
       </div>
 
       <div className="flex gap-2 my-4">
-        <span className="bg-[#B6FF00] text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+        <span className="bg-primary text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
           {levels}
         </span>
         <span className="bg-[#FFB040] text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">

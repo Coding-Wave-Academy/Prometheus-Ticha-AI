@@ -69,7 +69,7 @@ export default function TutorMessage({ message, onPlayAudio, onSubmitAnswer }: T
         {!isUser && onPlayAudio && (
           <button
             onClick={() => onPlayAudio(displayText)}
-            className="absolute -right-2 -bottom-2 bg-[#B6FF00] p-2 rounded-full border-[2.5px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="absolute -right-2 -bottom-2 bg-primary p-2 rounded-full border-[2.5px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
             aria-label="Play audio"
           >
             <PlayIcon className="w-4 h-4 text-black" />

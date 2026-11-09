@@ -35,7 +35,7 @@ export default function Avatar({
   };
 
   const statusBg = {
-    online: "bg-[#B6FF00]",
+    online: "bg-primary",
     offline: "bg-stone-400",
     busy: "bg-[#FF9494]",
   };
@@ -43,7 +43,7 @@ export default function Avatar({
   return (
     <div className={`relative inline-block ${className}`}>
       <div
-        className={`relative rounded-full border-[2.5px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-[#B6FF00] flex items-center justify-center font-black uppercase text-black ${sizeClasses[size]}`}
+        className={`relative rounded-full border-[2.5px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-primary flex items-center justify-center font-black uppercase text-black ${sizeClasses[size]}`}
       >
         {src && !imageError ? (
           <Image

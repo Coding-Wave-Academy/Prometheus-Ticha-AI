@@ -136,7 +136,7 @@ export default function AccountSettingsModal({
               <button
                 onClick={() => handleLanguageChange("en")}
                 className={`p-3 border-[2.5px] border-black rounded-xl font-black text-xs uppercase flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ${
-                  currentLang === "en" ? "bg-[#B6FF00]" : "bg-white hover:bg-stone-50"
+                  currentLang === "en" ? "bg-primary" : "bg-white hover:bg-stone-50"
                 }`}
               >
                 🇬🇧 English {currentLang === "en" && "✓"}
@@ -145,7 +145,7 @@ export default function AccountSettingsModal({
               <button
                 onClick={() => handleLanguageChange("fr")}
                 className={`p-3 border-[2.5px] border-black rounded-xl font-black text-xs uppercase flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ${
-                  currentLang === "fr" ? "bg-[#B6FF00]" : "bg-white hover:bg-stone-50"
+                  currentLang === "fr" ? "bg-primary" : "bg-white hover:bg-stone-50"
                 }`}
               >
                 🇫🇷 Français {currentLang === "fr" && "✓"}
@@ -199,7 +199,7 @@ export default function AccountSettingsModal({
 
           <button
             onClick={onClose}
-            className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
+            className="w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
           >
             Save & Close
           </button>

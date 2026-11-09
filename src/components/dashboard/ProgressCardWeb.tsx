@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { GridIcon } from "hugeicons-react";
+import Link from "next/link";
+import { ArrowRight01Icon, GridIcon } from "hugeicons-react";
+import { hapticTap } from "@/lib/haptics";
 import { useProfile } from "@/hooks/useProfile";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 
@@ -22,7 +22,6 @@ interface ProgressSubject {
  * localStorage for progress tracking.
  */
 export default function ProgressCardWeb() {
-  const router = useRouter();
   const { profile } = useProfile();
 
   // Helper to read progress from localStorage
@@ -139,99 +138,31 @@ export default function ProgressCardWeb() {
   if (!featured) return null;
 
   return (
-    <section className="w-full">
-      <h3 className="text-xl font-black tracking-tight text-[#1A1A1A] mb-4">
-        Progress
-      </h3>
-
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        onClick={() => router.push(featured.href)}
-        className="bg-[#D3E2FF] border-[3px] border-black rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative overflow-hidden active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+    <section aria-labelledby="progress-title">
+      <h2 id="progress-title" className="text-[28px] leading-none font-bold text-ink">Progress</h2>
+      <Link
+        href={featured.href}
+        onClick={() => hapticTap()}
+        aria-label={`${featured.title}: ${featured.progress}% complete`}
+        className="group relative mt-[18px] flex items-center h-[160px] bg-card-sky-soft border-2 border-ink rounded-[18px] shadow-[4px_5px_0_0_var(--color-ink)] pl-[19px] pr-[22px] transition-transform duration-150 hover:-translate-y-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
       >
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-3 flex-1">
-            {/* Subject Icon */}
-            <div className="w-10 h-10 bg-white border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
-              <GridIcon size={18} className="text-black" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-stone-600 block">
-                {featured.category}
-              </span>
-              <h4 className="text-sm font-black text-black leading-tight truncate">
-                {featured.title}
-              </h4>
-            </div>
-          </div>
-
-          {/* Percentage Badge */}
-          <div className="bg-[#C8FF2A] border-[2px] border-black rounded-full py-1 px-3 font-black text-xs text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
-            {featured.progress}%
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full h-2.5 bg-white/60 border-[1.5px] border-black/20 rounded-full overflow-hidden mb-3">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${featured.progress}%` }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-            className="h-full bg-[#3B82F6] rounded-full"
-          />
-        </div>
-
-        {/* Navigate Arrow */}
-        <div className="flex justify-end">
-          <div className="w-8 h-8 bg-black border-[2px] border-black rounded-full flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-            <svg
-              className="w-4 h-4 stroke-[3px] text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Additional subjects (compact list) */}
-      {progressSubjects.length > 1 && (
-        <div className="mt-3 space-y-2">
-          {progressSubjects.slice(1).map((subj) => (
-            <div
-              key={subj.id}
-              onClick={() => router.push(subj.href)}
-              className="bg-white border-[2.5px] border-black rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all hover:bg-stone-50"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">
-                  {subj.category}
-                </span>
-                <span className="text-sm font-bold text-black truncate">
-                  {subj.title}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-16 h-2 bg-stone-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#3B82F6] rounded-full transition-all"
-                    style={{ width: `${subj.progress}%` }}
-                  />
-                </div>
-                <span className="text-xs font-black text-stone-600">
-                  {subj.progress}%
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        <span className="w-[69px] h-[69px] shrink-0 rounded-full bg-white border-[3px] border-ink flex items-center justify-center shadow-[2px_3px_0_0_var(--color-ink)]" aria-hidden="true">
+          <GridIcon size={30} className="text-ink" />
+        </span>
+        <span className="ml-[24px] flex-1 min-w-0 self-stretch pt-[32px]">
+          <span className="block text-[14px] leading-none font-semibold uppercase tracking-[0.02em] text-progress-label">{featured.category}</span>
+          <span className="mt-[16px] block text-[19px] leading-none font-semibold text-ink truncate pr-[110px]">{featured.title}</span>
+          <span className="mt-[30px] block h-[12px] w-[calc(100%-92px)] rounded-full bg-progress-track overflow-hidden" aria-hidden="true">
+            <span className="block h-full rounded-full bg-progress" style={{ width: `${Math.max(featured.progress, 2)}%` }} />
+          </span>
+        </span>
+        <span className="absolute top-[28px] right-[20px] min-w-[71px] h-[34px] px-3 rounded-full bg-ink text-white text-[15px] font-bold flex items-center justify-center">
+          {featured.progress}%
+        </span>
+        <span className="absolute bottom-[20px] right-[23px] w-[32px] h-[32px] rounded-full bg-ink flex items-center justify-center transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+          <ArrowRight01Icon size={18} className="text-white" />
+        </span>
+      </Link>
     </section>
   );
 }

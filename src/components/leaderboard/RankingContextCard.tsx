@@ -15,11 +15,11 @@ interface RankingContextCardProps {
  */
 export default function RankingContextCard({ rank, points, aheadOf }: RankingContextCardProps) {
   return (
-    <section className="w-full bg-[#B6FF00] border-[3.5px] border-black rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-10 relative overflow-hidden flex items-center gap-4">
+    <section className="w-full bg-primary border-[3.5px] border-black rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-10 relative overflow-hidden flex items-center gap-4">
       {/* Left: text info */}
       <div className="flex-1 space-y-1 relative z-10">
         <div className="inline-flex bg-black/80 rounded-full py-0.5 px-3 items-center gap-1">
-          <svg className="w-3 h-3 fill-current text-[#B6FF00]" viewBox="0 0 24 24">
+          <svg className="w-3 h-3 fill-current text-primary" viewBox="0 0 24 24">
             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           <span className="text-[10px] font-black uppercase tracking-wider text-white">

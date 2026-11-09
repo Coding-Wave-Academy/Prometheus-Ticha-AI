@@ -40,7 +40,7 @@ export default function DailyQuizPage() {
     <React.Suspense
       fallback={
         <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-          <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
         </div>
       }
     >
@@ -279,7 +279,7 @@ function DailyQuizContent() {
   const progressPercent = quiz.length > 0 ? Math.round(((currentIdx + 1) / quiz.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -314,7 +314,7 @@ function DailyQuizContent() {
         {/* Loading State */}
         {isLoading && (
           <div className="bg-white border-[3.5px] border-black rounded-2xl p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-            <div className="w-12 h-12 border-[4px] border-black border-t-[#B6FF00] rounded-full animate-spin mx-auto" />
+            <div className="w-12 h-12 border-[4px] border-black border-t-primary rounded-full animate-spin mx-auto" />
             <h3 className="font-black text-base uppercase text-black">
               Generating GCE Paper 1 Questions...
             </h3>
@@ -341,7 +341,7 @@ function DailyQuizContent() {
               {/* Progress Bar */}
               <div className="h-2.5 w-full bg-stone-100 border-[2px] border-black rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#B6FF00] transition-all duration-300"
+                  className="h-full bg-primary transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -376,7 +376,7 @@ function DailyQuizContent() {
                       key={oIdx}
                       onClick={() => handleSelectOption(oIdx)}
                       className={`w-full p-3.5 rounded-xl border-[2.5px] border-black text-left font-bold text-xs flex items-center gap-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all ${
-                        isSelected ? "bg-[#B6FF00] text-black" : "bg-white text-black hover:bg-stone-50"
+                        isSelected ? "bg-primary text-black" : "bg-white text-black hover:bg-stone-50"
                       }`}
                     >
                       <span className="w-6 h-6 rounded-lg border-[2px] border-black bg-white flex items-center justify-center font-black text-xs shrink-0">
@@ -394,7 +394,7 @@ function DailyQuizContent() {
                 disabled={selectedOpt === null}
                 className={`w-full border-[3.5px] border-black rounded-xl py-3.5 font-black uppercase text-xs tracking-wider transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
                   selectedOpt !== null
-                    ? "bg-[#B6FF00] text-black active:translate-x-px active:translate-y-px active:shadow-none"
+                    ? "bg-primary text-black active:translate-x-px active:translate-y-px active:shadow-none"
                     : "bg-[#E8E6DA] text-stone-400 cursor-not-allowed shadow-none border-stone-400"
                 }`}
               >
@@ -412,7 +412,7 @@ function DailyQuizContent() {
             className="space-y-5"
           >
             {/* Score Summary Card */}
-            <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-3">
+            <div className="bg-primary border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-3">
               <div className="w-16 h-16 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mx-auto">
                 <Award01Icon size={36} className="text-black" />
               </div>
@@ -438,7 +438,7 @@ function DailyQuizContent() {
                   </span>
                   <span className={`text-[10px] font-black px-2 py-0.5 border border-black rounded ${
                     userAnswers[reviewIdx] === quiz[reviewIdx].answerIdx
-                      ? "bg-[#B6FF00] text-black"
+                      ? "bg-primary text-black"
                       : "bg-[#FF9494] text-black"
                   }`}>
                     {userAnswers[reviewIdx] === quiz[reviewIdx].answerIdx ? "CORRECT ✓" : "INCORRECT ✗"}
@@ -456,7 +456,7 @@ function DailyQuizContent() {
                     const wasChosen = userAnswers[reviewIdx] === oIdx;
 
                     let bg = "bg-white border-stone-200 text-stone-500";
-                    if (isCorrect) bg = "bg-[#B6FF00] border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
+                    if (isCorrect) bg = "bg-primary border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
                     else if (wasChosen) bg = "bg-[#FF9494] border-black text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]";
 
                     return (
@@ -509,7 +509,7 @@ function DailyQuizContent() {
                   <button
                     onClick={() => setReviewIdx((prev) => Math.min(quiz.length - 1, prev + 1))}
                     disabled={reviewIdx === quiz.length - 1}
-                    className="px-3 py-2 border-[2px] border-black rounded-xl text-xs font-black uppercase bg-[#B6FF00] disabled:opacity-40 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px"
+                    className="px-3 py-2 border-[2px] border-black rounded-xl text-xs font-black uppercase bg-primary disabled:opacity-40 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px"
                   >
                     Next
                   </button>
@@ -521,7 +521,7 @@ function DailyQuizContent() {
             <div className="space-y-3">
               <button
                 onClick={() => loadQuiz(subjectTopic.subject)}
-                className="w-full bg-[#B6FF00] border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
+                className="w-full bg-primary border-[3px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black flex items-center justify-center gap-2"
               >
                 <RotateRight01Icon size={18} className="text-black" />
                 <span>Retry Quiz Drill</span>

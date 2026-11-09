@@ -52,7 +52,7 @@ export default function OnboardingProgressBar({
               key={stepIndex}
               className={`flex-1 h-2 rounded-full border-[1.5px] transition-colors ${
                 isFilled
-                  ? "border-black bg-[#C8FF2A]"
+                  ? "border-black bg-primary"
                   : "border-black bg-transparent"
               }`}
             />

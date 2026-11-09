@@ -26,7 +26,7 @@ export default function PasswordStrengthBar({
               <div
                 key={index}
                 className={`flex-1 h-full rounded-full transition-all duration-300 ${
-                  isFilled ? "bg-[#C8FF2A] border-[1px] border-black" : "bg-stone-200"
+                  isFilled ? "bg-primary border-[1px] border-black" : "bg-stone-200"
                 }`}
               />
             );
@@ -50,7 +50,7 @@ export default function PasswordStrengthBar({
               <span
                 className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${
                   check.passed
-                    ? "bg-[#C8FF2A] border-[1px] border-black text-black font-black"
+                    ? "bg-primary border-[1px] border-black text-black font-black"
                     : "border-[1.5px] border-stone-300"
                 }`}
               >

@@ -20,7 +20,7 @@ export default function NotificationsPage() {
   const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -74,7 +74,7 @@ export default function NotificationsPage() {
                   }
                 }}
                 className={`p-4 border-[3.5px] border-black rounded-2xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-start gap-3.5 ${
-                  !n.read ? "bg-[#B6FF00]" : "bg-white"
+                  !n.read ? "bg-primary" : "bg-white"
                 }`}
               >
                 <div className="w-10 h-10 rounded-xl border-[2px] border-black bg-white flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">

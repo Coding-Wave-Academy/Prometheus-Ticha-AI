@@ -37,7 +37,7 @@ export function usePasswordStrength(password: string): PasswordStrength {
     1: { label: "Weak", color: "bg-red-500" },
     2: { label: "Fair", color: "bg-orange-400" },
     3: { label: "Good", color: "bg-yellow-400" },
-    4: { label: "Strong", color: "bg-[#B6FF00]" },
+    4: { label: "Strong", color: "bg-primary" },
     5: { label: "Very Strong", color: "bg-green-500" },
   };
 

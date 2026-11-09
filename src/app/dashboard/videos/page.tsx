@@ -52,7 +52,7 @@ export default function VideosPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -79,7 +79,7 @@ export default function VideosPage() {
 
         {isLoading ? (
           <div className="py-20 flex items-center justify-center">
-            <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+            <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
           </div>
         ) : watchedVideos.length === 0 ? (
           /* Empty State */
@@ -99,7 +99,7 @@ export default function VideosPage() {
 
             <Link
               href="/dashboard/daily-lessons"
-              className="inline-flex items-center justify-center gap-2 w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black"
+              className="inline-flex items-center justify-center gap-2 w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3.5 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-black"
             >
               <SparklesIcon size={18} />
               <span>Start Today&apos;s Lesson →</span>
@@ -122,7 +122,7 @@ export default function VideosPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-[#B6FF00] border-[1px] border-black px-2 py-0.5 rounded-full inline-block">
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-primary border-[1px] border-black px-2 py-0.5 rounded-full inline-block">
                     {activeVideo.subject}
                   </span>
                   <h2 className="text-base font-black text-black leading-tight">
@@ -154,11 +154,11 @@ export default function VideosPage() {
                     onClick={() => setActiveVideo(video)}
                     className={`${
                       activeVideo?.id === video.id
-                        ? "bg-[#B6FF00] border-[3px] border-black"
+                        ? "bg-primary border-[3px] border-black"
                         : "bg-white border-[2.5px] border-black"
                     } rounded-xl p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center gap-3`}
                   >
-                    <div className="w-10 h-10 bg-black text-[#B6FF00] border-[2px] border-black rounded-lg flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 bg-black text-primary border-[2px] border-black rounded-lg flex items-center justify-center shrink-0">
                       <PlayIcon size={20} />
                     </div>
                     <div className="flex-1 min-w-0">

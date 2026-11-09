@@ -28,7 +28,7 @@ export default function PaperLevelTabs({ levels, activeLevel, onSelectLevel }: P
             type="button"
             className={`flex-1 min-h-[44px] px-3 py-2 text-xs md:text-sm font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 border-[2.5px] whitespace-nowrap cursor-pointer ${
               isActive
-                ? "bg-[#B6FF00] text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                ? "bg-primary text-black border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 : "bg-stone-50 text-stone-700 border-transparent hover:bg-stone-100 hover:border-black"
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >

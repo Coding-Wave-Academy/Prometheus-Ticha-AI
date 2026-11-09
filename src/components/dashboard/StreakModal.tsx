@@ -74,7 +74,7 @@ export default function StreakModal({
           </div>
 
           {/* Streak Saver / Pause Protection Card */}
-          <div className="bg-[#B6FF00] border-[3px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
+          <div className="bg-primary border-[3px] border-black rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white border-[2.5px] border-black rounded-lg flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                 <Shield01Icon size={22} className="text-black" />
@@ -88,7 +88,7 @@ export default function StreakModal({
                 </p>
               </div>
             </div>
-            <span className="text-[10px] font-black uppercase bg-black text-[#B6FF00] px-2 py-0.5 rounded-full border border-black">
+            <span className="text-[10px] font-black uppercase bg-black text-primary px-2 py-0.5 rounded-full border border-black">
               Safe
             </span>
           </div>
@@ -104,7 +104,7 @@ export default function StreakModal({
                   key={idx}
                   className={`p-2 rounded-xl border-[2px] border-black flex flex-col items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
                     item.status === "active"
-                      ? "bg-[#B6FF00]"
+                      ? "bg-primary"
                       : item.status === "frozen"
                       ? "bg-[#FFB040]"
                       : "bg-white"

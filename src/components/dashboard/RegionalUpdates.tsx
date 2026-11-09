@@ -36,7 +36,7 @@ export default function RegionalUpdates({ updates, onUpdateClick }: RegionalUpda
             key={update.id}
             id={`regional-update-${update.id}`}
             onClick={() => onUpdateClick(update.id)}
-            className="w-full text-left bg-[#B6FF00] border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all"
+            className="w-full text-left bg-primary border-[2.5px] border-black rounded-xl p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all"
           >
             <h4 className="font-bold text-[15px] text-[#1A1A1A] tracking-tight">{update.title}</h4>
             <p className="text-xs font-medium text-stone-700 mt-0.5">Starts: {update.date}</p>

@@ -15,7 +15,7 @@ export default function Badge({
 }: BadgeProps) {
   const variantClasses: Record<BadgeVariant, string> = {
     white: "bg-white text-black",
-    primary: "bg-[#B6FF00] text-black",
+    primary: "bg-primary text-black",
     gold: "bg-[#965A18] text-white",
     dark: "bg-black text-white",
     danger: "bg-[#FF9494] text-black",
