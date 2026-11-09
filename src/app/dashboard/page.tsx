@@ -34,6 +34,7 @@ import FinishSetupModal from "@/components/dashboard/FinishSetupModal";
 import PWAInstaller from "@/components/layout/PWAInstaller";
 import { SubjectData, QuickAction } from "@/types";
 import "@/lib/i18n";
+import { useStreak } from "@/hooks/useStreak";
 
 const quickActions: QuickAction[] = [
   {
@@ -299,7 +300,7 @@ function StudentDashboardPageContent() {
 
   const userName = profile?.full_name?.split(" ")[0] || "Student";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count ?? 0; // 0 for new users
+  const { streakCount } = useStreak();
   const currentLevel = profile?.education_level === "ol" ? "GCE O-Level" : "GCE A-Level";
 
   if (isLoading) {

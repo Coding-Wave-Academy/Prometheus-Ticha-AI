@@ -5,6 +5,11 @@ import { createClient } from "@/utils/supabase/client";
 import { useAuth, UserProfile } from "@/hooks/useAuth";
 import i18n from "i18next";
 
+/**
+ * Fields a student may change on their own profile. Streak and points fields
+ * are server-owned (see `useStreak` / `claim_daily_streak`) and the database
+ * rejects client writes to them.
+ */
 export interface ProfileUpdate {
   full_name?: string;
   school_name?: string;
@@ -13,9 +18,6 @@ export interface ProfileUpdate {
   goal?: string;
   struggles?: string[];
   profile_completed?: boolean;
-  streak_count?: number;
-  freezes_remaining?: number;
-  last_active_date?: string;
   avatar_url?: string;
   preferred_language?: string;
 }
@@ -115,8 +117,8 @@ export function useProfile() {
         education_level: updates.education_level ?? prev?.education_level ?? "al",
         goal: updates.goal ?? prev?.goal ?? "gce",
         struggles: updates.struggles ?? prev?.struggles ?? ["Physics", "Pure Mathematics", "ICT"],
-        streak_count: updates.streak_count ?? prev?.streak_count ?? 1,
-        freezes_remaining: updates.freezes_remaining ?? prev?.freezes_remaining ?? 2,
+        streak_count: prev?.streak_count ?? 0,
+        freezes_remaining: prev?.freezes_remaining ?? 2,
         points: prev?.points ?? 0,
         profile_completed: updates.profile_completed ?? prev?.profile_completed ?? true,
         preferred_language: updates.preferred_language ?? prev?.preferred_language ?? "en",

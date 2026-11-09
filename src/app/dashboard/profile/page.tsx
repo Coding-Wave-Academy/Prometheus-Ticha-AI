@@ -25,6 +25,7 @@ import EditProfileModal from "@/components/profile/EditProfileModal";
 import HelpCenterModal from "@/components/profile/HelpCenterModal";
 import AccountSettingsModal from "@/components/profile/AccountSettingsModal";
 import "@/lib/i18n";
+import { useStreak } from "@/hooks/useStreak";
 
 interface BadgeItem {
   id: string;
@@ -120,7 +121,7 @@ export function ProfilePageContent() {
   const region = profile?.region || "Not set";
   const educationLevel = profile?.education_level || "ol";
   const avatarUrl = profile?.avatar_url || null;
-  const streakCount = profile?.streak_count ?? 0;
+  const { streakCount } = useStreak();
 
   const badges: BadgeItem[] = [
     {

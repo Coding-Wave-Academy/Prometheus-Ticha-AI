@@ -2,6 +2,31 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-11-09] - Server-Owned Streaks
+
+### Added
+- **Streak functions (`supabase/migrations/20261109_01_streak_functions.sql`)**: `sync_streak()` and `claim_daily_streak(p_day)` apply the streak rules on the server, using Cameroon (Africa/Douala) dates:
+  - one claim per day adds 1;
+  - a missed day uses a freeze; with no freeze left the streak resets to 0 (the next claim starts at 1);
+  - freezes refill to 2 every Monday;
+  - a claim may be for today or yesterday, so studying offline and syncing the next morning keeps the streak.
+- **`streak_days` table**: one row per active or frozen day, so the weekly calendar is the same on every device.
+- **`src/lib/streakStore.ts`**: one shared streak state for every component; the last known state is cached per student for offline display; claims made offline are queued and sent when the connection returns.
+
+### Changed
+- `useStreak` reads from the shared store; the dashboard, Explore and profile pages show the same streak value.
+- `ProfileUpdate` no longer accepts `streak_count`, `freezes_remaining` or `last_active_date`.
+- Sign-out clears the streak store and the old unscoped `ticha_streak_dates` / `ticha_frozen_*` keys.
+- New profiles start with `streak_count = 0`.
+
+### Database: profile columns (`supabase/migrations/20261109_02_lock_profile_columns.sql`)
+- Students can update and insert only their own descriptive profile fields. Streak, freeze and points fields are written only by server functions. The profile DELETE policy is removed (account deletion cascades from `auth.users`).
+
+### Deploy order
+1. Run `20261109_01_streak_functions.sql` in the Supabase SQL editor (additive; the live app keeps working).
+2. Deploy this app version.
+3. Run `20261109_02_lock_profile_columns.sql`.
+
 ## [2026-11-09] - API Authentication & Dependency Upgrades
 
 ### Added
