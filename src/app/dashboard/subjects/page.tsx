@@ -93,7 +93,7 @@ export default function AllSubjectsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -117,7 +117,7 @@ export default function AllSubjectsPage() {
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="w-10 h-10 bg-[#B6FF00] border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform shrink-0"
+            className="w-10 h-10 bg-primary border-[2.5px] border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center transition-transform shrink-0"
             aria-label="Add new subject"
           >
             <Add01Icon size={22} className="text-black" />
@@ -125,7 +125,7 @@ export default function AllSubjectsPage() {
         </header>
 
         {/* Action Callout */}
-        <div className="bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
+        <div className="bg-primary border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
           <div className="space-y-0.5">
             <span className="text-[10px] font-black uppercase tracking-widest text-stone-800">
               GCE Syllabus Progress

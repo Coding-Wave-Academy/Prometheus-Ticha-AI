@@ -12,7 +12,7 @@ export default function DailyQuizRedirect() {
 
   return (
     <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-      <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+      <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
     </div>
   );
 }

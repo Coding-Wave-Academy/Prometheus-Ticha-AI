@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Baloo_2, Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import DeviceGate from "@/components/layout/DeviceGate";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-
-const baloo2 = Baloo_2({
-  variable: "--font-baloo-2",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  display: "swap",
-});
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -64,11 +57,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${baloo2.variable} ${plusJakartaSans.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-full flex flex-col relative selection:bg-[#C8FF2A] font-sans"
+        className="min-h-full flex flex-col relative selection:bg-primary font-sans"
       >
         <DeviceGate>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>

@@ -54,7 +54,7 @@ export default function PWAInstaller() {
   if (!showBanner || !deferredPrompt) return null;
 
   return (
-    <div className="w-full mb-4 bg-[#B6FF00] border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between animate-spring-pop z-40 relative">
+    <div className="w-full mb-4 bg-primary border-[3.5px] border-black rounded-2xl p-4 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between animate-spring-pop z-40 relative">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-white border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
           <Download01Icon size={22} className="text-black" />

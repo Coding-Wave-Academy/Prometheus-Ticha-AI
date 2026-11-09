@@ -235,7 +235,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
 
         {isSaved ? (
           <div className="py-2 flex flex-col items-center text-center space-y-4">
-            <div className="w-14 h-14 bg-[#B6FF00] border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="w-14 h-14 bg-primary border-[3.5px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <span className="text-2xl">🎉</span>
             </div>
             <div>
@@ -272,7 +272,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
                         <span className="text-xs font-black text-black flex items-center gap-1">
                           <span>{tip.icon}</span> {tip.title}
                         </span>
-                        <span className="text-[9px] font-black uppercase bg-[#B6FF00] border-[1px] border-black px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-black uppercase bg-primary border-[1px] border-black px-1.5 py-0.5 rounded-full">
                           {tip.tag}
                         </span>
                       </div>
@@ -287,7 +287,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
 
             <button
               onClick={onClose}
-              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
+              className="w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all text-black"
             >
               Start Learning Now →
             </button>
@@ -419,7 +419,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
               type="submit"
               disabled={isSubmitting}
               onClick={() => hapticTap()}
-              className="w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black mt-2 disabled:opacity-50"
+              className="w-full bg-primary hover:bg-[#a3e600] border-[3.5px] border-black rounded-xl py-3 px-4 font-black uppercase text-sm tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all text-center text-black mt-2 disabled:opacity-50"
             >
               {isSubmitting ? "Saving..." : "Save Profile & Generate Strategy"}
             </button>

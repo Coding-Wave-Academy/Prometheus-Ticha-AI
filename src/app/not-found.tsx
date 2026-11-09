@@ -32,7 +32,7 @@ export default function NotFound() {
       name: "Dashboard",
       icon: <Home01Icon size={20} className="text-black" />,
       href: "/dashboard",
-      bg: "bg-[#C8FF2A]",
+      bg: "bg-primary",
       desc: "Your daily study hub",
     },
     {
@@ -82,9 +82,9 @@ export default function NotFound() {
           </div>
 
           {/* Illustrated Icon Badge */}
-          <div className="w-20 h-20 bg-[#C8FF2A] border-[3.5px] border-black rounded-2xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mx-auto rotate-[-3deg] relative">
+          <div className="w-20 h-20 bg-primary border-[3.5px] border-black rounded-2xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mx-auto rotate-[-3deg] relative">
             <Compass01Icon size={40} className="text-black" />
-            <span className="absolute -top-2 -right-2 bg-black text-[#C8FF2A] border-[2px] border-black rounded-full w-7 h-7 flex items-center justify-center text-xs font-black">
+            <span className="absolute -top-2 -right-2 bg-black text-primary border-[2px] border-black rounded-full w-7 h-7 flex items-center justify-center text-xs font-black">
               ?
             </span>
           </div>
@@ -138,7 +138,7 @@ export default function NotFound() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: 404 Block Graphic */}
             <div className="md:col-span-5 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-full bg-[#C8FF2A] border-[3.5px] border-black rounded-3xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+              <div className="w-full bg-primary border-[3.5px] border-black rounded-3xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
                 {/* 1% Badge */}
                 <div className="inline-flex items-center gap-1.5 bg-black text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2">
                   <span>1% TICHA AI</span>

@@ -105,7 +105,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
     <div className="w-full bg-[#1A1A1A] border-[3.5px] border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-white space-y-4 text-left relative overflow-hidden animate-page-in">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 bg-[#B6FF00] text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+        <span className="inline-flex items-center gap-1.5 bg-primary text-black border-[2px] border-black rounded-full px-3 py-0.5 text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
           <SparklesIcon size={12} />
           <span>{video.subject} • Gemini 2D Visualizer</span>
         </span>
@@ -132,7 +132,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
             <motion.div
               animate={{ rotate: 360, scale: [1, 1.2, 1] }}
               transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-              className="w-48 h-48 border-[6px] border-dashed border-[#B6FF00] rounded-full flex items-center justify-center"
+              className="w-48 h-48 border-[6px] border-dashed border-primary rounded-full flex items-center justify-center"
             >
               <div className="w-24 h-24 bg-[#FFB040] rounded-full animate-ping opacity-50" />
             </motion.div>
@@ -145,7 +145,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
                   key={i}
                   animate={{ height: ["20px", "100px", "20px"] }}
                   transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
-                  className="w-4 bg-[#B6FF00] rounded-full"
+                  className="w-4 bg-primary rounded-full"
                 />
               ))}
             </div>
@@ -187,7 +187,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
             >
               <div className="w-10 h-10 bg-[#FFD9E0] border-2 border-black rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
               <div className="w-10 h-10 bg-[#D3E2FF] border-2 border-black rounded-full absolute bottom-0 left-1/2 -translate-x-1/2" />
-              <div className="w-10 h-10 bg-[#B6FF00] border-2 border-black rounded-full absolute left-0 top-1/2 -translate-y-1/2" />
+              <div className="w-10 h-10 bg-primary border-2 border-black rounded-full absolute left-0 top-1/2 -translate-y-1/2" />
               <div className="w-10 h-10 bg-[#FFB040] border-2 border-black rounded-full absolute right-0 top-1/2 -translate-y-1/2" />
             </motion.div>
           )}
@@ -195,7 +195,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
 
         {/* Scene Badge */}
         <div className="relative z-10 flex items-center justify-between">
-          <span className="bg-black/80 border border-white/20 rounded-md px-2.5 py-1 text-[10px] font-black uppercase text-[#B6FF00]">
+          <span className="bg-black/80 border border-white/20 rounded-md px-2.5 py-1 text-[10px] font-black uppercase text-primary">
             Scene {currentSceneIndex + 1} of {video.scenes.length}
           </span>
 
@@ -213,7 +213,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
             exit={{ opacity: 0, y: -8 }}
             className="relative z-10 space-y-1 bg-black/75 p-3 rounded-xl border border-white/20 backdrop-blur-sm"
           >
-            <h4 className="font-black text-sm uppercase text-[#B6FF00] leading-snug">
+            <h4 className="font-black text-sm uppercase text-primary leading-snug">
               {formatAIText(activeScene.headline)}
             </h4>
             <p className="text-xs font-bold text-stone-200 leading-relaxed">
@@ -227,7 +227,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
       <div className="space-y-1">
         <div className="h-2.5 w-full bg-stone-800 rounded-full overflow-hidden border border-black relative">
           <div
-            className="h-full bg-[#B6FF00] transition-all duration-100"
+            className="h-full bg-primary transition-all duration-100"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -238,7 +238,7 @@ export default function ConceptVideoPlayer({ video, onClose }: ConceptVideoPlaye
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-10 h-10 bg-[#B6FF00] text-black border-[2px] border-black rounded-xl flex items-center justify-center font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
+            className="w-10 h-10 bg-primary text-black border-[2px] border-black rounded-xl flex items-center justify-center font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all"
             aria-label={isPlaying ? "Pause video" : "Play video"}
           >
             {isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} className="fill-current ml-0.5" />}

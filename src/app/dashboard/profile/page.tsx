@@ -130,7 +130,7 @@ export function ProfilePageContent() {
       category: "Starter",
       description: "Unlocked upon joining Ticha AI",
       unlocked: true,
-      bgColor: "bg-[#B6FF00]",
+      bgColor: "bg-primary",
       icon: <StarIcon size={24} className="text-black" />,
     },
     {
@@ -156,13 +156,13 @@ export function ProfilePageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAF7EC] flex items-center justify-center">
-        <div className="w-10 h-10 border-[3.5px] border-black border-t-[#B6FF00] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-[3.5px] border-black border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] text-black antialiased font-sans pb-28 selection:bg-primary">
       <motion.main
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -187,9 +187,9 @@ export function ProfilePageContent() {
         <section className="w-full bg-white border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 text-center flex flex-col items-center relative">
           {/* Avatar Photo with Camera Overlay */}
           <div className="relative group">
-            <div className="relative w-24 h-24 rounded-full border-[3.5px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 bg-[#B6FF00]">
+            <div className="relative w-24 h-24 rounded-full border-[3.5px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 bg-primary">
               {isUploading ? (
-                <div className="w-full h-full flex items-center justify-center bg-[#B6FF00]">
+                <div className="w-full h-full flex items-center justify-center bg-primary">
                   <div className="w-8 h-8 border-[3px] border-black border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : avatarUrl ? (
@@ -211,7 +211,7 @@ export function ProfilePageContent() {
             {/* Camera overlay button */}
             <button
               onClick={handleAvatarClick}
-              className="absolute -bottom-0.5 -right-0.5 w-9 h-9 bg-[#B6FF00] border-[2.5px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all z-10"
+              className="absolute -bottom-0.5 -right-0.5 w-9 h-9 bg-primary border-[2.5px] border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all z-10"
               aria-label="Change profile photo"
             >
               <Camera01Icon size={16} className="text-black" />
@@ -237,7 +237,7 @@ export function ProfilePageContent() {
 
           {/* Badges pills */}
           <div className="mt-3 flex items-center gap-2">
-            <span className="bg-[#B6FF00] border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+            <span className="bg-primary border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
               Level 1: Novice
             </span>
             <span className="bg-[#FFB040] border-[2px] border-black rounded-full px-3 py-1 font-black text-xs uppercase shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
@@ -249,7 +249,7 @@ export function ProfilePageContent() {
           {/* Edit Profile Action Button */}
           <button
             onClick={() => setIsEditModalOpen(true)}
-            className="mt-5 w-full bg-[#B6FF00] hover:bg-[#a3e600] border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 text-black"
+            className="mt-5 w-full bg-primary hover:bg-[#a3e600] border-[3px] border-black rounded-xl py-3 px-4 font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 text-black"
           >
             <PencilEdit01Icon size={16} className="text-black" />
             <span>Edit Profile</span>
@@ -357,7 +357,7 @@ export function ProfilePageContent() {
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.95 }}
-              className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#B6FF00] border-[2.5px] border-black rounded-xl py-3.5 px-6 font-black text-sm text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2"
+              className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-primary border-[2.5px] border-black rounded-xl py-3.5 px-6 font-black text-sm text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2"
             >
               <span>✨</span> {toastMessage}
             </motion.div>

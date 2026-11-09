@@ -39,7 +39,7 @@ export default function DashboardHeaderWeb({
       {/* Right: Streak Pill + Avatar */}
       <div className="flex items-center gap-3">
         {/* Streak Pill */}
-        <div className="bg-[#C8FF2A] border-[2.5px] border-black rounded-full py-1.5 px-4 flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-black text-sm select-none">
+        <div className="bg-primary border-[2.5px] border-black rounded-full py-1.5 px-4 flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-black text-sm select-none">
           <FireIcon size={18} className="text-black" />
           <span className="text-black">{streakCount}</span>
         </div>

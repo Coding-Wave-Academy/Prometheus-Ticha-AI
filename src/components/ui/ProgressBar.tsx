@@ -31,7 +31,7 @@ export default function ProgressBar({
         aria-valuemax={100}
       >
         <div
-          className="bg-[#B6FF00] h-full rounded-full border-r-[2px] border-black transition-all duration-500 ease-out"
+          className="bg-primary h-full rounded-full border-r-[2px] border-black transition-all duration-500 ease-out"
           style={{ width: `${clampedProgress}%` }}
         />
       </div>

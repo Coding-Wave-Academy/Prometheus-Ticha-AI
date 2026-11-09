@@ -24,7 +24,7 @@ export default function PaperCard({ paper, isDownloading, onDownload, onOpenDeta
     <article className="w-full bg-white border-[3.5px] border-black rounded-2xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between gap-4 transition-all hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
       {/* Header Badges */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#B6FF00] border-[2.5px] border-black rounded-full font-extrabold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary border-[2.5px] border-black rounded-full font-extrabold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <span>📖</span>
           <span>{paper.subject.name}</span>
         </span>
@@ -73,7 +73,7 @@ export default function PaperCard({ paper, isDownloading, onDownload, onOpenDeta
         onClick={() => onDownload(paper.id)}
         disabled={isDownloading}
         className={`w-full min-h-[44px] px-4 py-2.5 bg-white border-[3.5px] border-black rounded-xl font-bold text-sm md:text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer ${
-          isDownloading ? "opacity-75 cursor-not-allowed bg-stone-100" : "hover:bg-[#B6FF00]"
+          isDownloading ? "opacity-75 cursor-not-allowed bg-stone-100" : "hover:bg-primary"
         }`}
       >
         {isDownloading ? (

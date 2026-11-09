@@ -1,119 +1,79 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { FireIcon } from "hugeicons-react";
 import { useStreak } from "@/hooks/useStreak";
 import StreakModal from "@/components/dashboard/StreakModal";
 import { hapticTap } from "@/lib/haptics";
 
 /**
- * StreakCardWeb — Right-column streak widget for the web/tablet dashboard.
- * Shows fire icon, streak count, motivational message, and a 7-day calendar grid.
- *
- * Connected to useStreak() hook for live data from Supabase profile.
- * Opens the interactive StreakModal on click for streak claiming.
+ * Streak card (desktop). Measured from design/Ticha AI Web View - Dashboard.png:
+ * 340px tall, 2px grey outline, 80×86 icon tile, 37px "N DAY STREAK!",
+ * seven 67×78 day tiles on an 84px pitch (black; claimed = lime).
+ * Opens StreakModal to claim the day.
  */
 export default function StreakCardWeb() {
-  const {
-    streakCount,
-    freezesRemaining,
-    isTodayClaimed,
-    weeklyDays,
-    claimDailyStreak,
-  } = useStreak();
-
+  const { streakCount, freezesRemaining, isTodayClaimed, weeklyDays, claimDailyStreak, status, pendingClaims } = useStreak();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOpenModal = () => {
-    hapticTap();
-    setIsModalOpen(true);
-  };
+  const dayWord = streakCount === 1 ? "Day" : "Days";
 
   return (
     <>
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        onClick={handleOpenModal}
-        className="bg-[#FAF7EC] border-[3px] border-black rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative overflow-hidden active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all min-h-[260px] flex flex-col justify-between"
+      <button
+        type="button"
+        onClick={() => {
+          hapticTap();
+          setIsModalOpen(true);
+        }}
+        aria-haspopup="dialog"
+        aria-label={`${streakCount} ${dayWord.toLowerCase()} streak. Open streak details`}
+        className="@container relative w-full h-[340px] flex flex-col justify-start items-stretch text-left bg-streak-bg border-2 border-streak-line rounded-[20px] pt-[43px] pl-[29px] pr-[29px] transition-transform duration-150 hover:-translate-y-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
       >
-        {/* Top Row: Icon + Text */}
-        <div className="flex items-start gap-3 mb-4">
-          <motion.div
-            animate={{
-              scale: [1, 1.06, 1],
-              rotate: [0, 2, -2, 0],
-            }}
-            transition={{
-              duration: 2.2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="w-12 h-12 bg-black border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0"
-          >
-            <FireIcon size={24} className="text-white" />
-          </motion.div>
+        <span className="flex items-start gap-[23px]">
+          <span className="w-20 h-[86px] shrink-0 rounded-[12px] bg-white border-[3px] border-ink flex items-center justify-center" aria-hidden="true">
+            <FireIcon size={42} className="text-ink" />
+          </span>
+          <span className="pt-[14px] flex flex-col">
+            <span className="text-[clamp(22px,6.2cqw,37px)] leading-none font-extrabold uppercase text-ink tracking-[-0.01em] whitespace-nowrap">
+              {streakCount} {dayWord} Streak!
+            </span>
+            <span className="mt-[14px] text-[clamp(14px,2.9cqw,17px)] leading-tight font-medium text-ink">
+              {status === "offline" && pendingClaims > 0
+                ? "Saved offline. Syncs when you're back online"
+                : <>Keep up the good work, I see you <span aria-hidden="true">🔥</span></>}
+            </span>
+          </span>
+        </span>
 
-          <div className="flex-1">
-            <h3 className="text-xl lg:text-2xl font-black uppercase tracking-tight text-black leading-tight">
-              {streakCount} Day Streak!
-            </h3>
-            <p className="text-xs font-semibold text-stone-500 mt-0.5 leading-snug">
-              Keep up the good work, I see you 🔥
-            </p>
-          </div>
-        </div>
+        {/* Decorative rays (top right) */}
+        <svg className="absolute top-[34px] right-[44px]" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <path d="M20 4l-6 16M30 14l-16 10M34 26l-18 2" stroke="var(--color-primary-deep)" strokeWidth="3" strokeLinecap="round" />
+        </svg>
 
-        {/* 7-Day Grid */}
-        <div className="grid grid-cols-7 gap-2 w-full">
-          {weeklyDays.map((item, index) => (
-            <div
-              key={index}
-              className={`aspect-square rounded-xl border-[2.5px] border-black flex items-center justify-center font-black text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ${
-                item.status === "active"
-                  ? "bg-[#C8FF2A] text-black"
-                  : item.status === "frozen"
-                  ? "bg-white text-black"
-                  : "bg-black text-white"
-              }`}
-            >
-              <span>{item.day}</span>
-            </div>
-          ))}
-        </div>
+        <span className="absolute left-[29px] right-[29px] top-[189px] grid grid-cols-7 gap-[min(17px,2.7cqw)] max-w-[571px]" role="list" aria-label="This week">
+          {weeklyDays.map((item, index) => {
+            const done = item.status === "active";
+            const frozen = item.status === "frozen";
+            return (
+              <span
+                key={`${item.label}-${index}`}
+                role="listitem"
+                aria-label={`${item.label}: ${done ? "studied" : frozen ? "covered by a freeze" : "not yet"}`}
+                className={`w-full max-w-[67px] aspect-[67/78] rounded-[9px] flex items-center justify-center text-[clamp(16px,5.3cqw,32px)] font-bold leading-none ${
+                  done
+                    ? "bg-primary text-ink border-2 border-ink"
+                    : frozen
+                      ? "bg-card-sky text-ink border-2 border-ink"
+                      : "bg-ink text-white"
+                }`}
+              >
+                {item.day}
+              </span>
+            );
+          })}
+        </span>
+      </button>
 
-        {/* Decorative Sparkle (top-right) */}
-        <div className="absolute top-3 right-3 pointer-events-none">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 28 28"
-            fill="none"
-          >
-            <path
-              d="M14 4L16 12L24 14L16 16L14 24L12 16L4 14L12 12Z"
-              fill="#FFB040"
-              opacity="0.6"
-            />
-          </svg>
-        </div>
-        <div className="absolute top-8 right-10 pointer-events-none">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 28 28"
-            fill="none"
-          >
-            <path
-              d="M14 4L16 12L24 14L16 16L14 24L12 16L4 14L12 12Z"
-              fill="#FFB040"
-              opacity="0.4"
-            />
-          </svg>
-        </div>
-      </motion.div>
-
-      {/* Interactive Streak Modal */}
       <StreakModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

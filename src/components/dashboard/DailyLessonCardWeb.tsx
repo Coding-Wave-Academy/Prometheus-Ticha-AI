@@ -1,144 +1,59 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import { FireIcon } from "hugeicons-react";
 import { useProfile } from "@/hooks/useProfile";
 import { getTodayLessonTopic } from "@/lib/dailyTopic";
+import { hapticTap } from "@/lib/haptics";
 
 /**
- * DailyLessonCardWeb — Large lime-green feature card for the web/tablet dashboard.
- * Shows today's subject and topic from the daily rotation engine, connected to
- * the student's profile struggles for personalised content.
- *
- * Matches the design: subject name, topic title, "Start Lesson →" CTA, and
- * a decorative open-book SVG illustration in the bottom-right corner.
+ * Today's lesson card (desktop). Measured from design/Ticha AI Web View - Dashboard.png:
+ * 338px tall, soft lime fill, 2px olive border, 64px icon tile, 28px subject,
+ * 32px two-line topic, 28px olive "Start Lesson →", line-art book bottom-right.
  */
 export default function DailyLessonCardWeb() {
-  const router = useRouter();
   const { profile } = useProfile();
-
-  // Get today's live lesson from the rotation engine
   const struggles = profile?.struggles as string[] | undefined;
   const { subject, topic } = getTodayLessonTopic(struggles ?? []);
-
-  // Format topic for display (title case, line-break on "And")
   const displayTopic = topic.replace(/ and /gi, "\nAnd ");
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.01, y: -2 }}
-      whileTap={{ scale: 0.99 }}
-      onClick={() => router.push("/dashboard/daily-lessons")}
-      className="bg-[#C8FF2A] border-[3.5px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[260px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all group"
+    <Link
+      href="/dashboard/daily-lessons"
+      onClick={() => hapticTap()}
+      aria-label={`Start today's lesson: ${subject}, ${topic}`}
+      className="@container group relative flex flex-col h-[342px] bg-primary-soft border-2 border-olive-line rounded-[18px] overflow-hidden transition-transform duration-150 hover:-translate-y-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
     >
-      {/* Subject Badge */}
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-10 h-10 bg-white border-[2.5px] border-black rounded-xl flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          <FireIcon size={20} className="text-black" />
-        </div>
-        <span className="text-base font-black text-black tracking-tight">
-          {subject}
+      <span className="flex items-center gap-[20px] pt-[36px] pl-[29px]">
+        <span className="w-16 h-16 shrink-0 rounded-[11px] bg-white border-[2.5px] border-ink flex items-center justify-center" aria-hidden="true">
+          <FireIcon size={30} className="text-ink" />
         </span>
-      </div>
+        <span className="text-[28px] leading-none font-semibold text-ink">{subject}</span>
+      </span>
 
-      {/* Topic Title */}
-      <h3 className="text-2xl lg:text-[1.7rem] font-black text-black leading-tight tracking-tight whitespace-pre-line max-w-[65%]">
+      <span className="mt-[30px] pl-[32px] pr-[180px] @max-[460px]:pr-[32px] text-[32px] leading-[40px] font-bold text-ink whitespace-pre-line">
         {displayTopic}
-      </h3>
+      </span>
 
-      {/* CTA */}
-      <div className="flex items-center gap-2 mt-4">
-        <span className="text-base font-black text-black tracking-tight">
-          Start Lesson
-        </span>
-        <svg
-          className="w-5 h-5 text-black group-hover:translate-x-1 transition-transform"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-          />
+      <span className="mt-auto mb-[44px] ml-[44px] flex items-center gap-[14px] text-[28px] leading-none font-semibold text-olive">
+        Start Lesson
+        <svg width="28" height="22" viewBox="0 0 28 22" fill="none" aria-hidden="true" className="transition-transform group-hover:translate-x-1">
+          <path d="M2 11h23M16 2l9 9-9 9" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </div>
+      </span>
 
-      {/* Decorative Book Illustration (SVG) */}
-      <div className="absolute bottom-4 right-4 opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none">
-        <svg
-          width="110"
-          height="90"
-          viewBox="0 0 110 90"
-          fill="none"
-          className="text-[#1A1A1A]"
-        >
-          {/* Open book shape */}
-          <path
-            d="M55 20C55 20 40 12 15 12C10 12 5 14 5 18V72C5 76 10 78 15 78C40 78 55 70 55 70M55 20C55 20 70 12 95 12C100 12 105 14 105 18V72C105 76 100 78 95 78C70 78 55 70 55 70M55 20V70"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Page lines left */}
-          <path
-            d="M20 28H45M20 38H42M20 48H40M20 58H38"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          {/* Page lines right */}
-          <path
-            d="M65 28H90M68 38H88M70 48H85"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          {/* Small triangle decoration (math symbol) */}
-          <path
-            d="M75 55L82 68H68Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          {/* x² text */}
-          <text
-            x="85"
-            y="65"
-            fontSize="10"
-            fontWeight="800"
-            fill="currentColor"
-            fontFamily="sans-serif"
-          >
-            x²
-          </text>
-        </svg>
-      </div>
-
-      {/* Sparkle decorations */}
-      <div className="absolute top-6 right-8 pointer-events-none">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M10 0L12 8L20 10L12 12L10 20L8 12L0 10L8 8Z"
-            fill="#1A1A1A"
-            opacity="0.15"
-          />
-        </svg>
-      </div>
-      <div className="absolute top-16 right-20 pointer-events-none">
-        <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M10 0L12 8L20 10L12 12L10 20L8 12L0 10L8 8Z"
-            fill="#1A1A1A"
-            opacity="0.12"
-          />
-        </svg>
-      </div>
-    </motion.div>
+      {/* Decorative swirl, sparkles and open book (olive line art) */}
+      <svg className="absolute top-[6px] right-[18px] text-olive-line" width="56" height="80" viewBox="0 0 56 80" fill="none" aria-hidden="true">
+        <path d="M30 2c10 10 14 24 4 34-8 8-20 2-16-8 4-9 18-6 22 4 4 11-2 24-14 38" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+      <svg className="absolute right-[16px] bottom-[34px] text-olive-line @max-[460px]:hidden" width="150" height="120" viewBox="0 0 150 120" fill="none" aria-hidden="true">
+        <path d="M118 6l3 8 8 3-8 3-3 8-3-8-8-3 8-3z M14 64l2.5 6.5 6.5 2.5-6.5 2.5-2.5 6.5-2.5-6.5-6.5-2.5 6.5-2.5z" fill="var(--color-primary-soft)" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M30 44l46 10 44-24 22 52-46 30-48-12z" fill="#EEF9B6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M76 54l-2 56M30 44l-2 6 46 12M120 30l3 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M40 60l14 3M38 70l20 4M36 80l12-14 8 16zM86 60l26-12M90 70l14-7M96 64c4 0 6 4 4 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <text x="104" y="58" fontSize="13" fontStyle="italic" fill="currentColor" fontFamily="serif">x²</text>
+      </svg>
+    </Link>
   );
 }

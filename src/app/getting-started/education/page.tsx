@@ -71,7 +71,7 @@ export default function EducationLevelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary">
       {/* Decorative Polka Dots (Top Right) */}
       <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none opacity-80 z-0">
         <Image
@@ -171,7 +171,7 @@ export default function EducationLevelPage() {
         <div className="mt-6">
           <button
             onClick={handleContinue}
-            className="w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-heading uppercase tracking-wider"
+            className="w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black bg-primary hover:bg-[#b8f01c] text-[#0A0A0F] font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-heading uppercase tracking-wider"
           >
             <span>CONTINUE</span>
             <svg className="w-5 h-5 stroke-[2.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

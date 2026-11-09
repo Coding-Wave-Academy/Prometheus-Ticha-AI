@@ -18,7 +18,7 @@ export default function VerifiedBadge({ isGrounded, chunksUsed }: VerifiedBadgeP
   if (isGrounded) {
     return (
       <span
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[2.5px] border-black bg-[#B6FF00] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-extrabold uppercase tracking-widest"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[2.5px] border-black bg-primary shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-extrabold uppercase tracking-widest"
         title={`Grounded in ${chunksUsed || 0} verified curriculum sources`}
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none">

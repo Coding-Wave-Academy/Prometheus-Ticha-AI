@@ -9,7 +9,7 @@ interface AdaptivePacingBarProps {
 
 export default function AdaptivePacingBar({ score }: AdaptivePacingBarProps) {
   let level = 'Standard';
-  let color = 'bg-[#B6FF00]';
+  let color = 'bg-primary';
   
   if (score < 0.4) {
     level = 'Supportive';

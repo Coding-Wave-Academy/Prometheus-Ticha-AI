@@ -2,6 +2,23 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-11-09] - Desktop Views, Phase 1: Design Tokens, App Shell, Dashboard & Explore
+
+### Added
+- **Design tokens (`src/app/globals.css` `@theme`)**: brand, surface, card-tint and semantic colours; neo-brutalist and soft shadows; the design-system type scale. Use `bg-primary`, `text-ink`, `bg-card-sky`, `shadow-brutal-md`, etc. instead of hex values.
+- **`AppShell` / `DesktopPage` / `DesktopColumn` (`src/components/layout/AppShell.tsx`)**: one desktop frame for signed-in pages (sidebar + 38px gutter + content column).
+- **`AppHeader`**: desktop header in the two variants from the designs (`inline` for Explore, `large` for Dashboard).
+- **`HubCard` (`src/components/ui/HubCard.tsx`)**: the Explore hub card in three sizes, as a keyboard-accessible link.
+- **`TichaLogo`**: badge + wordmark drawn as SVG.
+- **`navSections.ts`**: route → sidebar section map.
+
+### Changed
+- **Typography**: Plus Jakarta Sans for headings and buttons (design system). Baloo 2 is no longer loaded, so there is one less font to download.
+- **Primary lime**: `#B6FF00` → `#C8FF2A` (design system) across the app, mobile included.
+- **Desktop sidebar** rebuilt to the Explore design: 305px wide with a 1px divider, 52px items, promo card. It uses links instead of buttons, and highlights the right section on study pages (flashcards, quizzes and subjects → Explore; daily lessons and notifications → Dashboard).
+- **Dashboard and Explore desktop views** rebuilt to their designs. Measured at the design canvas sizes, every element is within 4px of the design (except the progress bar fill, which depends on the student's data). Below 1280px the dashboard stacks to one column, and card contents scale with their container, so nothing overflows from 768px to 1920px.
+- Arbitrary hex colour classes in `src/`: 774 → 547.
+
 ## [2026-11-09] - Server-Owned Streaks
 
 ### Added

@@ -47,7 +47,7 @@ export default function StreakCalendar() {
             className="w-16 h-16 bg-white border-[3px] border-black rounded-xl flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 relative"
           >
             <FireIcon size={36} className="text-orange-600" />
-            <span className="absolute -top-1.5 -right-1.5 bg-[#B6FF00] border-[1.5px] border-black rounded-full p-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+            <span className="absolute -top-1.5 -right-1.5 bg-primary border-[1.5px] border-black rounded-full p-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
               <PauseIcon size={12} className="text-black" />
             </span>
           </motion.div>
@@ -72,7 +72,7 @@ export default function StreakCalendar() {
               key={index}
               className={`aspect-square rounded-xl border-[2.5px] border-black flex flex-col items-center justify-center font-black text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform group-hover:scale-105 ${
                 item.status === "active"
-                  ? "bg-[#B6FF00] text-black"
+                  ? "bg-primary text-black"
                   : item.status === "frozen"
                   ? "bg-white text-black"
                   : "bg-black text-white"

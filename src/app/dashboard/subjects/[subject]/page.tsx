@@ -74,7 +74,7 @@ export default function SubjectDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-[#B6FF00]">
+    <div className="min-h-screen bg-[#FAF7EC] pb-28 text-black antialiased font-sans selection:bg-primary">
       <main className="w-full max-w-md mx-auto p-4 pt-6 flex flex-col space-y-5 animate-page-in text-left">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -146,7 +146,7 @@ export default function SubjectDetailPage() {
             <div key={cIdx} className="space-y-3">
               <div className="bg-[#1A1A1A] text-white border-[2.5px] border-black rounded-xl px-3.5 py-2 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
                 <span>{cat.categoryName}</span>
-                <span className="text-[10px] text-[#B6FF00]">
+                <span className="text-[10px] text-primary">
                   {cat.topics.filter((t) => completedTopicIds.includes(t.id)).length}/{cat.topics.length}
                 </span>
               </div>
@@ -167,10 +167,10 @@ export default function SubjectDetailPage() {
                         {/* Checkbox */}
                         <div
                           className={`w-6 h-6 rounded-lg border-[2.5px] border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-colors ${
-                            isChecked ? "bg-black text-[#B6FF00]" : "bg-white"
+                            isChecked ? "bg-black text-primary" : "bg-white"
                           }`}
                         >
-                          {isChecked && <CheckmarkCircle02Icon size={16} className="text-[#B6FF00]" />}
+                          {isChecked && <CheckmarkCircle02Icon size={16} className="text-primary" />}
                         </div>
 
                         {/* Topic Title & Subtitle */}
@@ -180,7 +180,7 @@ export default function SubjectDetailPage() {
                               Topic {topic.order}
                             </span>
                             {isChecked && (
-                              <span className="text-[9px] font-black bg-black text-[#B6FF00] px-1.5 py-0.5 rounded uppercase">
+                              <span className="text-[9px] font-black bg-black text-primary px-1.5 py-0.5 rounded uppercase">
                                 Mastered ✓
                               </span>
                             )}
@@ -204,7 +204,7 @@ export default function SubjectDetailPage() {
                               `/dashboard/daily-lessons?subject=${encodeURIComponent(syllabus.name)}&topic=${encodeURIComponent(topic.title)}`
                             );
                           }}
-                          className="bg-[#B6FF00] hover:bg-[#a6ec00] border-[2px] border-black rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1.5 text-black"
+                          className="bg-primary hover:bg-[#a6ec00] border-[2px] border-black rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1.5 text-black"
                         >
                           <PlayIcon size={12} className="fill-current text-black" />
                           <span>Study This Topic</span>

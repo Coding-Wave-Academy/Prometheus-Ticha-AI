@@ -166,7 +166,7 @@ export default function StrugglesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-[#C8FF2A]">
+    <div className="min-h-screen bg-[#FFF8F1] flex flex-col justify-between text-[#0A0A0F] relative overflow-hidden font-sans selection:bg-primary">
       {/* Decorative Polka Dots (Top Right) */}
       <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none opacity-80 z-0">
         <Image
@@ -387,7 +387,7 @@ export default function StrugglesPage() {
                     <button
                       type="button"
                       onClick={handleSaveCustom}
-                      className="bg-[#C8FF2A] border-[2px] border-black rounded-xl px-4 py-1.5 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer"
+                      className="bg-primary border-[2px] border-black rounded-xl px-4 py-1.5 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer"
                     >
                       Add Subject
                     </button>
@@ -441,7 +441,7 @@ export default function StrugglesPage() {
             disabled={selectedSubjects.size === 0}
             className={`w-full py-3.5 px-6 rounded-2xl border-[2.5px] border-black font-bold text-base flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-heading uppercase tracking-wider ${
               selectedSubjects.size > 0
-                ? "bg-[#C8FF2A] hover:bg-[#b8f01c] text-[#0A0A0F] cursor-pointer"
+                ? "bg-primary hover:bg-[#b8f01c] text-[#0A0A0F] cursor-pointer"
                 : "bg-stone-200 text-stone-400 cursor-not-allowed opacity-70"
             }`}
           >
