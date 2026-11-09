@@ -4,6 +4,7 @@
 // Pipeline: Query → Embed → Vector Search → Grounded Gemini Generation → Stream
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireUser } from '@/lib/auth/requireUser';
 import { retrieveContext } from '@/lib/rag/retriever';
 import { buildGroundedPrompt } from '@/lib/rag/promptBuilder';
 
@@ -16,6 +17,9 @@ When presenting formulas, use plain-text notation (F = ma, not LaTeX).
 Always be encouraging — education is a journey, not a race.`;
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { query, subject, educationLevel, topK } = await req.json();
 

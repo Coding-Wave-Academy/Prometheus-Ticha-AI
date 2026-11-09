@@ -12,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
 import { useStreak } from "@/hooks/useStreak";
 import { formatAIText } from "@/lib/formatAIText";
+import { apiFetch } from "@/lib/api";
 
 type ConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 type AgentMode = "listening" | "speaking" | "thinking" | "idle";
@@ -152,7 +153,7 @@ export default function ConversationalChat() {
       ]);
 
       try {
-        const res = await fetch("/api/ai/daily-lesson", {
+        const res = await apiFetch("/api/ai/daily-lesson", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -242,7 +243,7 @@ export default function ConversationalChat() {
 
     try {
       // 1. Check signed URL backend API
-      const res = await fetch("/api/elevenlabs/signed-url", {
+      const res = await apiFetch("/api/elevenlabs/signed-url", {
         method: "POST",
       });
 

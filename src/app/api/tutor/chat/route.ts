@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { buildGroundedPrompt } from "@/lib/rag/promptBuilder";
+import { requireUser } from "@/lib/auth/requireUser";
+import {
+  normalizeEducationLevel,
+  normalizeSubject,
+  trimHistory,
+  tutorChatSchema,
+} from "@/lib/apiSchemas";
 
 const SYSTEM_PROMPT = `You are the Ticha AI Tutor, an expert teacher aligned with the Cameroonian GCE curriculum (Ordinary and Advanced Level).
 You must use DataCamp-style adaptive pacing:
@@ -23,8 +30,24 @@ Structure your responses using these exact markers (include the brackets):
 (Detailed feedback explaining why an answer is correct or incorrect)`;
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
-    const { message, subject, educationLevel, performanceScore, history } = await req.json();
+    const parsedBody = tutorChatSchema.safeParse(await req.json().catch(() => null));
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+
+    const subject = normalizeSubject(parsedBody.data.subject);
+    if (!subject) {
+      return NextResponse.json({ error: "Unknown subject" }, { status: 400 });
+    }
+
+    const message = parsedBody.data.message;
+    const educationLevel = normalizeEducationLevel(parsedBody.data.educationLevel) ?? "al";
+    const performanceScore = Math.min(1, Math.max(0, parsedBody.data.performanceScore ?? 0.5));
+    const history = trimHistory(parsedBody.data.history);
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -35,8 +58,8 @@ export async function POST(req: NextRequest) {
     // RAG: Retrieve relevant curriculum context for the student's message
     const chunks = await retrieveContext({
       query: message,
-      subject: subject || undefined,
-      educationLevel: educationLevel || undefined,
+      subject,
+      educationLevel,
       topK: 5,
       threshold: 0.45,
     });
@@ -48,7 +71,7 @@ export async function POST(req: NextRequest) {
       systemPrompt: fullSystemPrompt,
       retrievedChunks: chunks,
       userQuery: message,
-      history: history || [],
+      history,
     });
 
     // Default model: gemini-2.5-flash

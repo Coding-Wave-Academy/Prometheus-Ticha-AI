@@ -2,6 +2,25 @@
 
 All notable changes to the Ticha AI platform will be documented in this file.
 
+## [2026-11-09] - API Authentication & Dependency Upgrades
+
+### Added
+- **`requireUser()` (`src/lib/auth/requireUser.ts`)**: server helper that validates the Supabase session with `auth.getUser()` and returns a 401 when there is none. Used by all AI, tutor, voice and RAG routes.
+- **`apiFetch()` (`src/lib/api.ts`)**: `fetch` wrapper for client calls to our API. On 401 it sends the student to `/login?next=<current page>`; on network failure it throws `ApiError` with `kind: "offline"` instead of logging the student out.
+- **`safeNextPath()` (`src/lib/safeRedirect.ts`)**: validates post-login redirect targets (same-origin paths only).
+- **Request schemas (`src/lib/apiSchemas.ts`)**: zod schemas and normalisers for tutor chat and TTS (length limits, subject allow-list, education-level normalisation, history trimming).
+
+### Changed
+- AI, tutor, voice and RAG API routes now require a signed-in user. Past-paper routes and `/api/ai/intel` (used during onboarding, before registration) stay public.
+- `/api/ai/intel` only sends allow-listed level, goal and GCE subject values to Gemini, and caches results per combination for 7 days.
+- `/dashboard/*` redirects signed-out visitors to `/login?next=…`; login, the OAuth callback and the OAuth consent page return the student to that page afterwards.
+- `useTutor` sends only the last 20 conversation turns.
+- Service worker: cache bumped to `ticha-pwa-v4`; redirected navigation responses are no longer cached.
+- Upgraded `next` and `eslint-config-next` to 16.4.5; `npm audit fix` applied.
+
+### Removed
+- Unused `firebase` dependency.
+
 ## [2026-09-14] - Subject Catalog Separation, Fingerprint Polish & System Hardening
 
 ### Added

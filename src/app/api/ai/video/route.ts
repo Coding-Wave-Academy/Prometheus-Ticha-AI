@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 import { formatAIText } from "@/lib/formatAIText";
 
 export const dynamic = "force-dynamic";
@@ -133,6 +134,9 @@ const fallbackConceptVideos: Record<string, ConceptVideoResponse> = {
 };
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { subject, topic } = await req.json();
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;

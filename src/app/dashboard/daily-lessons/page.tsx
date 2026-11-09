@@ -27,6 +27,7 @@ import { fireSuccessCelebration, fireConfettiBurst } from "@/lib/confetti";
 import { formatAIText } from "@/lib/formatAIText";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 import { setStoredDailyTopic } from "@/lib/dailyTopic";
+import { apiFetch } from "@/lib/api";
 
 /* ── Types ────────────────────────────────────────────────────────────── */
 interface QuizQuestion {
@@ -149,7 +150,7 @@ function DailyLessonsContent() {
       if (targetSub) payload.subject = targetSub;
       if (targetTop) payload.topic = targetTop;
 
-      const res = await fetch("/api/ai/daily-lesson", {
+      const res = await apiFetch("/api/ai/daily-lesson", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 import { formatAIText } from "@/lib/formatAIText";
 import { retrieveContext } from "@/lib/rag/retriever";
 import { injectContextIntoPrompt } from "@/lib/rag/promptBuilder";
@@ -103,6 +104,9 @@ const fallbackPaper1Questions: QuizQuestion[] = [
 ];
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { subject, topic, education, struggles } = await req.json();
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;

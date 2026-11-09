@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 import {
   GCE_VIDEO_CATALOG,
   normalizeSubjectName,
@@ -80,6 +81,9 @@ function searchCatalog(query: string, subject?: string): YouTubeVideoResult[] {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { query, subject } = await req.json().catch(() => ({}));
     const apiKey = process.env.YOUTUBE_API_KEY;

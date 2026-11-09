@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
+import { ttsSchema } from "@/lib/apiSchemas";
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
-    const { text } = await req.json();
+    const parsedBody = ttsSchema.safeParse(await req.json().catch(() => null));
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+    const { text } = parsedBody.data;
 
     if (!process.env.ELEVENLABS_API_KEY) {
       return NextResponse.json(
         { error: "ElevenLabs API key not configured" },
         { status: 404 }
       );
-    }
-
-    if (!text) {
-      return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
     // Joe — African accent male voice (from ElevenLabs Voice Library)

@@ -1,72 +1,145 @@
-# Prometheus-Ticha-AI
-# PART 1: BUSINESS PLAN
-## 1. EXECUTIVE SUMMARY
-- Objectives of Ticha-AI: Encourage students to learn actively, and develop good studying habits.
-- Problem statement: Most students become anxious and overwhelmed prior to exams because the compound classwork, Ticha-Ai is aimed at encouraging and helping students to prepare for their exams better by developing good studying habits.
-- Solution: 1% daily improvement, instead of compounding classwork
-  
-## 2. MARKET ANALYSIS
-- Target audience: Primary users: GCE-O Level students, GCE-A Level students
-                    Secondary users: students preparing for competitive state exams and university students
+<div align="center">
 
-## 3.SALES AND MARKETING STRATEGY
-- Value proposition: Ticha-ai  provides a unique personalised learning experience to its users and helps them build good studying habits that will help them achieve their long-term academic goals unlike other applications Tich-ai focuses on helping students progress and understanding rather than just answering homework or cramming past answers or solutions for the sole purpose of passing the exams
-- Market Channels: showcase our app to students through school visits, posters and
-- Pricing model: all users have access to a freemium plan, that gives the limited access to the application features, users may choose to uprgrade to a pro plan through a monthly or yearly paid subscription
+<img src="public/images/icon-192.png" alt="Ticha AI" width="96" />
 
-## 4. FINANCIAL PLAN
-- Startup costs: cost of API key for the AI model used in the application, subscription for AI assistants for the app development and hosting cost to deploy the application on popular platforms
+# Ticha AI
 
-  # PART 2: PRODUCT REQUIREMENT  DOCUMENT
-  Here is a comprehensive Product Requirements Document (PRD) based on your project overview and the market realities of the Cameroonian education sector.
-  
-## 1. Product Overview
--	Mission: TICHA AI is a compassionate, AI-powered Progressive Web App (PWA) designed to act as the "perfect teacher" for Cameroonian students. It helps students prepare for the GCE Ordinary Level (O/L), Advanced Level (A/L), competitive state exams (concours), and university continuous assessments (CAs).
--	Core Philosophy: Shifting from last-minute cramming to a "1% daily improvement" habit through personalized, Socratic micro-learning.
+### 1% better, every day.
 
-## 2. Target Audience & Market Size
+**An AI study companion for Cameroonian students preparing for the GCE O-Level and A-Level, built to replace exam-season cramming with a small daily habit.**
 
--Primary Users: GCE O-Level and A-Level students. (The Cameroon GCE Board registered over 213,000 candidates in 2025).
--Secondary Users: University students (an estimated 500,000+ nationally) and candidates preparing for competitive state exams, which can attract upwards of 250,000 applicants annually. Focus is placed on students in rural, resource-constrained, and underserved areas.
+[**🚀 Live app**](https://prometheus-ticha-ai.vercel.app) · [Architecture docs](docs/) · [Business plan](docs/BUSINESS_PLAN.md)
 
-## 3. The Problem: "Syllabus Paralysis" & Infrastructure Gaps:
-
--	Cognitive Overload: Students are overwhelmed by monolithic syllabi and compound coursework. In universities, Continuous Assessments (CAs) account for 30% of final grades, leading to massive stress and cramming during "Blocked Weeks".
+![Next.js](https://img.shields.io/badge/Next.js_16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?logo=googlegemini&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_v4-06B6D4?logo=tailwindcss&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
+<img width="1774" height="887" alt="ticha banner" src="https://github.com/user-attachments/assets/4e82f6d5-8414-4820-a3f6-66f55ea6d2e0" />
 
 
--	Systemic Deficits: Severe teacher shortages and overcrowded lecture halls make individualized feedback impossible.
+
+</div>
+
+---
+
+## The problem
+
+Every year, more than 200,000 students sit the Cameroon GCE. Most of them meet the full syllabus for the first time in the weeks before the exam, and they meet it all at once. The result is what we call **syllabus paralysis**: too much material, too little time, and no one to explain it one-on-one.
+
+On top of that, the usual fixes don't fit the reality on the ground. Classes are overcrowded, private tutoring is expensive, mobile data is costly, and power cuts are common. A heavy, video-first learning platform doesn't survive those conditions.
+
+## The idea
+
+Ticha (Cameroonian Pidgin for *teacher*) takes the opposite approach: **one small, focused lesson a day, every day**, tied to the actual GCE syllabus and delivered through a light, installable web app that works on the phones students already have.
+
+Instead of answering homework for students, Ticha teaches. It walks through problems step by step, asks questions back, and tracks the habit so that by exam day the syllabus is already familiar.
+
+## Features
+
+| | |
+|---|---|
+| 📅 **Daily lesson** | A bite-sized lesson each day, picked from the student's subjects and weak spots |
+| 🧑🏾‍🏫 **AI tutor chat** | A Socratic tutor that scaffolds problems instead of handing over answers, grounded in GCE syllabus content |
+| 🎙️ **Voice tutor** | Talk to Ticha out loud, with an African-accented voice (ElevenLabs) |
+| 📝 **Past papers** | Browse GCE past papers by level and subject |
+| ❓ **Quizzes & daily quiz** | AI-generated quizzes on any topic, plus a daily challenge |
+| 🃏 **Flashcards** | Auto-generated flashcards for quick revision |
+| 🎬 **Concept videos** | Short explainer videos matched to the topic being studied |
+| 🔥 **Streaks & progress** | Streak calendar, progress tracking and a leaderboard to keep the habit alive |
+| 🧭 **Personalised onboarding** | Language, education level, goal, struggle subjects and a daily commitment, used to tailor everything |
+| 🌍 **English & French** | Bilingual interface for both halves of the country |
+| 📲 **Installable PWA** | Add to home screen, app-like experience, built mobile-first |
+
+## Screens
+
+| Onboarding | Education level | Commitment | Explore |
+|---|---|---|---|
+| <img src="design/Startup Carousal 1.png" width="190" /> | <img src="design/Ticha Ed-Level.png" width="190" /> | <img src="design/Ticha AI Commitment screen.png" width="190" /> | <img src="design/Ticha AI Web View - Explore.png" width="190" /> |
+
+## How the AI works
+
+```
+student question
+      │
+      ▼
+ embed query (Gemini text-embedding, 768-d)
+      │
+      ▼
+ pgvector similarity search in Supabase  ──▶  relevant syllabus / past-paper chunks
+      │
+      ▼
+ prompt builder: tutor persona + GCE subject code & level + retrieved context
+      │
+      ▼
+ Gemini 2.5 Flash (streamed over SSE)  ──▶  step-by-step answer in the chat
+```
+
+- **Retrieval-augmented generation (RAG).** Syllabus documents and notes are chunked, embedded and stored in Postgres with `pgvector`. Each tutor reply is grounded in the closest chunks, which keeps answers on the GCE syllabus instead of a generic one.
+- **Ingestion pipeline.** Upload `.docx` material, convert it (Mammoth), chunk it, embed it, store it: [`src/lib/rag/`](src/lib/rag/).
+- **Keys stay server-side.** Every model call goes through a Next.js API route; no API keys reach the browser.
+
+More detail: [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md).
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Framer Motion |
+| Backend | Next.js API routes, Supabase (Postgres, Auth, Row Level Security), `pgvector` |
+| AI | Google Gemini (chat + embeddings), ElevenLabs (voice), YouTube Data API (videos) |
+|Translation| i18next / react-i18next |
+| Validation | Zod |
+| Hosting | Vercel |
 
 
--	Resource & Energy Constraints: High mobile data costs (averaging $1.63/GB) and chronic Eneo power grid load-shedding make traditional, high-bandwidth online learning platforms unviable for the average Cameroonian student.
+> **Tip:** Ticha is designed mobile-first. Open it with your browser's device toolbar or on a phone. On wide screens, only the dashboard has a desktop layout so far; other pages show a "not yet on desktop" screen.
 
-## 4. Solution & Core Features
-To combat these challenges, TICHA AI delivers the following features:
+## Project structure
 
-- Offline-First PWA: Built to survive power outages and minimize expensive data consumption. Students can download daily modules and interact with cached materials completely offline.
-- RAG-Powered Socratic Tutor: AI is restricted to querying uploaded course outlines, past papers, and university PDFs to prevent hallucinations. It guides students to answers via critical thinking rather than just giving them the solution.
-- 1% Daily Habit Loop: The app breaks down dense uploaded syllabi into AI-generated summaries, flashcards, and daily bite-sized practice quizzes.
-- Gamification: Incorporation of streaks, badges, and national/regional leaderboards to build a healthy, competitive community and combat study isolation.
-- Bilingual Accessibility: Full native support for English and French to cater to both the Anglophone (GCE) and Francophone (Baccalaureate) educational subsystems.
+```
+src/
+├── app/
+│   ├── (auth)/              Login & register
+│   ├── getting-started/     Onboarding flow (language → level → goal → struggles → commitment)
+│   ├── dashboard/           Home, subjects, quizzes, flashcards, videos, progress, profile
+│   ├── past-papers/         GCE past paper browser
+│   ├── explore/, leaderboard/, practice/, summaries/
+│   └── api/
+│       ├── ai/              Daily lesson, quiz, flashcards, video, onboarding tips
+│       ├── tutor/           Chat (streaming) + text-to-speech
+│       ├── rag/             Ingest, query, summaries
+│       └── papers/, progress/, courses/, youtube/, elevenlabs/
+├── components/              UI, layout, tutor, dashboard, courses, onboarding…
+├── hooks/                   useAuth, useStreak, useTutor, usePapers…
+├── lib/
+│   ├── rag/                 Chunker, converter, embeddings, retriever, prompt builder
+│   ├── gceSyllabusData.ts   GCE syllabus structure
+│   └── i18n.ts              English & French strings
+└── data/                    GCE subject catalogue, past-paper seed data
+supabase/schema.sql          Full database schema
+docs/                        Architecture docs (AI, dashboard, onboarding, PWA)
+design/                      UI designs
+```
 
-##  5.Technical Architecture:
-The technology stack is specifically chosen for high performance, low cost, and offline resilience:
+## Roadmap
 
-- Frontend: React + Vite + React Router.
--Styling: Pure native CSS utilizing a "Neo-Brutalism" design language (thick borders, hard shadows, high-contrast Cameroon national colors) to ensure cognitive focus and readability on mobile devices.
--Backend & Database: Supabase (handling Postgres database, Auth, and Storage for document uploads).
-- AI Engine: Gemini connected via Supabase Edge Functions for secure, serverless execution.
-- Deployment: Vercel (Frontend) and Supabase Hosting (Backend/DB).
+- [ ] Desktop layouts for every page, not just the dashboard
+- [ ] Offline mode: cached lessons, flashcards and downloaded past papers
+- [ ] Freemium plan with a paid Pro tier
+- [ ] Coverage for competitive state exams (*concours*) and university CAs
 
-##  6. Business Model (Freemium
-The pricing strategy is localized to accommodate the purchasing power of Cameroonian youth while ensuring platform sustainability:
+## Team(iTek)
 
-- Free Tier: Grants access to basic features with a strict limitation on document uploads (2 to 5 uploads per month).
-- Premium Tier (University): 1,500 XAF per semester for unlimited or expanded access tailored to university course loads.
-- Premium Tier (GCE/Concours): 12,000 XAF per year for secondary students preparing for government examinations.
-##  7. Implementation Phasing
+Built at [Coding Wave Academy](https://github.com/Coding-Wave-Academy) by:
 
--  Phase 1 (Infrastructure & Auth):  Set up Supabase Postgres, authentication routing, and the React + Vite frontend skeleton using the Neo-Brutalist CSS framework.
--  Phase 2 (RAG & Upload Engine): Implement Supabase Storage for PDF uploads, configure Edge Functions to parse/chunk documents, and connect the vector database to the chosen LLM (Gemini/OpenAI/Grok).
--  Phase 3 (Core Experience): Build the "1% daily improvement" logic—generating flashcards, summaries, and daily quizzes from the processed documents.
-- Phase 4 (Gamification & Offline Sync): Implement PWA service workers for offline caching, and launch the leaderboard and streak mechanics.
+- **Ribert Kandi Junior**
+- [**RyanDante**](https://github.com/RyanDante)
+- [**Jemi-bigdata**](https://github.com/Jemi-bigdata)
 
+
+## Contributing(ONLY FOR INTERNAL MEMBERS)
+
+Work happens on feature branches (`dev-*/name`) → `develop` → `staging` → `main`. Open a pull request against `develop`.

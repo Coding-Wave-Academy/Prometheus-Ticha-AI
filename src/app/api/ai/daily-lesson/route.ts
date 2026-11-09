@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/requireUser";
 import { formatAIText } from "@/lib/formatAIText";
 import {
   findVideoForTopic,
@@ -114,6 +115,9 @@ export interface DailyLessonV2 {
 
 /* ── POST handler ─────────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const body = await req.json().catch(() => ({}));
     const {

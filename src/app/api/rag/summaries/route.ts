@@ -4,12 +4,16 @@
 // the summary is grounded in verified content. Otherwise falls back to Gemini.
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireUser } from '@/lib/auth/requireUser';
 import { retrieveContext } from '@/lib/rag/retriever';
 import { injectContextIntoPrompt } from '@/lib/rag/promptBuilder';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.response) return auth.response;
+
   try {
     const { subject, topic, educationLevel } = await req.json();
 

@@ -13,6 +13,7 @@ import { fireConfettiBurst } from "@/lib/confetti";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { useProfile } from "@/hooks/useProfile";
 import i18n from "i18next";
+import { apiFetch } from "@/lib/api";
 
 interface FinishSetupModalProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export default function FinishSetupModal({ isOpen, onClose }: FinishSetupModalPr
   const fetchAiTips = async (level: string, reg: string, name: string, lang: string) => {
     setIsLoadingTips(true);
     try {
-      const res = await fetch("/api/ai/onboarding-tips", {
+      const res = await apiFetch("/api/ai/onboarding-tips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

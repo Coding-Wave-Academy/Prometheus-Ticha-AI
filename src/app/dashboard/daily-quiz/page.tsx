@@ -22,6 +22,7 @@ import { fireSuccessCelebration, fireConfettiBurst } from "@/lib/confetti";
 import { normalizeSubjectName } from "@/lib/videoCatalog";
 import { getStoredDailyTopic, getTodayLessonTopic } from "@/lib/dailyTopic";
 import "@/lib/i18n";
+import { apiFetch } from "@/lib/api";
 
 interface QuizQuestion {
   questionText: string;
@@ -162,7 +163,7 @@ function DailyQuizContent() {
     setSubjectTopic({ subject, topic });
 
     try {
-      const res = await fetch("/api/ai/quiz", {
+      const res = await apiFetch("/api/ai/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, topic, education: "al" }),
